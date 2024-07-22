@@ -1,0 +1,12 @@
+DATA:
+  img_size: [1, 50, 50]
+TRAINING:
+  ENCODER:
+    name: VGG16Encoder
+    learning_rate: 0.0001
+  MODEL:
+    name: DummyCNN
+    learning_rate: 0.001
+  batch_size: 64
+  epochs: 10
+  num_units: 9
