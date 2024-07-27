@@ -3,6 +3,7 @@ from dataclasses import dataclass
 @dataclass
 class DataConfig:
     img_size: list[int]
+    rgb: bool
 
 
 @dataclass

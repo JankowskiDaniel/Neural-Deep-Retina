@@ -19,6 +19,9 @@ def load_model(config: Config) -> nn.Module:
 
     # resolve input size
     img_size = config.data.img_size
+    is_rgb = config.data.rgb
+    if is_rgb:
+        img_size[0] = 3
     batch_size = config.training.batch_size
     input_size = (batch_size, *img_size)
 
@@ -28,7 +31,7 @@ def load_model(config: Config) -> nn.Module:
     # initialize model
     model: nn.Module = ARCHITECTURES[arch_name](
         encoder,
-        config.data.num_classes
+        config.training.num_units
         )
     
     return model

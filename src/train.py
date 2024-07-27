@@ -8,4 +8,3 @@ if __name__ == "__main__":
 
     # load the model
     model = load_model(config)
-

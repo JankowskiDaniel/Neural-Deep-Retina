@@ -10,7 +10,8 @@ class H5Dataset(torch.utils.data.Dataset):
                  transform: transforms.Compose = transforms.Compose([
                     transforms.ToTensor(),
                 ]),
-                 train: bool= True):
+                 train: bool= True,
+                 is_rgb: bool = False):
         self.file_path = path
         # The available types are firing_rate_10ms, binned
         self.response_type = response_type
@@ -19,6 +20,7 @@ class H5Dataset(torch.utils.data.Dataset):
         self.transform = transform
         # Choose either train or test subsets
         self.data_type = "train" if train else "test"
+        self.is_rgb = is_rgb
         with File(self.file_path, 'r') as file:
             self.dataset_len = len(file[self.data_type]["stimulus"])
 
@@ -31,6 +33,11 @@ class H5Dataset(torch.utils.data.Dataset):
             # Swap axes of y since it is channels last
             self.y = np.transpose(self.y, axes=None)
             self.y = self.y.astype("float32")
+
+        x = self.X[idx]
+
+        if self.is_rgb:
+            x = np.stack([x] * 3, axis=-1)
 
         # transform the data
         x = self.transform(self.X[idx])

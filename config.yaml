@@ -1,5 +1,6 @@
 DATA:
   img_size: [1, 50, 50]
+  rgb: True
 TRAINING:
   ENCODER:
     name: VGG16Encoder
