@@ -4,6 +4,7 @@ from dataclasses import dataclass
 class DataConfig:
     img_size: list[int]
     rgb: bool
+    path: str
 
 
 @dataclass
