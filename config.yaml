@@ -6,7 +6,7 @@ TRAINING:
   ENCODER:
     name: VGG16Encoder
     learning_rate: 0.0001
-  MODEL:
+  PREDICTOR:
     name: DummyCNN
     learning_rate: 0.001
   batch_size: 64

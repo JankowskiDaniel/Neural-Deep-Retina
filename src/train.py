@@ -41,3 +41,10 @@ if __name__ == "__main__":
     # Define training parameters
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     N_EPOCHS = config.training.epochs
+    ENCODER_LR = config.training.encoder.learning_rate
+    PREDICTOR_LR = config.training.predictor.learning_rate
+
+    optimizer = torch.optim.Adam([
+        {'params': model.encoder.parameters(), 'lr': ENCODER_LR},
+        {'params': model.predictor.parameters(), 'lr': PREDICTOR_LR}
+    ])

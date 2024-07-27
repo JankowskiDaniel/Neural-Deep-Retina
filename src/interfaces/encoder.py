@@ -5,7 +5,7 @@ class Encoder(nn.Module, ABC):
     """
     Abstract class for encoders. All encoders should inherit from this class.
     """
-    def __init__(self, input_size: tuple) -> None:
+    def __init__(self) -> None:
         super(Encoder, self).__init__()
 
     @abstractmethod

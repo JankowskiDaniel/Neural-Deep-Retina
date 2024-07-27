@@ -16,7 +16,7 @@ class NNConfig:
 @dataclass
 class TrainingConfig:
     encoder: NNConfig
-    model: NNConfig
+    predictor: NNConfig
     batch_size: int
     epochs: int
     num_units: int

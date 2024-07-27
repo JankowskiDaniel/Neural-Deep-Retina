@@ -4,7 +4,7 @@ from interfaces.encoder import Encoder
 
 class VGG16Encoder(Encoder):
     def __init__(self, input_size: tuple) -> None:
-        super(VGG16Encoder, self).__init__(input_size)
+        super(VGG16Encoder, self).__init__()
         vgg16 = models.vgg16(pretrained=True)
         self.features = vgg16.features
 
