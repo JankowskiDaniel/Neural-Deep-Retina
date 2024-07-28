@@ -12,3 +12,4 @@ TRAINING:
   batch_size: 64
   epochs: 10
   num_units: 9
+  save_logs: True

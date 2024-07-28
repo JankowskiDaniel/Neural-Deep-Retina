@@ -20,6 +20,7 @@ class TrainingConfig:
     batch_size: int
     epochs: int
     num_units: int
+    save_logs: bool
 
 
 @dataclass

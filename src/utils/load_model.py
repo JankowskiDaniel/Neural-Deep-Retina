@@ -28,7 +28,11 @@ def load_model(config: Config) -> DeepRetinaModel:
     # initialize encoder
     encoder: Encoder = ENCODERS[enc_name](input_size=input_size)
     encoder_output_shape = encoder.get_output_shape()
-    flattened_size = encoder_output_shape[0] * encoder_output_shape[1] * encoder_output_shape[2]
+
+    flattened_size = 1
+    # we skip the first dimension which is the batch size
+    for dim in encoder_output_shape[1:]:
+        flattened_size *= dim
 
     # initialize predictor
     predictor: Predictor = PREDICTORS[pred_name](

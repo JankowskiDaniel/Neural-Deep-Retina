@@ -26,7 +26,8 @@ def load_config(path: str) -> Config:
         predictor=predictor_conf,
         batch_size=config["TRAINING"]['batch_size'],
         epochs=config["TRAINING"]['epochs'],
-        num_units=config["TRAINING"]['num_units']
+        num_units=config["TRAINING"]['num_units'],
+        save_logs=config["TRAINING"]['save_logs']
     )
 
     return Config(data=data_conf, training=training_conf)
