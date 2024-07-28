@@ -22,14 +22,14 @@ class H5Dataset(torch.utils.data.Dataset):
         self.data_type = "train" if train else "test"
         self.is_rgb = is_rgb
         with File(self.file_path, 'r') as file:
-            self.dataset_len = len(file[self.data_type]["stimulus"][:500])
+            self.dataset_len = len(file[self.data_type]["stimulus"])
 
     def __getitem__(self, idx: int):
         if self.X is None or self.y is None:
             h5file = File(self.file_path, 'r')
             # Read as numpy array
-            self.X = np.asarray(h5file[self.data_type]["stimulus"][:500])
-            self.y = np.asarray(h5file[self.data_type]["response"][self.response_type][:500])
+            self.X = np.asarray(h5file[self.data_type]["stimulus"])
+            self.y = np.asarray(h5file[self.data_type]["response"][self.response_type])
             # Swap axes of y since it is channels last
             self.y = np.transpose(self.y, axes=None)
             self.y = self.y.astype("float32")
