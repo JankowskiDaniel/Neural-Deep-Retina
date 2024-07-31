@@ -9,19 +9,15 @@
 2. Activate the environment: <br>
 Linux: `source venv/bin/activate` <br>
 Windows: `venv\Scripts\activate.bat`
-3. Install required dependencies: <br>
-`pip install -r requirements.txt`
-
-Alternatively to point 3., install dependencies by listing only the core packages:
-
-```sh
-# Install torch with CUDA
-pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cu121
-# OR install torch with CPU only
-pip install torch==2.3.1 torchvision==0.18.1
-# Install other necessary packages
-pip install tqdm==4.66.4 pyyaml==6.0.1 h5py==3.11.0 scikit-learn==1.5.1 seaborn==0.13.2
-```
+3. Install required dependencies: 
+    ```sh
+    # Install torch with CUDA
+    pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cu121
+    # OR install CPU only torch 
+    pip install torch==2.3.1 torchvision==0.18.1
+    # Then install other dependencies
+    pip install -r requirements.txt
+    ```
 
 
 ## Training ##
