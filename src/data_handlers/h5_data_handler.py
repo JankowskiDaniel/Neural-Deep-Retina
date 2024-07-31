@@ -2,6 +2,8 @@ import torch
 from h5py import File
 from torchvision import transforms
 import numpy as np
+from numpy import ndarray, dtype
+from typing import Any
 
 
 class H5Dataset(torch.utils.data.Dataset):
@@ -20,8 +22,8 @@ class H5Dataset(torch.utils.data.Dataset):
         self.file_path = path
         # The available types are firing_rate_10ms, binned
         self.response_type = response_type
-        self.X = None
-        self.y = None
+        self.X: ndarray[Any, dtype[Any]] | None = None
+        self.Y: ndarray[Any, dtype[Any]] | None = None
         self.transform = transform
         # Choose either train or test subsets
         self.data_type = "train" if train else "test"
@@ -30,16 +32,16 @@ class H5Dataset(torch.utils.data.Dataset):
             self.dataset_len = len(file[self.data_type]["stimulus"][:500])
 
     def __getitem__(self, idx: int):
-        if self.X is None or self.y is None:
+        if self.X is None or self.Y is None:
             h5file = File(self.file_path, "r")
             # Read as numpy array
-            self.X = np.asarray(h5file[self.data_type]["stimulus"][:500])
-            self.y = np.asarray(
-                h5file[self.data_type]["response"][self.response_type][:500]
-            )
+            X = np.asarray(h5file[self.data_type]["stimulus"][:500])
+            Y = np.asarray(h5file[self.data_type]["response"][self.response_type][:500])
             # Swap axes of y since it is channels last
-            self.y = np.transpose(self.y, axes=None)
-            self.y = self.y.astype("float32")
+            Y = np.transpose(Y, axes=None)
+            Y = Y.astype("float32")
+            self.X = X
+            self.Y = Y
 
         x = self.X[idx]
 
@@ -48,7 +50,7 @@ class H5Dataset(torch.utils.data.Dataset):
 
         # transform the data
         x = self.transform(x)
-        y = torch.tensor(self.y[idx], dtype=torch.float32)
+        y = torch.tensor(self.Y[idx], dtype=torch.float32)
         return x, y
 
     def __len__(self):

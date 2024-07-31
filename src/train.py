@@ -81,7 +81,7 @@ if __name__ == "__main__":
     )
     loss_fn = nn.MSELoss()
 
-    train_history = {"train_loss": [], "valid_loss": []}
+    train_history: dict = {"train_loss": [], "valid_loss": []}
     # ########### START TRAINING ###########
     logger.info(f"Training on {DEVICE} using device: {DEVICE_NAME}")
     model.to(DEVICE)
