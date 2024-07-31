@@ -1,5 +1,6 @@
 import argparse
 
+
 def get_arguments() -> tuple[str, str]:
     """Read parsed arguments from command line.
 

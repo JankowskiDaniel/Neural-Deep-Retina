@@ -1,17 +1,18 @@
 import logging
 
-def get_logger(log_to_file: bool = False, log_file: str = 'logs.log'):
+
+def get_logger(log_to_file: bool = False, log_file: str = "logs.log"):
     # Create a custom logger
-    logger = logging.getLogger('logger')
+    logger = logging.getLogger("logger")
     logger.setLevel(logging.DEBUG)
 
     # Create formatter
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
     # Clear existing handlers
     if logger.hasHandlers():
         logger.handlers.clear()
-    
+
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.DEBUG)
     console_handler.setFormatter(formatter)
@@ -25,6 +26,5 @@ def get_logger(log_to_file: bool = False, log_file: str = 'logs.log'):
         file_handler.setFormatter(formatter)
         # Add the file handler to the logger
         logger.addHandler(file_handler)
-
 
     return logger

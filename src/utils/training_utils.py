@@ -4,7 +4,6 @@ from models import DeepRetinaModel
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer
 import torch.nn as nn
-from tqdm import tqdm
 import numpy as np
 
 
@@ -23,7 +22,7 @@ def train_epoch(
         images = data.to(device)
         targets = labels.to(device)
         outputs = model(images)
-        
+
         loss = loss_fn(outputs, targets)
 
         optimizer.zero_grad()
@@ -38,10 +37,10 @@ def valid_epoch(
     model: DeepRetinaModel,
     valid_loader: DataLoader,
     loss_fn: nn.Module,
-    device: Literal["cuda", "cpu"]
+    device: Literal["cuda", "cpu"],
 ):
     model.eval()
-    valid_batch_losses=[]
+    valid_batch_losses = []
     with torch.no_grad():
         for data, labels in valid_loader:
             images = data.to(device)

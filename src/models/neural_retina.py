@@ -8,6 +8,7 @@ class DeepRetinaModel(nn.Module):
     predictor. The purpose of this class is to easily combine the encoder and
     predictor into a single model.
     """
+
     def __init__(self, encoder: Encoder, predictor: Predictor):
         super(DeepRetinaModel, self).__init__()
         self.encoder = encoder

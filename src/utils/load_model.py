@@ -4,13 +4,9 @@ from predictors.dummy import DummyCNN
 from encoders import VGG16Encoder
 from models import DeepRetinaModel
 
-PREDICTORS: dict[str, Predictor] = {
-    "DummyCNN": DummyCNN
-}
+PREDICTORS: dict[str, Predictor] = {"DummyCNN": DummyCNN}
 
-ENCODERS: dict[str, Encoder] = {
-    "VGG16Encoder": VGG16Encoder
-}
+ENCODERS: dict[str, Encoder] = {"VGG16Encoder": VGG16Encoder}
 
 
 def load_model(config: Config) -> DeepRetinaModel:
@@ -36,11 +32,9 @@ def load_model(config: Config) -> DeepRetinaModel:
 
     # initialize predictor
     predictor: Predictor = PREDICTORS[pred_name](
-        input_size=flattened_size,
-        num_classes=config.training.num_units
+        input_size=flattened_size, num_classes=config.training.num_units
     )
 
     model = DeepRetinaModel(encoder=encoder, predictor=predictor)
 
     return model
-

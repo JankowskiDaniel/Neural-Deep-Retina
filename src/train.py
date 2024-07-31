@@ -11,7 +11,7 @@ from utils.file_manager import organize_folders, copy_config
 
 
 if __name__ == "__main__":
-    
+
     config_path, results_dir = get_arguments()
     config = load_config(config_path)
 
@@ -21,7 +21,8 @@ if __name__ == "__main__":
 
     logger = get_logger(
         log_to_file=config.training.save_logs,
-        log_file=f"results/{results_dir}/logs.log")
+        log_file=f"results/{results_dir}/logs.log",
+    )
 
     # load the model
     logger.info("Loading model...")
@@ -32,13 +33,13 @@ if __name__ == "__main__":
         path=config.data.path,
         response_type="firing_rate_10ms",
         train=True,
-        is_rgb=config.data.rgb
+        is_rgb=config.data.rgb,
     )
     test_dataset = H5Dataset(
         path=config.data.path,
         response_type="firing_rate_10ms",
         train=False,
-        is_rgb=config.data.rgb
+        is_rgb=config.data.rgb,
     )
 
     TORCH_SEED = 12
@@ -49,8 +50,7 @@ if __name__ == "__main__":
     train_size = int(TRAIN_SIZE * len(train_dataset))
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(
-        train_dataset,
-        [train_size, val_size]
+        train_dataset, [train_size, val_size]
     )
 
     logger.info(f"Train dataset size: {len(train_dataset)}")
@@ -66,27 +66,22 @@ if __name__ == "__main__":
 
     # Define data loaders
     train_loader = DataLoader(
-        train_dataset,
-        batch_size=config.training.batch_size,
-        shuffle=True
+        train_dataset, batch_size=config.training.batch_size, shuffle=True
     )
     test_loader = DataLoader(
-        test_dataset,
-        batch_size=config.training.batch_size,
-        shuffle=False
+        test_dataset, batch_size=config.training.batch_size, shuffle=False
     )
 
     # Define optimizer and loss function
-    optimizer = torch.optim.Adam([
-        {'params': model.encoder.parameters(), 'lr': ENCODER_LR},
-        {'params': model.predictor.parameters(), 'lr': PREDICTOR_LR}
-    ])
+    optimizer = torch.optim.Adam(
+        [
+            {"params": model.encoder.parameters(), "lr": ENCODER_LR},
+            {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
+        ]
+    )
     loss_fn = nn.MSELoss()
 
-    train_history = {
-        "train_loss": [],
-        "valid_loss": []
-    }
+    train_history = {"train_loss": [], "valid_loss": []}
     # ########### START TRAINING ###########
     logger.info(f"Training on {DEVICE} using device: {DEVICE_NAME}")
     model.to(DEVICE)
@@ -102,7 +97,7 @@ if __name__ == "__main__":
             optimizer=optimizer,
             loss_fn=loss_fn,
             device=DEVICE,
-            epoch=epoch
+            epoch=epoch,
         )
         train_history["train_loss"].append(train_loss)
 
@@ -111,10 +106,7 @@ if __name__ == "__main__":
 
         # validation
         valid_loss = valid_epoch(
-            model=model,
-            valid_loader=test_loader,
-            loss_fn=loss_fn,
-            device=DEVICE
+            model=model, valid_loader=test_loader, loss_fn=loss_fn, device=DEVICE
         )
         train_history["valid_loss"].append(valid_loss)
 
@@ -122,7 +114,9 @@ if __name__ == "__main__":
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
-            torch.save(model.state_dict(), f"results/{results_dir}/models/best_model.pth")
+            torch.save(
+                model.state_dict(), f"results/{results_dir}/models/best_model.pth"
+            )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         time_elapsed = time() - start_epoch_time

@@ -2,6 +2,7 @@ from torchvision import models
 import torch
 from interfaces.encoder import Encoder
 
+
 class VGG16Encoder(Encoder):
     def __init__(self, input_size: tuple) -> None:
         super(VGG16Encoder, self).__init__()
@@ -22,5 +23,3 @@ class VGG16Encoder(Encoder):
         with torch.no_grad():
             output = self.features(self._dummy_input)
         return output.shape
-
-
