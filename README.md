@@ -12,6 +12,18 @@ Windows: `venv\Scripts\activate.bat`
 3. Install required dependencies: <br>
 `pip install -r requirements.txt`
 
+Alternatively to point 3., install dependencies by listing only the core packages:
+
+```sh
+# Install torch with CUDA
+pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cu121
+# OR install torch with CPU only
+pip install torch==2.3.1 torchvision==0.18.1
+# Install other necessary packages
+pip install tqdm==4.66.4 pyyaml==6.0.1 h5py==3.11.0 scikit-learn==1.5.1 seaborn==0.13.2
+```
+
+
 ## Training ##
 
 For running model training use the `src/train.py` script. It is assumed that the script is run at the root level of the repository (follow this convention to avoid directory conflicts).
