@@ -17,8 +17,9 @@ Windows: `venv\Scripts\activate.bat`
     pip install torch==2.3.1 torchvision==0.18.1
     # Then install other dependencies
     pip install -r requirements.txt
+    # Optionally, install jupyter notebook dependencies
+    pip install ipykernel==6.29.5 ipython==8.26.0
     ```
-
 
 ## Training ##
 
