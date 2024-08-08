@@ -32,13 +32,13 @@ if __name__ == "__main__":
     train_dataset = H5Dataset(
         path=config.data.path,
         response_type="firing_rate_10ms",
-        train=True,
+        is_train=True,
         is_rgb=config.data.rgb,
     )
     test_dataset = H5Dataset(
         path=config.data.path,
         response_type="firing_rate_10ms",
-        train=False,
+        is_train=False,
         is_rgb=config.data.rgb,
     )
 
@@ -47,6 +47,7 @@ if __name__ == "__main__":
     # Split train dataset into train and validation
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
     torch.manual_seed(TORCH_SEED)
+    # TODO: Time series data should not be shuffled
     train_size = int(TRAIN_SIZE * len(train_dataset))
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(
@@ -68,8 +69,8 @@ if __name__ == "__main__":
     train_loader = DataLoader(
         train_dataset, batch_size=config.training.batch_size, shuffle=True
     )
-    test_loader = DataLoader(
-        test_dataset, batch_size=config.training.batch_size, shuffle=False
+    val_loader = DataLoader(
+        val_dataset, batch_size=config.training.batch_size, shuffle=False
     )
 
     # Define optimizer and loss function
@@ -106,7 +107,7 @@ if __name__ == "__main__":
 
         # validation
         valid_loss = valid_epoch(
-            model=model, valid_loader=test_loader, loss_fn=loss_fn, device=DEVICE
+            model=model, valid_loader=val_loader, loss_fn=loss_fn, device=DEVICE
         )
         train_history["valid_loss"].append(valid_loss)
 
