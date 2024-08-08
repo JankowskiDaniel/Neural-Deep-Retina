@@ -1,5 +1,11 @@
 import yaml
-from data_models.config_models import Config, DataConfig, NNConfig, TrainingConfig
+from data_models.config_models import (
+    Config,
+    DataConfig,
+    NNConfig,
+    TrainingConfig,
+    TestingConfig,
+)
 
 
 def load_config(path: str) -> Config:
@@ -25,5 +31,10 @@ def load_config(path: str) -> Config:
         num_units=config["TRAINING"]["num_units"],
         save_logs=config["TRAINING"]["save_logs"],
     )
+    testing_config = TestingConfig(
+        batch_size=config["TESTING"]["batch_size"],
+        weights=config["TESTING"]["weights"],
+        save_logs=config["TESTING"]["save_logs"],
+    )
 
-    return Config(data=data_conf, training=training_conf)
+    return Config(data=data_conf, training=training_conf, testing=testing_config)

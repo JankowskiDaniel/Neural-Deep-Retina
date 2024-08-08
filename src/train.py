@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from utils import get_arguments, load_config, load_model
+from utils import get_training_arguments, load_config, load_model
 from data_handlers import H5Dataset
 from torch.utils.data import DataLoader
 import torch
@@ -13,7 +13,7 @@ from utils.file_manager import organize_folders, copy_config
 
 if __name__ == "__main__":
 
-    config_path, results_dir = get_arguments()
+    config_path, results_dir = get_training_arguments()
     config = load_config(config_path)
 
     # Organize folders
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     logger = get_logger(
         log_to_file=config.training.save_logs,
-        log_file=results_dir_path / "logs.log",
+        log_file=results_dir_path / "train_logs.log",
     )
 
     # load the model
@@ -39,12 +39,11 @@ if __name__ == "__main__":
         is_train=True,
         is_rgb=config.data.rgb,
     )
-    test_dataset = H5Dataset(
-        path=Path(config.data.path),
-        response_type="firing_rate_10ms",
-        is_train=False,
-        is_rgb=config.data.rgb,
-    )
+
+    # Get sample data to check dimensions
+    X, y = train_dataset[0]
+    logger.info(f"Input data point shape: {X.shape}")
+    logger.info(f"Target data point shape: {y.shape}")
 
     TORCH_SEED = 12
     TRAIN_SIZE = 0.8
@@ -70,12 +69,8 @@ if __name__ == "__main__":
     BATCH_SIZE = config.training.batch_size
 
     # Define data loaders
-    train_loader = DataLoader(
-        train_dataset, batch_size=config.training.batch_size, shuffle=True
-    )
-    val_loader = DataLoader(
-        val_dataset, batch_size=config.training.batch_size, shuffle=False
-    )
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(
@@ -119,9 +114,7 @@ if __name__ == "__main__":
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
-            torch.save(
-                model.state_dict(), results_dir_path / "models" / "best_model.pth"
-            )
+            torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         time_elapsed = time() - start_epoch_time
@@ -129,4 +122,4 @@ if __name__ == "__main__":
 
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
-    torch.save(model.state_dict(), results_dir_path / "models" / "final_model.pth")
+    torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")

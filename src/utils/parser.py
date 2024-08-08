@@ -2,22 +2,22 @@ import argparse
 from pathlib import Path
 
 
-def get_arguments() -> tuple[Path, Path]:
-    """Read parsed arguments from command line.
+def get_training_arguments() -> tuple[Path, Path]:
+    """Parse training arguments from command line.
 
     Returns:
-        tuple[str, str]: Return a tuple of config path and results directory
+        tuple[Path, Path]: Return a tuple of config path and results directory
     """
     parser = argparse.ArgumentParser(description="Main training script")
 
     parser.add_argument(
-        "--config", type=str, default="config.yaml", help="Path to config file"
-    )
-    parser.add_argument(
         "--results_dir",
         type=str,
         required=True,
-        help="Name of a results directory",
+        help="Name of the results directory",
+    )
+    parser.add_argument(
+        "--config", type=str, default="config.yaml", help="Path to config file"
     )
 
     args = parser.parse_args()
@@ -25,3 +25,24 @@ def get_arguments() -> tuple[Path, Path]:
     config_path = Path(args.config)
     results_dir = Path(args.results_dir)
     return config_path, results_dir
+
+
+def get_testing_arguments() -> Path:
+    """Parse testing arguments from command line.
+    The config file is assumed to be in the results directory.
+
+    Returns:
+        Path: Return results directory
+    """
+    parser = argparse.ArgumentParser(description="Main testing script")
+
+    parser.add_argument(
+        "--results_dir",
+        type=str,
+        required=True,
+        help="Name of the results directory",
+    )
+    args = parser.parse_args()
+
+    results_dir = Path(args.results_dir)
+    return results_dir

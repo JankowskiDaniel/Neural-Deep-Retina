@@ -25,6 +25,14 @@ class TrainingConfig:
 
 
 @dataclass
+class TestingConfig:
+    batch_size: int
+    weights: str
+    save_logs: bool
+
+
+@dataclass
 class Config:
     data: DataConfig
     training: TrainingConfig
+    testing: TestingConfig

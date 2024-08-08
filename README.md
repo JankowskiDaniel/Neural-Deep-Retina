@@ -23,17 +23,39 @@ Windows: `venv\Scripts\activate.bat`
 
 ## Training ##
 
-For running model training use the `src/train.py` script. It is assumed that the script is run at the root level of the repository (follow this convention to avoid directory conflicts).
+For running model training, use the `src/train.py` script. It is assumed that the script is run at the root level of the repository (follow this convention to avoid directory conflicts).
 
 The script accepts two parameters:
 
-- `--results_dir` - a directory inside the `results` dir, where the trained models, config, and optionally logs are stored.
-- `--config` (optional) - a config file name. Default to `config.yaml`
+- `--results_dir` - a directory inside the `results` folder, where the saved models, config, and optionally logs are stored.
+- `--config` (optional) - a config file name. Defaults to `config.yaml`
 
 An exemplary command for running the training:
 
-`python src/train.py --results_dir my_training` - the training results will be saved inside `results/my_training` directory using the `config.yaml` file.
+```sh
+python src/train.py --results_dir my_training
+``` 
+The training results will be saved inside `results/my_training` directory and training will proceed according to `config.yaml` file.
 
+## Testing ##
+
+For testing, use the `src/test.py` script. Again, it is assumed that the script is run at the root level of the repository.
+
+The script accepts one parameter:
+
+- `--results_dir` - the same directory you provided for training
+
+#### *Important* ####
+
+Run testing only after training is finished and the models are saved. By default, the model state dict is loaded from `results/results_dir/models/best.pth`.
+
+Testing parameters are specified in the `config.yaml` file present in the `results_dir` directory. The config file is copied there during training.
+
+An exemplary command for running the testing:
+
+```sh
+python src/test.py --results_dir my_training
+```
 
 ## Dataset ##
 
