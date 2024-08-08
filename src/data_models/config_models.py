@@ -28,6 +28,7 @@ class TrainingConfig:
 class TestingConfig:
     batch_size: int
     weights: str
+    metrics: list[str]
     save_logs: bool
 
 

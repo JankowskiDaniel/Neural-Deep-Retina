@@ -20,8 +20,8 @@ def get_logger(log_to_file: bool = False, log_file: str = "logs.log"):
     logger.addHandler(console_handler)
 
     if log_to_file:
-        # Create a file handler
-        file_handler = logging.FileHandler(log_file)
+        # Create a file handler in a write mode
+        file_handler = logging.FileHandler(log_file, mode="w")
         file_handler.setLevel(logging.DEBUG)
         file_handler.setFormatter(formatter)
         # Add the file handler to the logger

@@ -34,6 +34,7 @@ def load_config(path: str) -> Config:
     testing_config = TestingConfig(
         batch_size=config["TESTING"]["batch_size"],
         weights=config["TESTING"]["weights"],
+        metrics=config["TESTING"]["metrics"],
         save_logs=config["TESTING"]["save_logs"],
     )
 

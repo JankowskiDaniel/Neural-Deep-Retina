@@ -1,12 +1,15 @@
-from utils import get_testing_arguments, load_config, load_model
-from data_handlers import H5Dataset
-from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 from time import time
 from pathlib import Path
+import pandas as pd
+
+from data_handlers import H5Dataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
+from utils.metrics import get_metrics_tracker
+from utils import get_testing_arguments, load_config, load_model
 
 
 if __name__ == "__main__":
@@ -66,18 +69,32 @@ if __name__ == "__main__":
     # Define loss function
     loss_fn = nn.MSELoss()
 
+    # Create metrics tracker
+    metrics_tracker = get_metrics_tracker(config.testing.metrics)
+    metrics_tracker.to(DEVICE)
+
     # Test the model
     logger.info(f"Testing on {DEVICE} using device: {DEVICE_NAME}")
     model.to(DEVICE)
     start_testing_time = time()
 
-    test_loss = test_model(
+    test_loss, metrics_dict = test_model(
         model=model,
         test_loader=test_loader,
         loss_fn=loss_fn,
         device=DEVICE,
+        tracker=metrics_tracker,
     )
 
     total_time = time() - start_testing_time
     logger.info(f"Test loss: {test_loss:.4f}")
     logger.info(f"Total testing time: {total_time:.2f} seconds")
+
+    # Create a DataFrame from the metrics dictionary
+    df_results = pd.DataFrame(metrics_dict)
+    logger.info(
+        "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
+    )
+    # Save results to a csv file
+    df_results.to_csv(results_dir_path / "test_results.csv", index=False)
+    logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
