@@ -9,7 +9,7 @@ metrics_dict = {
 }
 
 
-def get_metrics_tracker(metrics: list[str]):
+def get_metric_tracker(metrics: list[str]):
     metric_collection = MetricCollection([metrics_dict[m] for m in metrics])
     tracker = MetricTracker(metric_collection, maximize=False)
     return tracker

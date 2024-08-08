@@ -8,8 +8,9 @@ import pandas as pd
 from data_handlers import H5Dataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
-from utils.metrics import get_metrics_tracker
+from utils.metrics import get_metric_tracker
 from utils import get_testing_arguments, load_config, load_model
+from visualize.visualize_dataset import visualize_outputs_and_targets
 
 
 if __name__ == "__main__":
@@ -30,14 +31,13 @@ if __name__ == "__main__":
 
     logger.info("Preparing to test model...")
     logger.info(f"Using config file: {config_path}")
-    logger.info(f'Using model: {results_dir_path / "models" / config.testing.weights}')
+    weights_path = results_dir_path / "models" / config.testing.weights
+    logger.info(f"Using model: {weights_path}")
 
     # load the model
     logger.info("Loading model...")
     model = load_model(config)
-    model.load_state_dict(
-        torch.load(results_dir_path / "models" / config.testing.weights)
-    )
+    model.load_state_dict(torch.load(weights_path))
 
     # load the test dataset
     test_dataset = H5Dataset(
@@ -69,9 +69,13 @@ if __name__ == "__main__":
     # Define loss function
     loss_fn = nn.MSELoss()
 
-    # Create metrics tracker
-    metrics_tracker = get_metrics_tracker(config.testing.metrics)
+    # Create metric tracker
+    metrics_tracker = get_metric_tracker(config.testing.metrics)
     metrics_tracker.to(DEVICE)
+
+    # Create a folder for predictions
+    predictions_dir = results_dir_path / "predictions"
+    predictions_dir.mkdir(parents=True, exist_ok=True)
 
     # Test the model
     logger.info(f"Testing on {DEVICE} using device: {DEVICE_NAME}")
@@ -84,6 +88,8 @@ if __name__ == "__main__":
         loss_fn=loss_fn,
         device=DEVICE,
         tracker=metrics_tracker,
+        save_outputs_and_targets=True,
+        save_dir=predictions_dir,
     )
 
     total_time = time() - start_testing_time
@@ -98,3 +104,7 @@ if __name__ == "__main__":
     # Save results to a csv file
     df_results.to_csv(results_dir_path / "test_results.csv", index=False)
     logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
+
+    # Plot outputs and targets
+    visualize_outputs_and_targets(predictions_dir)
+    logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
