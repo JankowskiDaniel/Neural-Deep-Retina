@@ -3,6 +3,8 @@ from data_handlers import H5Dataset
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from sklearn.preprocessing import MinMaxScaler
+
 
 def visualize_outputs(
     dataset: H5Dataset, save_path: str = "dataset_outputs.png"
@@ -38,12 +40,15 @@ def visualize_outputs(
 
 if __name__ == "__main__":
 
+    y_scaler = MinMaxScaler()
+
     # load the dataset
     train_dataset = H5Dataset(
         path="../data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5",
         response_type="firing_rate_10ms",
-        train=True,
+        is_train=True,
         is_rgb=False,
+        y_scaler=y_scaler,
     )
 
     visualize_outputs(train_dataset)
