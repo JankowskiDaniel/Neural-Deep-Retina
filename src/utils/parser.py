@@ -1,7 +1,8 @@
 import argparse
+from pathlib import Path
 
 
-def get_arguments() -> tuple[str, str]:
+def get_arguments() -> tuple[Path, Path]:
     """Read parsed arguments from command line.
 
     Returns:
@@ -21,6 +22,6 @@ def get_arguments() -> tuple[str, str]:
 
     args = parser.parse_args()
 
-    config_path = args.config
-    results_dir = args.results_dir
+    config_path = Path(args.config)
+    results_dir = Path(args.results_dir)
     return config_path, results_dir

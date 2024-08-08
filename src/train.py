@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 from time import time
+from pathlib import Path
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
@@ -19,9 +20,12 @@ if __name__ == "__main__":
     organize_folders(results_dir)
     copy_config(results_dir, config_path)
 
+    # Create path object to results directory
+    results_dir_path = "results" / results_dir
+
     logger = get_logger(
         log_to_file=config.training.save_logs,
-        log_file=f"results/{results_dir}/logs.log",
+        log_file=results_dir_path / "logs.log",
     )
 
     # load the model
@@ -30,13 +34,13 @@ if __name__ == "__main__":
 
     # load the datasets
     train_dataset = H5Dataset(
-        path=config.data.path,
+        path=Path(config.data.path),
         response_type="firing_rate_10ms",
         is_train=True,
         is_rgb=config.data.rgb,
     )
     test_dataset = H5Dataset(
-        path=config.data.path,
+        path=Path(config.data.path),
         response_type="firing_rate_10ms",
         is_train=False,
         is_rgb=config.data.rgb,
@@ -116,7 +120,7 @@ if __name__ == "__main__":
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
             torch.save(
-                model.state_dict(), f"results/{results_dir}/models/best_model.pth"
+                model.state_dict(), results_dir_path / "models" / "best_model.pth"
             )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
@@ -125,4 +129,4 @@ if __name__ == "__main__":
 
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
-    torch.save(model.state_dict(), f"results/{results_dir}/models/final_model.pth")
+    torch.save(model.state_dict(), results_dir_path / "models" / "final_model.pth")

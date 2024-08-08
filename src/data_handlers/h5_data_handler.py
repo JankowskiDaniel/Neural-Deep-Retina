@@ -4,20 +4,19 @@ from torchvision import transforms
 import numpy as np
 from numpy import ndarray, dtype
 from typing import Any, Tuple
+from pathlib import Path
 
-transform_x: transforms.Compose = (
-    transforms.Compose(
-        [
-            transforms.ToTensor(),
-        ]
-    ),
+transform_x: transforms.Compose = transforms.Compose(
+    [
+        transforms.ToTensor(),
+    ]
 )
 
 
 class H5Dataset(torch.utils.data.Dataset):
     def __init__(
         self,
-        path: str,
+        path: Path,
         response_type: str,
         is_train: bool = True,
         is_rgb: bool = False,
@@ -34,6 +33,7 @@ class H5Dataset(torch.utils.data.Dataset):
         self.transform_x = transform_x
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
+        self.dataset_len = len(X)
         self.X: ndarray[Any, dtype[Any]] = X
         self.Y: ndarray[Any, dtype[Any]] = y
         self.input_shape: tuple = X.shape
@@ -76,8 +76,6 @@ class H5Dataset(torch.utils.data.Dataset):
         return y
 
     def __getitem__(self, idx: int):
-        if self.X is None or self.Y is None:
-            self.read_h5_to_numpy()
 
         x = self.X[idx]
         if self.is_rgb:
@@ -86,7 +84,7 @@ class H5Dataset(torch.utils.data.Dataset):
         # Transform the image to tensor
         x = self.transform_x(x)
         # Transform the output value to tensor
-        y = torch.tensor(self.Y[idx], dtype=torch.float32)
+        y = torch.tensor(self.Y[:, idx], dtype=torch.float32)
         return x, y
 
     def __len__(self):

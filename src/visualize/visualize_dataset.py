@@ -1,20 +1,20 @@
-from data_handlers import H5Dataset
-
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 from sklearn.preprocessing import MinMaxScaler
+from pathlib import Path
+
+from data_handlers import H5Dataset
 
 
 def visualize_outputs(
-    dataset: H5Dataset, save_path: str = "dataset_outputs.png"
+    dataset: H5Dataset, save_path: Path = Path("dataset_outputs.png")
 ) -> None:
     """
     Visualizes the outputs of a dataset.
 
     Args:
         dataset (H5Dataset): The dataset containing the outputs to visualize.
-        save_path (str, optional): The path to save. Defaults to "dataset_outputs.png".
+        save_path (Path, optional): The path to save. Defaults to "dataset_outputs.png".
     """
     if dataset.Y is not None:
         n_channels: int = dataset.output_shape[0]
@@ -41,10 +41,11 @@ def visualize_outputs(
 if __name__ == "__main__":
 
     y_scaler = MinMaxScaler()
+    path = Path("../data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5")
 
     # load the dataset
     train_dataset = H5Dataset(
-        path="../data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5",
+        path=path,
         response_type="firing_rate_10ms",
         is_train=True,
         is_rgb=False,
