@@ -2,6 +2,14 @@ import logging
 
 
 def get_logger(log_to_file: bool = False, log_file: str = "logs.log"):
+    """
+    Create and configure a logger object.
+    Parameters:
+        log_to_file (bool): Flag indicating whether to log messages to a file. Default is False.
+        log_file (str): Path to the log file. Default is "logs.log".
+    Returns:
+        logger (logging.Logger): Configured logger object.
+    """  # noqa: E501
     # Create a custom logger
     logger = logging.getLogger("logger")
     logger.setLevel(logging.DEBUG)

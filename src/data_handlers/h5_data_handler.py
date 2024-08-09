@@ -22,6 +22,17 @@ class H5Dataset(torch.utils.data.Dataset):
         is_rgb: bool = False,
         y_scaler: Any = None,
     ):
+        """
+        Initializes the H5Dataset object.
+
+        Args:
+            path (Path): The path to the .h5 file.
+            response_type (str): The type of response data. Available types are 'firing_rate_10ms' and 'binned'.
+            is_train (bool, optional): Whether the data is for training or testing. Defaults to True.
+            is_rgb (bool, optional): Whether the data is in RGB format. Defaults to False.
+            y_scaler (Any, optional): The scaler for the response data. Any scaler from sklearn.preprocessing, for example, StandardScaler. Defaults to None.
+        """  # noqa: E501
+
         self.file_path = path
         # The available types are firing_rate_10ms, binned
         self.response_type = response_type
@@ -42,6 +53,11 @@ class H5Dataset(torch.utils.data.Dataset):
     def read_h5_to_numpy(
         self,
     ) -> Tuple[ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]]]:
+        """
+        Reads data from an HDF5 file and converts it to numpy arrays. Normalizes the output data if the scaler is provided.
+        Returns:
+            Tuple[ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]]]: A tuple containing the input data (X) and the output data (y).
+        """  # noqa: E501
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
             X = np.asarray(h5file[self.data_type]["stimulus"][:500])
