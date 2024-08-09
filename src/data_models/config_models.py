@@ -21,6 +21,8 @@ class TrainingConfig:
     batch_size: int
     epochs: int
     num_units: int
+    early_stopping: bool
+    early_stopping_patience: int
     save_logs: bool
 
 

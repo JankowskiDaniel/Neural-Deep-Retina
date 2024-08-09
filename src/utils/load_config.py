@@ -29,6 +29,8 @@ def load_config(path: str) -> Config:
         batch_size=config["TRAINING"]["batch_size"],
         epochs=config["TRAINING"]["epochs"],
         num_units=config["TRAINING"]["num_units"],
+        early_stopping=config["TRAINING"]["early_stopping"],
+        early_stopping_patience=config["TRAINING"]["early_stopping_patience"],
         save_logs=config["TRAINING"]["save_logs"],
     )
     testing_config = TestingConfig(

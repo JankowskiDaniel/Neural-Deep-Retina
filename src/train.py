@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from utils import get_training_arguments, load_config, load_model
+from utils import get_training_arguments, load_config, load_model, EarlyStopping
 from data_handlers import H5Dataset
 from torch.utils.data import DataLoader
 import torch
@@ -80,8 +80,12 @@ if __name__ == "__main__":
         ]
     )
     loss_fn = nn.MSELoss()
-
     train_history: dict = {"train_loss": [], "valid_loss": []}
+
+    if config.training.early_stopping:
+        PATIENCE = config.training.early_stopping_patience
+        early_stopping = EarlyStopping(patience=PATIENCE)
+
     # ########### START TRAINING ###########
     logger.info(f"Training on {DEVICE} using device: {DEVICE_NAME}")
     model.to(DEVICE)
@@ -116,6 +120,11 @@ if __name__ == "__main__":
             best_val_loss = valid_loss
             torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
             logger.info(f"Best model saved at epoch {epoch + 1}")
+
+        if config.training.early_stopping:
+            if early_stopping(valid_loss):
+                logger.info(f"Early stopping at epoch {epoch + 1}")
+                break
 
         time_elapsed = time() - start_epoch_time
         logger.info(f"Epoch time: {time_elapsed:.2f} seconds")

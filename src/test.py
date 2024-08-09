@@ -8,8 +8,7 @@ import pandas as pd
 from data_handlers import H5Dataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
-from utils.metrics import get_metric_tracker
-from utils import get_testing_arguments, load_config, load_model
+from utils import get_testing_arguments, load_config, load_model, get_metric_tracker
 from visualize.visualize_dataset import visualize_outputs_and_targets
 
 
