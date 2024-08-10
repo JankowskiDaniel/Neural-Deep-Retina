@@ -16,6 +16,7 @@ class EarlyStopping:
         __call__(self, loss: float) -> bool:
             Checks if the given loss value qualifies for early stopping.
     """  # noqa: E501
+
     def __init__(self, patience: int = 3, min_delta: float = 0.0):
         self.patience = patience
         self.min_delta = min_delta

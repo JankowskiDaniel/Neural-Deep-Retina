@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from utils import get_training_arguments, load_config, load_model, EarlyStopping
+from utils import get_training_arguments, load_config, EarlyStopping
 from data_handlers import H5Dataset
 from torch.utils.data import DataLoader
 import torch
@@ -9,6 +9,8 @@ from pathlib import Path
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
+from autoencoder.custom_autoencoder import CustomAutoencoder
+from torchsummary import summary
 
 
 if __name__ == "__main__":
@@ -28,9 +30,17 @@ if __name__ == "__main__":
         log_file=results_dir_path / "train_logs.log",
     )
 
-    # load the model
-    logger.info("Loading model...")
-    model = load_model(config)
+    image_shape = tuple(config.data.img_size)
+    # Initialize model
+    model = CustomAutoencoder(
+        image_shape=image_shape, latent_dim=100, out_channels=16, activation=nn.ReLU()
+    )
+    model.to("cuda")
+
+    logger.info("Model initialized")
+    # print(image_shape)
+    # logger.info(f"{summary(model, input_size=image_shape)}")
+    print(summary(model, input_size=image_shape))
 
     # load the datasets
     train_dataset = H5Dataset(
@@ -50,11 +60,11 @@ if __name__ == "__main__":
     # Split train dataset into train and validation
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
     torch.manual_seed(TORCH_SEED)
-    # TODO: Time series data should not be shuffled
     train_size = int(TRAIN_SIZE * len(train_dataset))
     val_size = len(train_dataset) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(
-        train_dataset, [train_size, val_size]
+        train_dataset,
+        [train_size, val_size],
     )
 
     logger.info(f"Train dataset size: {len(train_dataset)}")
@@ -76,7 +86,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(
         [
             {"params": model.encoder.parameters(), "lr": ENCODER_LR},
-            {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
+            {"params": model.decoder.parameters(), "lr": PREDICTOR_LR},
         ]
     )
     loss_fn = nn.MSELoss()

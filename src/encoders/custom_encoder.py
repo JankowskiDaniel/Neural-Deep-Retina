@@ -8,29 +8,27 @@ class EncodingBlock(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        pooling=nn.MaxPool2d(2),
+        pooling=nn.MaxPool2d(kernel_size=2,
+                             stride=2),
         activation=nn.ReLU(),
     ) -> None:
         super(EncodingBlock, self).__init__()
 
-        modules = []
-        modules.append(
+        self.block = nn.Sequential(
             nn.Conv2d(
                 in_channels=in_channels,
                 out_channels=out_channels,
                 kernel_size=3,
                 padding=1,
                 stride=1,
-            )
+            ),
+            activation,
+            nn.BatchNorm2d(num_features=out_channels),
+            pooling,
         )
-        modules.append(activation)
-        modules.append(nn.BatchNorm2d(num_features=in_channels))
-        modules.append(pooling)
 
-        self.block = nn.Sequential(*modules)
-
-    def forward(self, input):
-        x = self.block(input)
+    def forward(self, x):
+        x = self.block(x)
         return x
 
 
@@ -38,9 +36,9 @@ class CustomEncoder(Encoder):
     def __init__(
         self,
         image_shape: tuple,
-        out_channels: int = 16,
         latent_dim: int = 100,
-        activation=nn.ELU(),
+        out_channels: int = 16,
+        activation=nn.ReLU(),
     ) -> None:
         super(CustomEncoder, self).__init__()
 
@@ -50,7 +48,7 @@ class CustomEncoder(Encoder):
             EncodingBlock(2 * out_channels, 4 * out_channels),
             EncodingBlock(4 * out_channels, 8 * out_channels),
             nn.Flatten(),
-            nn.Linear(8 * out_channels * 7 * 7, latent_dim),
+            nn.Linear(8 * out_channels * 6 * 6, latent_dim),
             activation,
         )
 

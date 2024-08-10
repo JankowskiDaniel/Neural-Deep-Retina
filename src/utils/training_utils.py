@@ -34,13 +34,13 @@ def train_epoch(
     """  # noqa: E501
     model.train()
     train_batch_losses = []
-    for data, labels in train_loader:
+    for data, _ in train_loader:
         model.zero_grad()
         images = data.to(device)
-        targets = labels.to(device)
         outputs = model(images)
 
-        loss = loss_fn(outputs, targets)
+        # Compare input images with output images
+        loss = loss_fn(outputs, images)
 
         optimizer.zero_grad()
         loss.backward()
@@ -69,12 +69,12 @@ def valid_epoch(
     model.eval()
     valid_batch_losses = []
     with torch.no_grad():
-        for data, labels in valid_loader:
+        for data, _ in valid_loader:
             images = data.to(device)
-            targets = labels.to(device)
             outputs = model(images)
 
-            loss = loss_fn(outputs, targets)
+            # Compare input images with output images
+            loss = loss_fn(outputs, images)
             valid_batch_losses.append(loss.item())
         valid_loss = np.sum(valid_batch_losses) / len(valid_batch_losses)
     return valid_loss
