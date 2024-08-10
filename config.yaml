@@ -10,7 +10,7 @@ TRAINING:
     name: DummyCNN
     learning_rate: 0.001
   batch_size: 64
-  epochs: 10
+  epochs: 50
   num_units: 9
   early_stopping: False
   early_stopping_patience: 5

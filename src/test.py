@@ -9,7 +9,6 @@ from data_handlers import H5Dataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
 from utils import get_testing_arguments, load_config, load_model, get_metric_tracker
-from visualize.visualize_dataset import visualize_outputs_and_targets
 
 
 if __name__ == "__main__":
@@ -87,8 +86,6 @@ if __name__ == "__main__":
         loss_fn=loss_fn,
         device=DEVICE,
         tracker=metrics_tracker,
-        save_outputs_and_targets=True,
-        save_dir=predictions_dir,
     )
 
     total_time = time() - start_testing_time
@@ -103,7 +100,3 @@ if __name__ == "__main__":
     # Save results to a csv file
     df_results.to_csv(results_dir_path / "test_results.csv", index=False)
     logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
-
-    # Plot outputs and targets
-    visualize_outputs_and_targets(predictions_dir)
-    logger.info(f"Outputs and targets visualization saved to {predictions_dir}")

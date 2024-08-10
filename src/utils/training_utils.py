@@ -4,12 +4,12 @@ from torch.utils.data import DataLoader
 from torch.optim import Optimizer
 from torchmetrics.wrappers import MetricTracker
 import numpy as np
-import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 from typing import Literal, Tuple
 
 from models import DeepRetinaModel
+from visualize.visualize_dataset import visualize_output_images
 
 
 def train_epoch(
@@ -34,9 +34,9 @@ def train_epoch(
     """  # noqa: E501
     model.train()
     train_batch_losses = []
-    for data, _ in train_loader:
+    for images in train_loader:
         model.zero_grad()
-        images = data.to(device)
+        images = images.to(device)
         outputs = model(images)
 
         # Compare input images with output images
@@ -55,6 +55,8 @@ def valid_epoch(
     valid_loader: DataLoader,
     loss_fn: nn.Module,
     device: Literal["cuda", "cpu"],
+    epoch: int,
+    results_dir: Path,
 ) -> float:
     """
     Calculates the average validation loss for a given model.
@@ -69,13 +71,25 @@ def valid_epoch(
     model.eval()
     valid_batch_losses = []
     with torch.no_grad():
-        for data, _ in valid_loader:
-            images = data.to(device)
+        for i, images in enumerate(valid_loader):
+            images = images.to(device)
             outputs = model(images)
 
             # Compare input images with output images
             loss = loss_fn(outputs, images)
             valid_batch_losses.append(loss.item())
+
+            # Plot the first batch of images
+            if epoch % 5 == 0 and i == 0:
+                visualize_output_images(
+                    images.permute(0, 2, 3, 1).cpu().numpy(),
+                    outputs.permute(0, 2, 3, 1).cpu().numpy(),
+                    epoch,
+                    i + 1,
+                    results_dir,
+                    n=10,
+                    batch_type="valid",
+                )
         valid_loss = np.sum(valid_batch_losses) / len(valid_batch_losses)
     return valid_loss
 
@@ -86,8 +100,6 @@ def test_model(
     loss_fn: nn.Module,
     device: Literal["cuda", "cpu"],
     tracker: MetricTracker,
-    save_outputs_and_targets: bool = True,
-    save_dir: Path = Path("predicitons"),
 ) -> Tuple[float, dict]:
     """
     Test the given model on the test data.
@@ -97,41 +109,24 @@ def test_model(
         loss_fn (nn.Module): The loss function to calculate the test loss.
         device (Literal["cuda", "cpu"]): The device to run the test on.
         tracker (MetricTracker): The metric tracker to track the evaluation metrics.
-        save_outputs_and_targets (bool, optional): Whether to save the outputs and targets. Defaults to True.
-        save_dir (Path, optional): The directory to save the outputs and targets. Defaults to Path("predicitons").
     Returns:
         Tuple[float, dict]: A tuple containing the test loss and a dictionary of evaluation metrics.
     """  # noqa: E501
     model.eval()
     test_losses = []
-    outputs_df = pd.DataFrame()  # Create an empty dataframe for outputs
-    targets_df = pd.DataFrame()  # Create an empty dataframe for targets
     with torch.no_grad():
         tracker.increment()
-        for data, labels in (pbar := tqdm(test_loader, unit="batch")):
-            images = data.to(device)
-            targets = labels.to(device)
+        for images in (pbar := tqdm(test_loader, unit="batch")):
+            images = images.to(device)
             outputs = model(images)
 
-            loss = loss_fn(outputs, targets)
+            loss = loss_fn(outputs, images)
             pbar.set_description(f"Test loss: {str(loss.item())}")
             test_losses.append(loss.item())
-            tracker.update(outputs, targets)
-
-            if save_outputs_and_targets:
-                outputs_df = pd.concat(
-                    [outputs_df, pd.DataFrame(outputs.cpu().numpy())]
-                )
-                targets_df = pd.concat(
-                    [targets_df, pd.DataFrame(targets.cpu().numpy())]
-                )
+            tracker.update(outputs, images)
 
         metrics_dict = tracker.cpu().compute_all()
         test_loss = np.sum(test_losses) / len(test_losses)
         metrics_dict[f"Loss: {loss_fn.__class__.__name__}"] = test_loss
-
-        if save_outputs_and_targets:
-            outputs_df.to_csv(save_dir / "outputs.csv", index=False)
-            targets_df.to_csv(save_dir / "targets.csv", index=False)
 
     return test_loss, metrics_dict

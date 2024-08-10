@@ -8,8 +8,7 @@ class EncodingBlock(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        pooling=nn.MaxPool2d(kernel_size=2,
-                             stride=2),
+        pooling=nn.MaxPool2d(kernel_size=2, stride=2),
         activation=nn.ReLU(),
     ) -> None:
         super(EncodingBlock, self).__init__()

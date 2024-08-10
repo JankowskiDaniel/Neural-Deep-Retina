@@ -14,6 +14,7 @@ def organize_folders(results_dir: str) -> None:
     # List of directories to create
     directories_to_create = [
         os.path.join(base_dir, "models"),
+        os.path.join(base_dir, "plots"),
     ]
 
     # Remove existing directories if they exist

@@ -10,7 +10,7 @@ from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
 from autoencoder.custom_autoencoder import CustomAutoencoder
-from torchsummary import summary
+from torchinfo import summary
 
 
 if __name__ == "__main__":
@@ -35,25 +35,20 @@ if __name__ == "__main__":
     model = CustomAutoencoder(
         image_shape=image_shape, latent_dim=100, out_channels=16, activation=nn.ReLU()
     )
-    model.to("cuda")
 
     logger.info("Model initialized")
-    # print(image_shape)
-    # logger.info(f"{summary(model, input_size=image_shape)}")
-    print(summary(model, input_size=image_shape))
+    print(summary(model, input_size=(2, *image_shape), depth=5))
 
     # load the datasets
     train_dataset = H5Dataset(
         path=Path(config.data.path),
-        response_type="firing_rate_10ms",
         is_train=True,
         is_rgb=config.data.rgb,
     )
 
     # Get sample data to check dimensions
-    X, y = train_dataset[0]
+    X = train_dataset[0]
     logger.info(f"Input data point shape: {X.shape}")
-    logger.info(f"Target data point shape: {y.shape}")
 
     TORCH_SEED = 12
     TRAIN_SIZE = 0.8
@@ -120,7 +115,12 @@ if __name__ == "__main__":
 
         # validation
         valid_loss = valid_epoch(
-            model=model, valid_loader=val_loader, loss_fn=loss_fn, device=DEVICE
+            model=model,
+            valid_loader=val_loader,
+            loss_fn=loss_fn,
+            device=DEVICE,
+            epoch=epoch + 1,
+            results_dir=results_dir_path,
         )
         train_history["valid_loss"].append(valid_loss)
 

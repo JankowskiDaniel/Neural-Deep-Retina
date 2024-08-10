@@ -3,8 +3,62 @@ import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
 from pathlib import Path
 import pandas as pd
+import numpy as np
 
 from data_handlers import H5Dataset
+
+
+def visualize_output_images(
+    batch: np.ndarray,
+    rendered_outputs: np.ndarray,
+    epoch_n: int,
+    batch_n: int,
+    results_dir: Path,
+    n=10,
+    batch_type: str = "valid",
+) -> None:
+    """Plots output images together with input images.
+    Converts to integer values from range 0-255.
+
+    Args:
+        batch (ndarray): Input images channel last
+        rendered_outputs (ndarray): Output images channel last
+        epoch_n (int): Epoch of training
+        batch_n (int): Batch number of the epoch
+        n (int, optional): Max number of images to plot. Defaults to 10.
+    """
+
+    save_path = (
+        results_dir
+        / "plots"
+        / f"{batch_type}_images_epoch_{epoch_n}_batch_{batch_n}.png"
+    )
+
+    n = np.minimum(n, len(rendered_outputs))
+    fig = plt.figure(figsize=(n * 2, 5))
+    fig.suptitle(
+        f"Sample reconstructed images epoch {epoch_n} batch {batch_n}", size=20
+    )
+    input_images = (255 * batch).astype(np.uint8)
+    output_images = (255 * rendered_outputs).astype(np.uint8)
+
+    for i in range(n):
+        ax = plt.subplot(2, n, i + 1)
+        plt.imshow(input_images[i], cmap="gist_gray")
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        if i == n // 2:
+            ax.set_title("Original images")
+
+        ax = plt.subplot(2, n, i + 1 + n)
+        plt.imshow(output_images[i], cmap="gist_gray")
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        if i == n // 2:
+            ax.set_title("Reconstructed images")
+
+    plt.close()
+    fig.savefig(save_path)
 
 
 def visualize_target(
