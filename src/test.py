@@ -8,7 +8,8 @@ import pandas as pd
 from data_handlers import H5Dataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
-from utils import get_testing_arguments, load_config, load_model, get_metric_tracker
+from utils import get_testing_arguments, load_config, get_metric_tracker
+from autoencoder.custom_autoencoder import CustomAutoencoder
 
 
 if __name__ == "__main__":
@@ -33,22 +34,23 @@ if __name__ == "__main__":
     logger.info(f"Using model: {weights_path}")
 
     # load the model
-    logger.info("Loading model...")
-    model = load_model(config)
+    image_shape = tuple(config.data.img_size)
+    # Initialize model
+    model = CustomAutoencoder(
+        image_shape=image_shape, out_channels=16, activation=nn.ReLU()
+    )
     model.load_state_dict(torch.load(weights_path))
 
     # load the test dataset
     test_dataset = H5Dataset(
         path=Path(config.data.path),
-        response_type="firing_rate_10ms",
         is_train=False,
         is_rgb=config.data.rgb,
     )
 
     # Get sample data to check dimensions
-    X, y = test_dataset[0]
+    X = test_dataset[0]
     logger.info(f"Input data point shape: {X.shape}")
-    logger.info(f"Target data point shape: {y.shape}")
 
     TORCH_SEED = 12
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
@@ -70,10 +72,6 @@ if __name__ == "__main__":
     # Create metric tracker
     metrics_tracker = get_metric_tracker(config.testing.metrics)
     metrics_tracker.to(DEVICE)
-
-    # Create a folder for predictions
-    predictions_dir = results_dir_path / "predictions"
-    predictions_dir.mkdir(parents=True, exist_ok=True)
 
     # Test the model
     logger.info(f"Testing on {DEVICE} using device: {DEVICE_NAME}")
