@@ -35,7 +35,6 @@ class CustomEncoder(Encoder):
     def __init__(
         self,
         image_shape: tuple,
-        latent_dim: int = 100,
         out_channels: int = 16,
         activation=nn.ReLU(),
     ) -> None:
@@ -46,12 +45,9 @@ class CustomEncoder(Encoder):
             EncodingBlock(in_channels, 2 * out_channels),
             EncodingBlock(2 * out_channels, 4 * out_channels),
             EncodingBlock(4 * out_channels, 8 * out_channels),
-            nn.Flatten(),
-            nn.Linear(8 * out_channels * 6 * 6, latent_dim),
-            activation,
         )
 
-        self._output_shape = latent_dim
+        self._output_shape = (8 * out_channels, 6, 6)
 
     def forward(self, x):
         return self.net(x)

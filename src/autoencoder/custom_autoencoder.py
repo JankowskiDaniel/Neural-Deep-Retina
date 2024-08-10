@@ -14,13 +14,12 @@ class CustomAutoencoder(nn.Module):
         self,
         image_shape: tuple,
         out_channels: int = 16,
-        latent_dim: int = 100,
         activation=nn.ReLU(),
     ):
         super(CustomAutoencoder, self).__init__()
         # Initialize the encoder and decoder
-        self.encoder = CustomEncoder(image_shape, latent_dim, out_channels, activation)
-        self.decoder = CustomDecoder(image_shape, latent_dim, out_channels, activation)
+        self.encoder = CustomEncoder(image_shape, out_channels, activation)
+        self.decoder = CustomDecoder(image_shape, out_channels, activation)
 
     def forward(self, x):
         x = self.encoder(x)

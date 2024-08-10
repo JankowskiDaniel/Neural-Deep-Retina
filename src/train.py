@@ -33,11 +33,11 @@ if __name__ == "__main__":
     image_shape = tuple(config.data.img_size)
     # Initialize model
     model = CustomAutoencoder(
-        image_shape=image_shape, latent_dim=100, out_channels=16, activation=nn.ReLU()
+        image_shape=image_shape, out_channels=16, activation=nn.ReLU()
     )
 
     logger.info("Model initialized")
-    print(summary(model, input_size=(2, *image_shape), depth=5))
+    summary(model, input_size=(2, *image_shape), depth=5)
 
     # load the datasets
     train_dataset = H5Dataset(
