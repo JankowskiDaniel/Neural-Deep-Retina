@@ -1,16 +1,12 @@
 import torch
 from h5py import File
-from torchvision import transforms
+from torchvision.transforms import v2
 import numpy as np
 from numpy import ndarray, dtype
 from typing import Any, Tuple
 from pathlib import Path
 
-transform_x: transforms.Compose = transforms.Compose(
-    [
-        transforms.ToTensor(),
-    ]
-)
+transform_x: v2.Compose = v2.Compose([v2.ToDtype(torch.float32, scale=True)])
 
 
 class H5Dataset(torch.utils.data.Dataset):
@@ -94,8 +90,9 @@ class H5Dataset(torch.utils.data.Dataset):
     def __getitem__(self, idx: int):
 
         x = self.X[idx]
+        x = torch.from_numpy(x)
         if self.is_rgb:
-            x = np.repeat(x[..., np.newaxis], 3, -1)
+            x = x.repeat(3, 1, 1)
 
         # Transform the image to tensor
         x = self.transform_x(x)
