@@ -22,7 +22,6 @@ class CustomAutoencoder(nn.Module):
         self.decoder = CustomDecoder(image_shape, out_channels)
 
     def forward(self, x):
-        x = self.encoder(x)
-        self.latent = x
-        x = self.decoder(x)
+        x, outputs = self.encoder(x)
+        x = self.decoder(x, outputs)
         return x
