@@ -72,9 +72,10 @@ if __name__ == "__main__":
     metrics_tracker = get_metric_tracker(config.testing.metrics)
     metrics_tracker.to(DEVICE)
 
-    # Create a folder for predictions
+    # Set the path for saving predictions
     predictions_dir = results_dir_path / "predictions"
-    predictions_dir.mkdir(parents=True, exist_ok=True)
+    # Set the path for saving plots
+    plots_dir = results_dir_path / "plots"
 
     # Test the model
     logger.info(f"Testing on {DEVICE} using device: {DEVICE_NAME}")
@@ -105,5 +106,5 @@ if __name__ == "__main__":
     logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
 
     # Plot outputs and targets
-    visualize_outputs_and_targets(predictions_dir)
+    visualize_outputs_and_targets(predictions_dir, plots_dir)
     logger.info(f"Outputs and targets visualization saved to {predictions_dir}")

@@ -42,6 +42,7 @@ def visualize_target(
 
 def visualize_outputs_and_targets(
     predictions_dir: Path,
+    plots_dir: Path = Path,
 ) -> None:
     """
     Visualizes the model outputs and targets by plotting them on separate channels.
@@ -76,7 +77,7 @@ def visualize_outputs_and_targets(
     fig.legend(handles, labels, loc="upper center")
 
     fig.tight_layout()
-    fig.savefig(predictions_dir / "outputs_and_targets.png", dpi=150)
+    fig.savefig(plots_dir / "outputs_and_targets.png", dpi=150)
 
 
 if __name__ == "__main__":
