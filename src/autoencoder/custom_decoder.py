@@ -34,7 +34,7 @@ class CustomDecoder(nn.Module):
         self,
         image_shape: tuple,
         out_channels: int = 16,
-        activation=nn.ReLU(),
+        activation=nn.Sigmoid(),
     ) -> None:
         super(CustomDecoder, self).__init__()
 
@@ -51,7 +51,8 @@ class CustomDecoder(nn.Module):
                 out_channels=image_channels,
                 kernel_size=3,
                 stride=1,
-                padding=2),
+                padding=2,
+            ),
             activation,
         )
 

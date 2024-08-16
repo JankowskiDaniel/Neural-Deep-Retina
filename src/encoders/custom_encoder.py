@@ -47,10 +47,24 @@ class CustomEncoder(Encoder):
             EncodingBlock(4 * out_channels, 8 * out_channels),
         )
 
+        self.bottleneck = nn.Sequential(
+            nn.Conv2d(
+                in_channels=8 * out_channels,
+                out_channels=8 * out_channels,
+                kernel_size=3,
+                padding=1,
+                stride=1,
+            ),
+            activation,
+            nn.BatchNorm2d(num_features=8 * out_channels),
+        )
+
         self._output_shape = (8 * out_channels, 6, 6)
 
     def forward(self, x):
-        return self.net(x)
+        x = self.net(x)
+        x = self.bottleneck(x)
+        return x
 
     def get_output_shape(self):
         return self._output_shape

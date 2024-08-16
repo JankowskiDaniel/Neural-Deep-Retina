@@ -129,6 +129,10 @@ if __name__ == "__main__":
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
             torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
+            torch.save(
+                model.encoder.state_dict(),
+                results_dir_path / "models" / "encoder_best.pth",
+            )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:

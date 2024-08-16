@@ -19,7 +19,7 @@ class CustomAutoencoder(nn.Module):
         super(CustomAutoencoder, self).__init__()
         # Initialize the encoder and decoder
         self.encoder = CustomEncoder(image_shape, out_channels, activation)
-        self.decoder = CustomDecoder(image_shape, out_channels, activation)
+        self.decoder = CustomDecoder(image_shape, out_channels)
 
     def forward(self, x):
         x = self.encoder(x)
