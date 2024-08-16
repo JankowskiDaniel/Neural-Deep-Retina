@@ -35,8 +35,8 @@ class H5SeqDataset(H5Dataset):
             is_rgb=is_rgb,
             y_scaler=y_scaler,
         )
-        self.dataset_len = self.dataset_len - seq_length
-        self.seq_length = seq_length
+        self.dataset_len: int = self.dataset_len - seq_length
+        self.seq_length: int = seq_length
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
