@@ -42,7 +42,7 @@ def visualize_target(
 
 def visualize_outputs_and_targets(
     predictions_dir: Path,
-    plots_dir: Path = Path,
+    plots_dir: Path,
 ) -> None:
     """
     Visualizes the model outputs and targets by plotting them on separate channels.

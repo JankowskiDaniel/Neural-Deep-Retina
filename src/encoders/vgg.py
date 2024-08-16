@@ -1,12 +1,15 @@
-from torchvision import models
 import torch
+from torchvision import models
+from pathlib import Path
 from interfaces.encoder import Encoder
 
 
 class VGG16Encoder(Encoder):
-    def __init__(self, input_shape: tuple, freeze: bool) -> None:
+    def __init__(self, input_shape: tuple, weights_path: Path, freeze: bool) -> None:
         super(VGG16Encoder, self).__init__()
-        vgg16 = models.vgg16(pretrained=True)
+        weights = models.vgg.VGG16_Weights
+        weights.url = weights_path
+        vgg16 = models.vgg16(weights=weights)
         self.features = vgg16.features
 
         # Freeze the encoder

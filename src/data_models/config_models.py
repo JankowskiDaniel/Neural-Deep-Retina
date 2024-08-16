@@ -11,6 +11,7 @@ class DataConfig:
 @dataclass
 class EncoderConfig:
     name: str
+    weights: str
     freeze: bool
     learning_rate: float
 

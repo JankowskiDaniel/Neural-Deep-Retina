@@ -37,6 +37,10 @@ python src/train.py --results_dir my_training
 ``` 
 The training results will be saved inside `results/my_training` directory and training will proceed according to `config.yaml` file.
 
+### Using pre-trained models ###
+
+For setting up pre-trained models, please check out the readme in the `pretrained_weights` folder.
+
 ## Testing ##
 
 For testing, use the `src/test.py` script. Again, it is assumed that the script is run at the root level of the repository.

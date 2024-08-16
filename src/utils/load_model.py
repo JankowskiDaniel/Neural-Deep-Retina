@@ -1,3 +1,4 @@
+from pathlib import Path
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.dummy import DummyCNN
@@ -21,10 +22,17 @@ def load_model(config: Config) -> DeepRetinaModel:
     batch_size = config.training.batch_size
     input_shape = (batch_size, *img_shape)
 
+    # Resolve encoder weights
+    weights_path = Path("pretrained_weights") / config.training.encoder.weights
+    # Check if encoder weights exist
+    if not weights_path.exists():
+        raise FileNotFoundError(f"Could not find weights at {weights_path}")
     freeze = config.training.encoder.freeze
 
     # initialize encoder
-    encoder: Encoder = ENCODERS[enc_name](input_shape=input_shape, freeze=freeze)
+    encoder: Encoder = ENCODERS[enc_name](
+        input_shape=input_shape, weights_path=str(weights_path), freeze=freeze
+    )
     encoder_output_shape = encoder.get_output_shape()
 
     flattened_size = 1
