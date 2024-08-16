@@ -2,7 +2,8 @@ import yaml
 from data_models.config_models import (
     Config,
     DataConfig,
-    NNConfig,
+    EncoderConfig,
+    PredictorConfig,
     TrainingConfig,
     TestingConfig,
 )
@@ -21,8 +22,8 @@ def load_config(path: str) -> Config:
         config = yaml.safe_load(file)
 
     data_conf = DataConfig(**config["DATA"])
-    encoder_conf = NNConfig(**config["TRAINING"]["ENCODER"])
-    predictor_conf = NNConfig(**config["TRAINING"]["PREDICTOR"])
+    encoder_conf = EncoderConfig(**config["TRAINING"]["ENCODER"])
+    predictor_conf = PredictorConfig(**config["TRAINING"]["PREDICTOR"])
     training_conf = TrainingConfig(
         encoder=encoder_conf,
         predictor=predictor_conf,

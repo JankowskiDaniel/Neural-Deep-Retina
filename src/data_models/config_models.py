@@ -3,21 +3,28 @@ from dataclasses import dataclass
 
 @dataclass
 class DataConfig:
-    img_size: list[int]
+    img_shape: list[int]
     rgb: bool
     path: str
 
 
 @dataclass
-class NNConfig:
+class EncoderConfig:
+    name: str
+    freeze: bool
+    learning_rate: float
+
+
+@dataclass
+class PredictorConfig:
     name: str
     learning_rate: float
 
 
 @dataclass
 class TrainingConfig:
-    encoder: NNConfig
-    predictor: NNConfig
+    encoder: EncoderConfig
+    predictor: PredictorConfig
     batch_size: int
     epochs: int
     num_units: int

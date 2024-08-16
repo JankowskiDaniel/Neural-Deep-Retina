@@ -1,10 +1,11 @@
 DATA:
-  img_size: [1, 50, 50]
+  img_shape: [1, 50, 50]
   rgb: True
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
 TRAINING:
   ENCODER:
     name: VGG16Encoder
+    freeze: True
     learning_rate: 0.0001
   PREDICTOR:
     name: DummyCNN
