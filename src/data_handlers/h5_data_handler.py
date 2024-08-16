@@ -87,7 +87,7 @@ class H5Dataset(torch.utils.data.Dataset):
             y = self.y_scaler.transform(y)
         return y
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
         x = self.X[idx]
         x = torch.from_numpy(x)

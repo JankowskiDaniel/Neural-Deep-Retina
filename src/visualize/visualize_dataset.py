@@ -3,6 +3,7 @@ import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
 from pathlib import Path
 import pandas as pd
+from yaml import safe_load
 
 from data_handlers import H5Dataset
 
@@ -81,7 +82,10 @@ def visualize_outputs_and_targets(
 if __name__ == "__main__":
 
     y_scaler = MinMaxScaler()
-    path = Path("../data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5")
+    with open("config.yaml", "r") as stream:
+        config = safe_load(stream)
+
+    path = Path(config["DATA"]["path"])
 
     # load the dataset
     train_dataset = H5Dataset(
