@@ -3,7 +3,7 @@ from typing import Any, Tuple
 from pathlib import Path
 from yaml import safe_load
 
-from h5_data_handler import H5Dataset
+from data_handlers import H5Dataset
 
 
 class H5SeqDataset(H5Dataset):

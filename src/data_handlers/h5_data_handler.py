@@ -84,7 +84,7 @@ class H5Dataset(torch.utils.data.Dataset):
             y = self.y_scaler.fit_transform(y)
         else:
             # Only transform the test data
-            y = self.y_scaler.transform(y)
+            y = self.y_scaler.fit_transform(y)
         return y
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:

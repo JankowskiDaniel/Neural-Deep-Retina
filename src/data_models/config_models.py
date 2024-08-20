@@ -6,6 +6,7 @@ class DataConfig:
     img_shape: list[int]
     rgb: bool
     path: str
+    seq_len: int | None
 
 
 @dataclass
