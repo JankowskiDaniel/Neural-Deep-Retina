@@ -43,6 +43,10 @@ class H5SeqDataset(H5Dataset):
         # Get the sequence of images
         x = self.X[idx : (idx + self.seq_length)]
         x = torch.from_numpy(x)
+        if self.is_rgb:
+            x = x.unsqueeze(1)
+            x = x.repeat(1, 3, 1, 1)
+
 
         # Apply image transformations
         x = self.transform_x(x)
@@ -66,7 +70,7 @@ if __name__ == "__main__":
     path = Path(config["DATA"]["path"])
     response_type = "firing_rate_10ms"
     is_train = True
-    is_rgb = False
+    is_rgb = True
     y_scaler = None
     seq_length = 10
 
