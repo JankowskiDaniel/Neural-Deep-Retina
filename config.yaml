@@ -2,7 +2,7 @@ DATA:
   img_shape: [1, 50, 50]
   rgb: True
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
-  seq_len: 4
+  seq_len: 16
 TRAINING:
   ENCODER:
     name: VGG16Encoder
@@ -13,7 +13,7 @@ TRAINING:
     name: SingleLSTM
     learning_rate: 0.001
   batch_size: 16
-  epochs: 50
+  epochs: 100
   num_units: 9
   early_stopping: False
   early_stopping_patience: 5

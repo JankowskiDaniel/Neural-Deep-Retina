@@ -15,6 +15,7 @@ class H5SeqDataset(H5Dataset):
         is_rgb: bool = False,
         y_scaler: Any = None,
         seq_length: int = 10,
+        results_dir: Path = None,
     ):
         """
         Initializes the H5Dataset object.
@@ -34,6 +35,7 @@ class H5SeqDataset(H5Dataset):
             is_train=is_train,
             is_rgb=is_rgb,
             y_scaler=y_scaler,
+            results_dir=results_dir
         )
         self.dataset_len: int = self.dataset_len - seq_length
         self.seq_length: int = seq_length

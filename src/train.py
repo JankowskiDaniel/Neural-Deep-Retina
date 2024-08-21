@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from tqdm import tqdm
 from utils import get_training_arguments, load_config, load_model, EarlyStopping
 from data_handlers import H5Dataset, H5SeqDataset
@@ -42,6 +42,7 @@ if __name__ == "__main__":
             is_rgb=config.data.rgb,
             seq_length=config.data.seq_len,
             y_scaler=StandardScaler(),
+            results_dir=results_dir_path,
         )
     else:
         train_dataset = H5Dataset(
@@ -50,6 +51,7 @@ if __name__ == "__main__":
             is_train=True,
             is_rgb=config.data.rgb,
             y_scaler=StandardScaler(),
+            results_dir=results_dir_path,
         )
 
     # Get sample data to check dimensions
