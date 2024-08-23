@@ -1,4 +1,4 @@
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 from utils import get_training_arguments, load_config, load_model, EarlyStopping
 from data_handlers import H5Dataset, H5SeqDataset

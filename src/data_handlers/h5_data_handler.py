@@ -15,10 +15,10 @@ class H5Dataset(torch.utils.data.Dataset):
         self,
         path: Path,
         response_type: str,
+        results_dir: Path,
         is_train: bool = True,
         is_rgb: bool = False,
         y_scaler: Any = None,
-        results_dir: Path = None
     ):
         """
         Initializes the H5Dataset object.

@@ -11,11 +11,11 @@ class H5SeqDataset(H5Dataset):
         self,
         path: Path,
         response_type: str,
+        results_dir: Path,
         is_train: bool = True,
         is_rgb: bool = False,
         y_scaler: Any = None,
         seq_length: int = 10,
-        results_dir: Path = None,
     ):
         """
         Initializes the H5Dataset object.
@@ -48,7 +48,6 @@ class H5SeqDataset(H5Dataset):
         if self.is_rgb:
             x = x.unsqueeze(1)
             x = x.repeat(1, 3, 1, 1)
-
 
         # Apply image transformations
         x = self.transform_x(x)
@@ -83,6 +82,7 @@ if __name__ == "__main__":
         is_rgb=is_rgb,
         y_scaler=y_scaler,
         seq_length=seq_length,
+        results_dir=Path("results"),
     )
 
     X, y = dataset[0]

@@ -27,18 +27,16 @@ class VGG16Encoder(Encoder):
 
     def forward(self, x):
         if self.seq_len:
-            # VGG expects RGB input, so we may expect 5 values in the input shape
-            # batch_size, seq_len, c, h, w = x.size()
             latent_seq = []
-
+            # batch
             for t in range(self.seq_len):
                 x_t = self.features(x[:, t])
-                x_t = x_t.view(x_t.size(0), -1) # (batch_size, 512)
+                x_t = x_t.view(x_t.size(0), -1)  # (batch_size, 512)
                 latent_seq.append(x_t)
-            
-            x = torch.stack(latent_seq, dim=1) # (batch_size, seq_len, 512)
 
-        else: # single image, not processed as a sequence
+            x = torch.stack(latent_seq, dim=1)  # (batch_size, seq_len, 512)
+
+        else:  # single image, not processed as a sequence
             x = self.features(x)
             x = x.view(x.size(0), -1)  # Flatten the tensor
 
