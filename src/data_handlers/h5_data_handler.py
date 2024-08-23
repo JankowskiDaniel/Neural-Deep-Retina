@@ -5,6 +5,7 @@ import numpy as np
 from numpy import ndarray, dtype
 from typing import Any, Tuple
 from pathlib import Path
+import pickle
 
 transform_x: v2.Compose = v2.Compose([v2.ToDtype(torch.float32, scale=True)])
 
@@ -14,6 +15,7 @@ class H5Dataset(torch.utils.data.Dataset):
         self,
         path: Path,
         response_type: str,
+        results_dir: Path,
         is_train: bool = True,
         is_rgb: bool = False,
         y_scaler: Any = None,
@@ -37,6 +39,7 @@ class H5Dataset(torch.utils.data.Dataset):
         self.is_train = is_train
         self.is_rgb = is_rgb
         self.y_scaler = y_scaler
+        self.results_dir = results_dir
         self.transform_x = transform_x
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
@@ -79,12 +82,20 @@ class H5Dataset(torch.utils.data.Dataset):
         - ndarray[Any, dtype[Any]]
             The transformed target variable.
         """
+        y_tran = y.T  # scale the data to the (n_samples, n_features) shape
         if self.is_train:
             # Fit the scaler on the training data and transform the data
-            y = self.y_scaler.fit_transform(y)
+            y_fit = self.y_scaler.fit_transform(y_tran)
+            # Save the scaler
+            with open(self.results_dir / "y_scaler.pkl", "wb") as f:
+                pickle.dump(self.y_scaler, f)
         else:
+            # load the scaler
+            with open(self.results_dir / "y_scaler.pkl", "rb") as f:
+                self.y_scaler = pickle.load(f)
             # Only transform the test data
-            y = self.y_scaler.transform(y)
+            y_fit = self.y_scaler.transform(y_tran)
+        y = y_fit.T  # return the data to the original shape
         return y
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:

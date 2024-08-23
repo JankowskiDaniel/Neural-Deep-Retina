@@ -2,23 +2,24 @@ DATA:
   img_shape: [1, 50, 50]
   rgb: True
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
+  seq_len: 16
 TRAINING:
   ENCODER:
     name: VGG16Encoder
     weights: vgg16-397923af.pth
-    freeze: True
+    freeze: False
     learning_rate: 0.0001
   PREDICTOR:
-    name: DummyCNN
+    name: SingleLSTM
     learning_rate: 0.001
-  batch_size: 64
-  epochs: 10
+  batch_size: 16
+  epochs: 100
   num_units: 9
   early_stopping: False
   early_stopping_patience: 5
   save_logs: True
 TESTING:
-  batch_size: 64
+  batch_size: 16
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True

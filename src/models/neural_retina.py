@@ -16,6 +16,5 @@ class DeepRetinaModel(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
-        x = x.view(x.size(0), -1)  # Flatten the tensor
         x = self.predictor(x)
         return x

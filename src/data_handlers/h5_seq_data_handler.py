@@ -3,7 +3,7 @@ from typing import Any, Tuple
 from pathlib import Path
 from yaml import safe_load
 
-from h5_data_handler import H5Dataset
+from data_handlers import H5Dataset
 
 
 class H5SeqDataset(H5Dataset):
@@ -11,6 +11,7 @@ class H5SeqDataset(H5Dataset):
         self,
         path: Path,
         response_type: str,
+        results_dir: Path,
         is_train: bool = True,
         is_rgb: bool = False,
         y_scaler: Any = None,
@@ -34,6 +35,7 @@ class H5SeqDataset(H5Dataset):
             is_train=is_train,
             is_rgb=is_rgb,
             y_scaler=y_scaler,
+            results_dir=results_dir
         )
         self.dataset_len: int = self.dataset_len - seq_length
         self.seq_length: int = seq_length
@@ -43,6 +45,9 @@ class H5SeqDataset(H5Dataset):
         # Get the sequence of images
         x = self.X[idx : (idx + self.seq_length)]
         x = torch.from_numpy(x)
+        if self.is_rgb:
+            x = x.unsqueeze(1)
+            x = x.repeat(1, 3, 1, 1)
 
         # Apply image transformations
         x = self.transform_x(x)
@@ -66,7 +71,7 @@ if __name__ == "__main__":
     path = Path(config["DATA"]["path"])
     response_type = "firing_rate_10ms"
     is_train = True
-    is_rgb = False
+    is_rgb = True
     y_scaler = None
     seq_length = 10
 
@@ -77,6 +82,7 @@ if __name__ == "__main__":
         is_rgb=is_rgb,
         y_scaler=y_scaler,
         seq_length=seq_length,
+        results_dir=Path("results"),
     )
 
     X, y = dataset[0]

@@ -2,10 +2,14 @@ from pathlib import Path
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.dummy import DummyCNN
+from predictors.rnns import SingleLSTM
 from encoders import VGG16Encoder
 from models import DeepRetinaModel
 
-PREDICTORS: dict[str, Predictor] = {"DummyCNN": DummyCNN}
+PREDICTORS: dict[str, Predictor] = {
+    "DummyCNN": DummyCNN,
+    "SingleLSTM": SingleLSTM,
+    }
 
 ENCODERS: dict[str, Encoder] = {"VGG16Encoder": VGG16Encoder}
 
@@ -31,7 +35,10 @@ def load_model(config: Config) -> DeepRetinaModel:
 
     # initialize encoder
     encoder: Encoder = ENCODERS[enc_name](
-        input_shape=input_shape, weights_path=str(weights_path), freeze=freeze
+        input_shape=input_shape,
+        weights_path=str(weights_path),
+        freeze=freeze,
+        seq_len=config.data.seq_len,
     )
     encoder_output_shape = encoder.get_output_shape()
 

@@ -5,13 +5,17 @@ from interfaces.encoder import Encoder
 
 
 class VGG16Encoder(Encoder):
-    def __init__(self, input_shape: tuple, weights_path: Path, freeze: bool) -> None:
+    def __init__(self,
+                 input_shape: tuple,
+                 weights_path: Path,
+                 freeze: bool,
+                 seq_len: int | None = None) -> None:
         super(VGG16Encoder, self).__init__()
         weights = models.vgg.VGG16_Weights
         weights.url = weights_path
         vgg16 = models.vgg16(weights=weights)
         self.features = vgg16.features
-
+        self.seq_len = seq_len
         # Freeze the encoder
         if freeze:
             for param in self.features.parameters():
@@ -22,7 +26,21 @@ class VGG16Encoder(Encoder):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
-        return self.features(x)
+        if self.seq_len:
+            latent_seq = []
+            # batch
+            for t in range(self.seq_len):
+                x_t = self.features(x[:, t])
+                x_t = x_t.view(x_t.size(0), -1)  # (batch_size, 512)
+                latent_seq.append(x_t)
+
+            x = torch.stack(latent_seq, dim=1)  # (batch_size, seq_len, 512)
+
+        else:  # single image, not processed as a sequence
+            x = self.features(x)
+            x = x.view(x.size(0), -1)  # Flatten the tensor
+
+        return x
 
     def get_output_shape(self):
         return self._output_shape

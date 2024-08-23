@@ -5,11 +5,12 @@ from time import time
 from pathlib import Path
 import pandas as pd
 
-from data_handlers import H5Dataset
+from data_handlers import H5Dataset, H5SeqDataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
 from utils import get_testing_arguments, load_config, load_model, get_metric_tracker
 from visualize.visualize_dataset import visualize_outputs_and_targets
+from sklearn.preprocessing import StandardScaler
 
 
 if __name__ == "__main__":
@@ -39,12 +40,26 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(weights_path))
 
     # load the test dataset
-    test_dataset = H5Dataset(
-        path=Path(config.data.path),
-        response_type="firing_rate_10ms",
-        is_train=False,
-        is_rgb=config.data.rgb,
-    )
+    if config.data.seq_len:
+        test_dataset = H5SeqDataset(
+            path=Path(config.data.path),
+            response_type="firing_rate_10ms",
+            is_train=False,
+            is_rgb=config.data.rgb,
+            seq_length=config.data.seq_len,
+            y_scaler=StandardScaler(),
+            results_dir=results_dir_path,
+
+        )
+    else:
+        test_dataset = H5Dataset(
+            path=Path(config.data.path),
+            response_type="firing_rate_10ms",
+            is_train=False,
+            is_rgb=config.data.rgb,
+            y_scaler=StandardScaler(),
+            results_dir=results_dir_path,
+        )
 
     # Get sample data to check dimensions
     X, y = test_dataset[0]
