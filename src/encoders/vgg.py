@@ -5,11 +5,13 @@ from interfaces.encoder import Encoder
 
 
 class VGG16Encoder(Encoder):
-    def __init__(self,
-                 input_shape: tuple,
-                 weights_path: Path,
-                 freeze: bool,
-                 seq_len: int | None = None) -> None:
+    def __init__(
+        self,
+        input_shape: tuple,
+        weights_path: Path,
+        freeze: bool,
+        seq_len: int | None = None,
+    ) -> None:
         super(VGG16Encoder, self).__init__()
         weights = models.vgg.VGG16_Weights
         weights.url = weights_path

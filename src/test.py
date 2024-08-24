@@ -49,7 +49,6 @@ if __name__ == "__main__":
             seq_length=config.data.seq_len,
             y_scaler=StandardScaler(),
             results_dir=results_dir_path,
-
         )
     else:
         test_dataset = H5Dataset(

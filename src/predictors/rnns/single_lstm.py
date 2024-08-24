@@ -10,7 +10,7 @@ class SingleLSTM(Predictor):
             input_size=self.flattened_size,
             hidden_size=256,
             num_layers=1,
-            batch_first=True
+            batch_first=True,
         )
         self.lin1 = nn.Linear(256, num_classes)
 

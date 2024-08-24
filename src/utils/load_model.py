@@ -9,7 +9,7 @@ from models import DeepRetinaModel
 PREDICTORS: dict[str, Predictor] = {
     "DummyCNN": DummyCNN,
     "SingleLSTM": SingleLSTM,
-    }
+}
 
 ENCODERS: dict[str, Encoder] = {"VGG16Encoder": VGG16Encoder}
 

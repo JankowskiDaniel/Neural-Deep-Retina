@@ -35,7 +35,7 @@ class H5SeqDataset(H5Dataset):
             is_train=is_train,
             is_rgb=is_rgb,
             y_scaler=y_scaler,
-            results_dir=results_dir
+            results_dir=results_dir,
         )
         self.dataset_len: int = self.dataset_len - seq_length
         self.seq_length: int = seq_length
