@@ -9,8 +9,8 @@ from data_handlers import H5Dataset
 
 
 def visualize_output_images(
-    batch: np.ndarray,
-    rendered_outputs: np.ndarray,
+    input_images: np.ndarray,
+    output_images: np.ndarray,
     epoch_n: int,
     batch_n: int,
     results_dir: Path,
@@ -34,13 +34,11 @@ def visualize_output_images(
         / f"{batch_type}_images_epoch_{epoch_n}_batch_{batch_n}.png"
     )
 
-    n = np.minimum(n, len(rendered_outputs))
+    n = np.minimum(n, len(output_images))
     fig = plt.figure(figsize=(n * 2, 5))
     fig.suptitle(
         f"Sample reconstructed images epoch {epoch_n} batch {batch_n}", size=20
     )
-    input_images = (255 * batch).astype(np.uint8)
-    output_images = (255 * rendered_outputs).astype(np.uint8)
 
     for i in range(n):
         ax = plt.subplot(2, n, i + 1)

@@ -9,7 +9,7 @@ class EncodingBlock(nn.Module):
         in_channels: int,
         out_channels: int,
         pooling=nn.MaxPool2d(kernel_size=2, stride=2),
-        activation=nn.ReLU(),
+        activation=nn.ELU(),
     ) -> None:
         super(EncodingBlock, self).__init__()
 
@@ -21,7 +21,6 @@ class EncodingBlock(nn.Module):
                 padding=1,
                 stride=1,
             ),
-            activation,
             nn.Conv2d(
                 in_channels=out_channels,
                 out_channels=out_channels,
@@ -30,7 +29,7 @@ class EncodingBlock(nn.Module):
                 stride=1,
             ),
             activation,
-            nn.BatchNorm2d(num_features=out_channels),
+            # nn.BatchNorm2d(num_features=out_channels),
             pooling,
         )
 
@@ -40,43 +39,35 @@ class EncodingBlock(nn.Module):
 
 
 class CustomEncoder(Encoder):
+    """A basic encoder for the autoencoder. No copy&crop connections."""
+
     def __init__(
         self,
         image_shape: tuple,
+        latent_dim: int = 100,
         out_channels: int = 16,
         activation=nn.ReLU(),
     ) -> None:
         super(CustomEncoder, self).__init__()
 
         in_channels = image_shape[0]
-        self.conv1 = EncodingBlock(in_channels, 2 * out_channels)
-        self.conv2 = EncodingBlock(2 * out_channels, 4 * out_channels)
-        self.conv3 = EncodingBlock(4 * out_channels, 8 * out_channels)
-
+        self.conv = nn.Sequential(
+            EncodingBlock(in_channels, 2 * out_channels),
+            EncodingBlock(2 * out_channels, 4 * out_channels),
+        )
+        self.flatten = nn.Flatten()
         self.bottleneck = nn.Sequential(
-            nn.Conv2d(
-                in_channels=8 * out_channels,
-                out_channels=8 * out_channels,
-                kernel_size=3,
-                padding=1,
-                stride=1,
-            ),
+            nn.Linear(4 * out_channels * 12 * 12, latent_dim),
             activation,
-            nn.BatchNorm2d(num_features=8 * out_channels),
         )
 
-        self._output_shape = (8 * out_channels, 6, 6)
+        self._output_shape = latent_dim
 
     def forward(self, x):
-        outputs = []
-        x = self.conv1(x)
-        outputs.append(x)
-        x = self.conv2(x)
-        outputs.append(x)
-        x = self.conv3(x)
-        outputs.append(x)
+        x = self.conv(x)
+        x = self.flatten(x)
         x = self.bottleneck(x)
-        return x, outputs
+        return x
 
     def get_output_shape(self):
         return self._output_shape

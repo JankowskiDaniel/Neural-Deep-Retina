@@ -81,13 +81,18 @@ def valid_epoch(
 
             # Plot the first batch of images
             if epoch % 5 == 0 and i == 0:
+                n = 10
                 visualize_output_images(
-                    images.permute(0, 2, 3, 1).cpu().numpy(),
-                    outputs.permute(0, 2, 3, 1).cpu().numpy(),
+                    (images.permute(0, 2, 3, 1).cpu().numpy() * 255).astype(np.uint8)[
+                        :n
+                    ],
+                    (outputs.permute(0, 2, 3, 1).cpu().numpy() * 255).astype(np.uint8)[
+                        :n
+                    ],
                     epoch,
                     i + 1,
                     results_dir,
-                    n=10,
+                    n=n,
                     batch_type="valid",
                 )
         valid_loss = np.sum(valid_batch_losses) / len(valid_batch_losses)

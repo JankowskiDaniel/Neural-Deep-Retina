@@ -11,6 +11,7 @@ from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
 from autoencoder.custom_autoencoder import CustomAutoencoder
 from torchinfo import summary
+from visualize.visualize_loss import visualize_loss
 
 
 if __name__ == "__main__":
@@ -32,8 +33,12 @@ if __name__ == "__main__":
 
     image_shape = tuple(config.data.img_size)
     # Initialize model
+    latent_dim = 100
     model = CustomAutoencoder(
-        image_shape=image_shape, out_channels=16, activation=nn.ReLU()
+        image_shape=image_shape,
+        latent_dim=latent_dim,
+        out_channels=16,
+        activation=nn.Sigmoid(),
     )
 
     logger.info("Model initialized")
@@ -146,3 +151,4 @@ if __name__ == "__main__":
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
     torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
+    visualize_loss(train_history, results_dir_path)
