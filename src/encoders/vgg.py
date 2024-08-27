@@ -14,7 +14,7 @@ class VGG16Encoder(Encoder):
     ) -> None:
         super(VGG16Encoder, self).__init__()
         weights = models.vgg.VGG16_Weights
-        weights.url = weights_path
+        weights.url = str(weights_path)
         vgg16 = models.vgg16(weights=weights)
         self.features = vgg16.features
         self.seq_len = seq_len
@@ -28,7 +28,7 @@ class VGG16Encoder(Encoder):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
-        if self.seq_len:
+        if self.seq_len > 1:
             latent_seq = []
             # batch
             for t in range(self.seq_len):
@@ -49,5 +49,5 @@ class VGG16Encoder(Encoder):
 
     def _compute_output_shape(self):
         with torch.no_grad():
-            output = self.features(self._dummy_input)
-        return output.shape
+            output = self(self._dummy_input)
+        return output.shape[-1]

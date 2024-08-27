@@ -12,4 +12,12 @@ Once found, the weights can be downloaded for example by wget:
 wget -c https://download.pytorch.org/models/vgg16-397923af.pth
 ```
 
+For the video classification pre-trained MC3 18 ResNet use:
+
+```sh
+wget -c https://download.pytorch.org/models/mc3_18-a90a0ba3.pth
+```
+
+More info about the network here: https://pytorch.org/vision/master/models/video_resnet.html.
+
 Please put the downloaded weights in this folder, so that they can be loaded smoothly.

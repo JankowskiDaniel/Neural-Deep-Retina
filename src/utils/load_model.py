@@ -3,7 +3,7 @@ from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.dummy import DummyCNN
 from predictors.rnns import SingleLSTM
-from encoders import VGG16Encoder
+from encoders import VGG16Encoder, MC3VideoEncoder
 from models import DeepRetinaModel
 
 PREDICTORS: dict[str, Predictor] = {
@@ -11,7 +11,10 @@ PREDICTORS: dict[str, Predictor] = {
     "SingleLSTM": SingleLSTM,
 }
 
-ENCODERS: dict[str, Encoder] = {"VGG16Encoder": VGG16Encoder}
+ENCODERS: dict[str, Encoder] = {
+    "VGG16Encoder": VGG16Encoder,
+    "MC3VideoEncoder": MC3VideoEncoder,
+}
 
 
 def load_model(config: Config) -> DeepRetinaModel:
@@ -24,7 +27,11 @@ def load_model(config: Config) -> DeepRetinaModel:
     if is_rgb:
         img_shape[0] = 3
     batch_size = config.training.batch_size
-    input_shape = (batch_size, *img_shape)
+    seq_len = config.data.seq_len
+    if seq_len > 1:
+        input_shape = (batch_size, seq_len, *img_shape)
+    else:
+        input_shape = (batch_size, *img_shape)
 
     # Resolve encoder weights
     weights_path = Path("pretrained_weights") / config.training.encoder.weights
@@ -36,20 +43,15 @@ def load_model(config: Config) -> DeepRetinaModel:
     # initialize encoder
     encoder: Encoder = ENCODERS[enc_name](
         input_shape=input_shape,
-        weights_path=str(weights_path),
+        weights_path=weights_path,
         freeze=freeze,
-        seq_len=config.data.seq_len,
+        seq_len=seq_len,
     )
     encoder_output_shape = encoder.get_output_shape()
 
-    flattened_size = 1
-    # we skip the first dimension which is the batch size
-    for dim in encoder_output_shape[1:]:
-        flattened_size *= dim
-
     # initialize predictor
     predictor: Predictor = PREDICTORS[pred_name](
-        input_size=flattened_size, num_classes=config.training.num_units
+        input_size=encoder_output_shape, num_classes=config.training.num_units
     )
 
     model = DeepRetinaModel(encoder=encoder, predictor=predictor)

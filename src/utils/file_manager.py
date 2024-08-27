@@ -41,8 +41,8 @@ def copy_config(results_dir: str, config_path: str) -> None:
 
     Args:
         results_dir (str): Name of results directory
-        config_path (str): Config filr path
+        config_path (str): Config file path
     """
-
-    base_dir = os.path.join("results", results_dir)
+    # The config file is renamed to config.yaml
+    base_dir = os.path.join("results", results_dir, "config.yaml")
     shutil.copy2(config_path, base_dir)
