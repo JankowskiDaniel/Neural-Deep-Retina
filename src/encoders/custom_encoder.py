@@ -1,43 +1,9 @@
 from interfaces.encoder import Encoder
+from encoders.base_custom_encoder import BaseCustomEncoder
 
 import torch.nn as nn
 from torch import load, stack
 from pathlib import Path
-
-
-class EncodingBlock(nn.Module):
-    def __init__(
-        self,
-        in_channels: int,
-        out_channels: int,
-        pooling=nn.MaxPool2d(kernel_size=2, stride=2),
-        activation=nn.ELU(),
-    ) -> None:
-        super(EncodingBlock, self).__init__()
-
-        self.block = nn.Sequential(
-            nn.Conv2d(
-                in_channels=in_channels,
-                out_channels=out_channels,
-                kernel_size=3,
-                padding=1,
-                stride=1,
-            ),
-            nn.Conv2d(
-                in_channels=out_channels,
-                out_channels=out_channels,
-                kernel_size=3,
-                padding=1,
-                stride=1,
-            ),
-            activation,
-            # nn.BatchNorm2d(num_features=out_channels),
-            pooling,
-        )
-
-    def forward(self, x):
-        x = self.block(x)
-        return x
 
 
 class CustomEncoder(Encoder):
@@ -45,33 +11,36 @@ class CustomEncoder(Encoder):
 
     def __init__(
         self,
-        image_shape: tuple,
+        input_shape: tuple,
+        weights_path: Path,
+        freeze: bool,
+        seq_len: int,
         latent_dim: int = 100,
         out_channels: int = 16,
         activation=nn.ReLU(),
     ) -> None:
         super(CustomEncoder, self).__init__()
 
-        in_channels = image_shape[0]
-        self.conv = nn.Sequential(
-            EncodingBlock(in_channels, 2 * out_channels),
-            EncodingBlock(2 * out_channels, 4 * out_channels),
+        base_custom_encoder = BaseCustomEncoder(
+            input_shape, latent_dim, out_channels, activation
         )
-        self.flatten = nn.Flatten()
-        self.bottleneck = nn.Sequential(
-            nn.Linear(4 * out_channels * 12 * 12, latent_dim),
-            activation,
-        )
-        self.features = nn.Sequential(self.conv, self.flatten, self.bottleneck)
+        base_custom_encoder.load_state_dict(load(weights_path))
 
+        self.features = base_custom_encoder
+
+        if freeze:
+            for param in self.features.parameters():
+                param.requires_grad = False
+
+        self.seq_len = seq_len
         self._output_shape = latent_dim
 
     def forward(self, x):
-        if self.seq_len:
+        if self.seq_len > 1:
             latent_seq = []
             # batch
             for t in range(self.seq_len):
-                x_t = self.features(x[:, t])
+                x_t = self.features(x[:, t].unsqueeze(1))
                 x_t = x_t.view(x_t.size(0), -1)
                 latent_seq.append(x_t)
 
@@ -82,9 +51,6 @@ class CustomEncoder(Encoder):
             x = x.view(x.size(0), -1)  # Flatten the tensor
 
         return x
-
-    def load_weights_from_file(self, weights_path: Path) -> None:
-        self.load_state_dict(load(weights_path))
 
     def get_output_shape(self):
         return self._output_shape

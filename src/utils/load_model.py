@@ -3,7 +3,7 @@ from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.dummy import DummyCNN
 from predictors.rnns import SingleLSTM
-from encoders import VGG16Encoder, MC3VideoEncoder
+from encoders import VGG16Encoder, MC3VideoEncoder, CustomEncoder
 from models import DeepRetinaModel
 
 PREDICTORS: dict[str, Predictor] = {
@@ -14,6 +14,7 @@ PREDICTORS: dict[str, Predictor] = {
 ENCODERS: dict[str, Encoder] = {
     "VGG16Encoder": VGG16Encoder,
     "MC3VideoEncoder": MC3VideoEncoder,
+    "CustomEncoder": CustomEncoder,
 }
 
 

@@ -12,7 +12,31 @@ Once found, the weights can be downloaded for example by wget:
 wget -c https://download.pytorch.org/models/vgg16-397923af.pth
 ```
 
-For the video classification pre-trained MC3 18 ResNet use:
+Please put the downloaded weights in this folder, so that they can be loaded smoothly.
+
+### Model Zoo
+
+Here, we list the available models.
+Please mind that to use the concrete model, you need to provide the correct values in the `config` file.
+The class name is provided in parentheses.
+
+For example:
+```yaml
+TRAINING:
+  ENCODER:
+    name: CustomEncoder # class name
+    weights: custom_encoder_best.pth # weights file name
+```
+
+#### VGG 16 (VGG16Encoder)
+
+```sh
+wget -c https://download.pytorch.org/models/vgg16-397923af.pth
+```
+
+#### Video classification MC3 18 ResNet (MC3VideoEncoder)
+
+Important: for now, the weights for MC3 are downloaded automatically (no need for manual downloading).
 
 ```sh
 wget -c https://download.pytorch.org/models/mc3_18-a90a0ba3.pth
@@ -20,4 +44,7 @@ wget -c https://download.pytorch.org/models/mc3_18-a90a0ba3.pth
 
 More info about the network here: https://pytorch.org/vision/master/models/video_resnet.html.
 
-Please put the downloaded weights in this folder, so that they can be loaded smoothly.
+#### Custom encoder trained from scratch (CustomEncoder)
+
+https://drive.google.com/file/d/14Ws9qtM0lRmCKpHAm82MSubH6sm5cvI4/view?usp=drive_link
+
