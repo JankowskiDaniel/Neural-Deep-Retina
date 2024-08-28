@@ -41,6 +41,7 @@ class TestingConfig:
     weights: str
     metrics: list[str]
     save_logs: bool
+    run_on_train_data: bool
 
 
 @dataclass

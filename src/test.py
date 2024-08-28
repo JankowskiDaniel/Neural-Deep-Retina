@@ -87,7 +87,7 @@ if __name__ == "__main__":
     metrics_tracker.to(DEVICE)
 
     # Set the path for saving predictions
-    predictions_dir = results_dir_path / "predictions"
+    predictions_dir = results_dir_path / "testset_predictions"
     # Set the path for saving plots
     plots_dir = results_dir_path / "plots"
 
@@ -120,5 +120,72 @@ if __name__ == "__main__":
     logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
 
     # Plot outputs and targets
-    visualize_outputs_and_targets(predictions_dir, plots_dir)
+    visualize_outputs_and_targets(
+        predictions_dir, plots_dir, file_name="test_outputs_and_targets.png"
+    )
     logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
+
+    if config.testing.run_on_train_data:
+        logger.info("Testing on the training data...")
+        # load the datasets
+        if config.data.seq_len:
+            train_dataset = H5SeqDataset(
+                path=Path(config.data.path),
+                response_type="firing_rate_10ms",
+                is_train=True,
+                is_rgb=config.data.rgb,
+                seq_length=config.data.seq_len,
+                y_scaler=StandardScaler(),
+                results_dir=results_dir_path,
+            )
+        else:
+            train_dataset = H5Dataset(
+                path=Path(config.data.path),
+                response_type="firing_rate_10ms",
+                is_train=True,
+                is_rgb=config.data.rgb,
+                y_scaler=StandardScaler(),
+                results_dir=results_dir_path,
+            )
+        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+        # Set the path for saving predictions
+        predictions_dir = results_dir_path / "trainset_predictions"
+        # Create metric tracker
+        metrics_tracker = get_metric_tracker(config.testing.metrics)
+        metrics_tracker.to(DEVICE)
+
+        # Test the model
+        logger.info("Testing model on the training data...")
+        start_testing_time = time()
+
+        test_loss, metrics_dict = test_model(
+            model=model,
+            test_loader=train_loader,
+            loss_fn=loss_fn,
+            device=DEVICE,
+            tracker=metrics_tracker,
+            save_outputs_and_targets=True,
+            save_dir=predictions_dir,
+        )
+
+        total_time = time() - start_testing_time
+        logger.info(f"Test loss: {test_loss:.4f}")
+        logger.info(f"Total testing time: {total_time:.2f} seconds")
+
+        # Create a DataFrame from the metrics dictionary
+        df_results = pd.DataFrame(metrics_dict)
+        logger.info(
+            "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
+        )
+        # Save results to a csv file
+        df_results.to_csv(results_dir_path / "test_traindata_results.csv", index=False)
+        logger.info(
+            f"Results saved to {results_dir_path / 'test_traindata_results.csv'}"
+        )
+
+        # Plot outputs and targets
+        visualize_outputs_and_targets(
+            predictions_dir, plots_dir, file_name="train_outputs_and_targets.png"
+        )
+        logger.info(f"Outputs and targets visualization saved to {predictions_dir}")

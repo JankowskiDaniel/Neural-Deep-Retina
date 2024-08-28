@@ -39,6 +39,7 @@ def load_config(path: str) -> Config:
         weights=config["TESTING"]["weights"],
         metrics=config["TESTING"]["metrics"],
         save_logs=config["TESTING"]["save_logs"],
+        run_on_train_data=config["TESTING"]["run_on_train_data"],
     )
 
     return Config(data=data_conf, training=training_conf, testing=testing_config)

@@ -14,7 +14,8 @@ def organize_folders(results_dir: str) -> None:
     # List of directories to create
     directories_to_create = [
         os.path.join(base_dir, "models"),
-        os.path.join(base_dir, "predictions"),
+        os.path.join(base_dir, "testset_predictions"),
+        os.path.join(base_dir, "trainset_predictions"),
         os.path.join(base_dir, "plots"),
     ]
 

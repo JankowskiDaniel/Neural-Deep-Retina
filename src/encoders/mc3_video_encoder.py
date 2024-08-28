@@ -19,8 +19,9 @@ class MC3VideoEncoder(Encoder):
         # weights.url = str(weights_path)
         mc3_18 = resnet.mc3_18()
         self.features = mc3_18
+        # Input shape is (batch_size, channels, seq_len, height, width)
         mc3_18.stem[0] = torch.nn.Conv3d(
-            seq_len,
+            3,
             mc3_18.stem[0].out_channels,
             kernel_size=(1, 7, 7),
             stride=(1, 2, 2),
@@ -38,6 +39,8 @@ class MC3VideoEncoder(Encoder):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
+        # Reshape to B, C, T, H, W
+        x = x.permute(0, 2, 1, 3, 4)
         x = self.features(x)
         return x
 
