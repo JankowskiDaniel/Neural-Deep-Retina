@@ -17,12 +17,15 @@ def get_training_arguments() -> tuple[Path, Path]:
         help="Name of the results directory",
     )
     parser.add_argument(
-        "--config", type=str, default="config.yaml", help="Path to config file"
+        "--config",
+        type=str,
+        default="config.yaml",
+        help="Name of th config file. Assumed to be in the configs directory",
     )
 
     args = parser.parse_args()
 
-    config_path = Path(args.config)
+    config_path = Path("configs") / args.config
     results_dir = Path(args.results_dir)
     return config_path, results_dir
 

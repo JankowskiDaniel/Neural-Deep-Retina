@@ -28,7 +28,7 @@ For running model training, use the `src/train.py` script. It is assumed that th
 The script accepts two parameters:
 
 - `--results_dir` - a directory inside the `results` folder, where the saved models, config, and optionally logs are stored.
-- `--config` (optional) - a config file name. Defaults to `config.yaml`
+- `--config` (optional) - a config file name. Defaults to `config.yaml`. Assumed to be in the `configs` directory.
 
 An exemplary command for running the training:
 
