@@ -5,7 +5,7 @@ DATA:
 TRAINING:
   ENCODER:
     name: VGG16Encoder
-    learning_rate: 0.0001
+    learning_rate: 0.001
   PREDICTOR:
     name: DummyCNN
     learning_rate: 0.001
@@ -13,7 +13,7 @@ TRAINING:
   epochs: 100
   num_units: 9
   early_stopping: True
-  early_stopping_patience: 20
+  early_stopping_patience: 7
   save_logs: True
 TESTING:
   batch_size: 64

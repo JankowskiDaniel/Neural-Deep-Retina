@@ -89,7 +89,7 @@ if __name__ == "__main__":
             {"params": model.decoder.parameters(), "lr": PREDICTOR_LR},
         ]
     )
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.MSELoss()  # nn.BCELoss()
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
     if config.training.early_stopping:

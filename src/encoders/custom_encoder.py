@@ -21,15 +21,8 @@ class EncodingBlock(nn.Module):
                 padding=1,
                 stride=1,
             ),
-            nn.Conv2d(
-                in_channels=out_channels,
-                out_channels=out_channels,
-                kernel_size=3,
-                padding=1,
-                stride=1,
-            ),
             activation,
-            # nn.BatchNorm2d(num_features=out_channels),
+            nn.BatchNorm2d(num_features=out_channels),
             pooling,
         )
 
@@ -55,9 +48,8 @@ class CustomEncoder(Encoder):
             EncodingBlock(in_channels, 2 * out_channels),
             EncodingBlock(2 * out_channels, 4 * out_channels),
         )
-        self.flatten = nn.Flatten()
         self.bottleneck = nn.Sequential(
-            nn.Linear(4 * out_channels * 12 * 12, latent_dim),
+            nn.Conv2d(4 * out_channels, 4 * out_channels, kernel_size=3, padding=1),
             activation,
         )
 
@@ -65,7 +57,6 @@ class CustomEncoder(Encoder):
 
     def forward(self, x):
         x = self.conv(x)
-        x = self.flatten(x)
         x = self.bottleneck(x)
         return x
 

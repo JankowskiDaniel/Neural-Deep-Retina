@@ -6,7 +6,7 @@ class DecodingBlock(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        upsampling=nn.Upsample(scale_factor=2, mode="nearest"),
+        upsampling=nn.Upsample(scale_factor=2, mode="bilinear"),
         activation=nn.ELU(),
     ) -> None:
         super(DecodingBlock, self).__init__()
@@ -20,15 +20,8 @@ class DecodingBlock(nn.Module):
                 padding=1,
                 stride=1,
             ),
-            nn.Conv2d(
-                in_channels=out_channels,
-                out_channels=out_channels,
-                kernel_size=3,
-                padding=1,
-                stride=1,
-            ),
             activation,
-            # nn.BatchNorm2d(num_features=out_channels),
+            nn.BatchNorm2d(num_features=out_channels),
         )
 
     def forward(self, x):
@@ -52,11 +45,6 @@ class CustomDecoder(nn.Module):
         # convolutional layers, must match the encoder
         self.out_channels = out_channels
 
-        self.linear = nn.Sequential(
-            nn.Linear(latent_dim, 4 * out_channels * 12 * 12),
-            activation,
-        )
-
         image_channels = image_shape[0]
 
         self.transpose_conv = nn.Sequential(
@@ -69,13 +57,11 @@ class CustomDecoder(nn.Module):
                 padding=2,
                 stride=1,
             ),
-            activation,
+            nn.ReLU(),
         )
 
         self._output_shape = latent_dim
 
     def forward(self, x):
-        x = self.linear(x)
-        x = x.view(-1, 4 * self.out_channels, 12, 12)
         x = self.transpose_conv(x)
         return x
