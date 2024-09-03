@@ -1,15 +1,15 @@
-from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
-from utils import get_training_arguments, load_config, load_model, EarlyStopping
-from data_handlers import H5Dataset, H5SeqDataset
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 from time import time
 from pathlib import Path
+from sklearn.preprocessing import StandardScaler
+from data_handlers import H5Dataset, H5SeqDataset
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
+from utils import get_training_arguments, load_config, load_model, EarlyStopping
 
 
 if __name__ == "__main__":
@@ -33,6 +33,7 @@ if __name__ == "__main__":
     logger.info("Loading model...")
     model = load_model(config)
 
+    y_scaler = StandardScaler(with_mean=False)
     # load the datasets
     if config.data.seq_len:
         train_dataset = H5SeqDataset(
@@ -41,8 +42,8 @@ if __name__ == "__main__":
             is_train=True,
             is_rgb=config.data.rgb,
             seq_length=config.data.seq_len,
-            y_scaler=StandardScaler(),
             results_dir=results_dir_path,
+            y_scaler=y_scaler,
         )
     else:
         train_dataset = H5Dataset(
@@ -50,8 +51,8 @@ if __name__ == "__main__":
             response_type="firing_rate_10ms",
             is_train=True,
             is_rgb=config.data.rgb,
-            y_scaler=StandardScaler(),
             results_dir=results_dir_path,
+            y_scaler=y_scaler,
         )
 
     # Get sample data to check dimensions

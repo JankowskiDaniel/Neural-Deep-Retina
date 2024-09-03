@@ -19,6 +19,7 @@ class H5Dataset(torch.utils.data.Dataset):
         is_train: bool = True,
         is_rgb: bool = False,
         y_scaler: Any = None,
+        use_saved_scaler: bool = False,
     ):
         """
         Initializes the H5Dataset object.
@@ -48,6 +49,8 @@ class H5Dataset(torch.utils.data.Dataset):
         self.Y: ndarray[Any, dtype[Any]] = y
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
+        # Allows to use the saved scaler for the train data
+        self.use_saved_scaler = use_saved_scaler
 
     def read_h5_to_numpy(
         self,
@@ -83,7 +86,7 @@ class H5Dataset(torch.utils.data.Dataset):
             The transformed target variable.
         """
         y_tran = y.T  # scale the data to the (n_samples, n_features) shape
-        if self.is_train:
+        if self.is_train and not self.use_saved_scaler:
             # Fit the scaler on the training data and transform the data
             y_fit = self.y_scaler.fit_transform(y_tran)
             # Save the scaler

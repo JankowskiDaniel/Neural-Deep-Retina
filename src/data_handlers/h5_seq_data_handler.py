@@ -16,6 +16,7 @@ class H5SeqDataset(H5Dataset):
         is_rgb: bool = False,
         y_scaler: Any = None,
         seq_length: int = 10,
+        use_saved_scaler: bool = False,
     ):
         """
         Initializes the H5Dataset object.
@@ -36,6 +37,7 @@ class H5SeqDataset(H5Dataset):
             is_rgb=is_rgb,
             y_scaler=y_scaler,
             results_dir=results_dir,
+            use_saved_scaler=use_saved_scaler,
         )
         self.dataset_len: int = self.dataset_len - seq_length
         self.seq_length: int = seq_length
@@ -53,7 +55,7 @@ class H5SeqDataset(H5Dataset):
         x = self.transform_x(x)
         # Get one output value
         # Transform the output value to tensor
-        y = torch.tensor(self.Y[:, idx + self.seq_length], dtype=torch.float32)
+        y = torch.tensor(self.Y[:, idx + self.seq_length - 1], dtype=torch.float32)
         return x, y
 
     def __len__(self):

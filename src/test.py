@@ -135,8 +135,8 @@ if __name__ == "__main__":
                 is_train=True,
                 is_rgb=config.data.rgb,
                 seq_length=config.data.seq_len,
-                y_scaler=StandardScaler(),
                 results_dir=results_dir_path,
+                use_saved_scaler=True,
             )
         else:
             train_dataset = H5Dataset(
@@ -144,8 +144,8 @@ if __name__ == "__main__":
                 response_type="firing_rate_10ms",
                 is_train=True,
                 is_rgb=config.data.rgb,
-                y_scaler=StandardScaler(),
                 results_dir=results_dir_path,
+                use_saved_scaler=True,
             )
         train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
 

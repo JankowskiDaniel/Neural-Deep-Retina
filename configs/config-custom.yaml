@@ -6,21 +6,21 @@ DATA:
 TRAINING:
   ENCODER:
     name: CustomEncoder
-    weights: custom_encoder_best.pth
+    weights: fc_encoder_best.pth
     freeze: True
     learning_rate: 0.0001
   PREDICTOR:
     name: SingleLSTM
     learning_rate: 0.001
-  batch_size: 16
-  epochs: 50
+  batch_size: 32
+  epochs: 3
   num_units: 9
-  early_stopping: False
-  early_stopping_patience: 5
+  early_stopping: True
+  early_stopping_patience: 10
   save_logs: True
 TESTING:
-  batch_size: 16
+  batch_size: 32
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
-  run_on_test_data: True
+  run_on_train_data: True

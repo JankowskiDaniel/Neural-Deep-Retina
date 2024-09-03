@@ -2,7 +2,7 @@ from interfaces.encoder import Encoder
 from encoders.base_custom_encoder import BaseCustomEncoder
 
 import torch.nn as nn
-from torch import load, stack
+from torch import load, stack, zeros, no_grad
 from pathlib import Path
 
 
@@ -15,15 +15,12 @@ class CustomEncoder(Encoder):
         weights_path: Path,
         freeze: bool,
         seq_len: int,
-        latent_dim: int = 100,
         out_channels: int = 16,
         activation=nn.ReLU(),
     ) -> None:
         super(CustomEncoder, self).__init__()
 
-        base_custom_encoder = BaseCustomEncoder(
-            input_shape, latent_dim, out_channels, activation
-        )
+        base_custom_encoder = BaseCustomEncoder(out_channels, activation)
         base_custom_encoder.load_state_dict(load(weights_path))
 
         self.features = base_custom_encoder
@@ -33,7 +30,9 @@ class CustomEncoder(Encoder):
                 param.requires_grad = False
 
         self.seq_len = seq_len
-        self._output_shape = latent_dim
+        # Dummy input to determine the output shape
+        self._dummy_input = zeros(input_shape)
+        self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
         if self.seq_len > 1:
@@ -53,4 +52,10 @@ class CustomEncoder(Encoder):
         return x
 
     def get_output_shape(self):
+
         return self._output_shape
+
+    def _compute_output_shape(self):
+        with no_grad():
+            output = self(self._dummy_input)
+        return output.shape[-1]
