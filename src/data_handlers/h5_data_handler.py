@@ -42,6 +42,7 @@ class H5Dataset(torch.utils.data.Dataset):
         self.y_scaler = y_scaler
         self.results_dir = results_dir
         self.transform_x = transform_x
+        self.use_saved_scaler = use_saved_scaler
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
         self.dataset_len = len(X)
@@ -50,7 +51,6 @@ class H5Dataset(torch.utils.data.Dataset):
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
         # Allows to use the saved scaler for the train data
-        self.use_saved_scaler = use_saved_scaler
 
     def read_h5_to_numpy(
         self,
