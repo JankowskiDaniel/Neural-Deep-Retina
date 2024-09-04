@@ -2,6 +2,7 @@ import torch
 from torchvision import models
 from pathlib import Path
 from interfaces.encoder import Encoder
+import torch.nn as nn
 
 
 class VGG16Encoder(Encoder):
@@ -16,7 +17,7 @@ class VGG16Encoder(Encoder):
         weights = models.vgg.VGG16_Weights
         weights.url = str(weights_path)
         vgg16 = models.vgg16(weights=weights)
-        self.features = vgg16.features
+        self.features = nn.Sequential(*list(vgg16.features.children())[:10])
         self.seq_len = seq_len
         # Freeze the encoder
         if freeze:
