@@ -2,7 +2,7 @@ DATA:
   img_shape: [1, 50, 50]
   rgb: False
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
-  seq_len: 16
+  seq_len: 8
 TRAINING:
   ENCODER:
     name: CustomEncoder
@@ -12,14 +12,14 @@ TRAINING:
   PREDICTOR:
     name: SingleLSTM
     learning_rate: 0.001
-  batch_size: 32
-  epochs: 3
+  batch_size: 128
+  epochs: 150
   num_units: 9
   early_stopping: True
-  early_stopping_patience: 10
+  early_stopping_patience: 5
   save_logs: True
 TESTING:
-  batch_size: 32
+  batch_size: 128
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
