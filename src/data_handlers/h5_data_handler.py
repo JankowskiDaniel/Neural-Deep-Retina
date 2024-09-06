@@ -42,6 +42,7 @@ class H5Dataset(torch.utils.data.Dataset):
         self.y_scaler = y_scaler
         self.results_dir = results_dir
         self.transform_x = transform_x
+        # Allows to use the saved scaler for the train data
         self.use_saved_scaler = use_saved_scaler
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
@@ -50,7 +51,6 @@ class H5Dataset(torch.utils.data.Dataset):
         self.Y: ndarray[Any, dtype[Any]] = y
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
-        # Allows to use the saved scaler for the train data
 
     def read_h5_to_numpy(
         self,
@@ -68,7 +68,7 @@ class H5Dataset(torch.utils.data.Dataset):
         y = y.astype("float32")
 
         # Normalize the output data
-        if self.y_scaler is not None:
+        if self.y_scaler is not None or self.use_saved_scaler:
             y = self.transform_y(y)
 
         return X, y
@@ -93,11 +93,15 @@ class H5Dataset(torch.utils.data.Dataset):
             with open(self.results_dir / "y_scaler.pkl", "wb") as f:
                 pickle.dump(self.y_scaler, f)
         else:
-            # load the scaler
-            with open(self.results_dir / "y_scaler.pkl", "rb") as f:
-                self.y_scaler = pickle.load(f)
-            # Only transform the test data
-            y_fit = self.y_scaler.transform(y_tran)
+            try:
+                # load the scaler
+                with open(self.results_dir / "y_scaler.pkl", "rb") as f:
+                    self.y_scaler = pickle.load(f)
+                # Only transform the test data
+                y_fit = self.y_scaler.transform(y_tran)
+            except FileNotFoundError:
+                print("The scaler file is not found. Target will not be scaled")
+                y_fit = y_tran
         y = y_fit.T  # return the data to the original shape
         return y
 
