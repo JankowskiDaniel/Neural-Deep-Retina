@@ -10,6 +10,7 @@ from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
 from utils import get_training_arguments, load_config, load_model, EarlyStopping
+from visualize.visualize_loss import visualize_loss
 
 
 if __name__ == "__main__":
@@ -147,3 +148,4 @@ if __name__ == "__main__":
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
     torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
+    visualize_loss(train_history, results_dir_path)

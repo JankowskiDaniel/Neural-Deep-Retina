@@ -44,6 +44,7 @@ def visualize_outputs_and_targets(
     predictions_dir: Path,
     plots_dir: Path,
     file_name: str = "outputs_and_targets.png",
+    is_train: bool = False,
 ) -> None:
     """
     Visualizes the model outputs and targets by plotting them on separate channels.
@@ -78,7 +79,8 @@ def visualize_outputs_and_targets(
         ax.get_legend().remove()
     fig.supylabel("Output signal")
     fig.supxlabel("Time")
-    fig.suptitle("Model output and target\n")
+    prefix = "Train" if is_train else "Test"
+    fig.suptitle(f"{prefix} data model output and target\n")
 
     fig.tight_layout()
     fig.savefig(plots_dir / file_name, dpi=150)

@@ -121,7 +121,10 @@ if __name__ == "__main__":
 
     # Plot outputs and targets
     visualize_outputs_and_targets(
-        predictions_dir, plots_dir, file_name="test_outputs_and_targets.png"
+        predictions_dir,
+        plots_dir,
+        file_name="test_outputs_and_targets.png",
+        is_train=False,
     )
     logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
 
@@ -186,6 +189,9 @@ if __name__ == "__main__":
 
         # Plot outputs and targets
         visualize_outputs_and_targets(
-            predictions_dir, plots_dir, file_name="train_outputs_and_targets.png"
+            predictions_dir,
+            plots_dir,
+            file_name="train_outputs_and_targets.png",
+            is_train=True,
         )
         logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
