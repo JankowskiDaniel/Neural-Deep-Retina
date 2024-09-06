@@ -10,16 +10,16 @@ TRAINING:
     freeze: True
     learning_rate: 0.0001
   PREDICTOR:
-    name: SingleLSTM
+    name: SimpleCFC
     learning_rate: 0.001
-  batch_size: 128
+  batch_size: 32
   epochs: 150
   num_units: 9
   early_stopping: True
-  early_stopping_patience: 5
+  early_stopping_patience: 7
   save_logs: True
 TESTING:
-  batch_size: 128
+  batch_size: 32
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
