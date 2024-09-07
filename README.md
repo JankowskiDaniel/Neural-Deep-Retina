@@ -37,6 +37,25 @@ python src/train.py --results_dir my_training
 ``` 
 The training results will be saved inside `results/my_training` directory and training will proceed according to `config.yaml` file.
 
+### Running training in the slurm cluster ###
+
+1. Export the path to the conda
+```sh
+export PATH="/home/inf148247/anaconda3/bin:$PATH"
+```
+2. Activate the environment
+```sh
+source activate neural_env
+```
+3. Run the training in the background by submitting a job
+```sh
+sbatch run_training.sh
+```
+4. Or connect to the hgx cluster in an interactive mode:
+```sh
+srun -p hgx -w hgx1 --gres=gpu:1 --pty /bin/bash -l
+```
+
 ### Using pre-trained models ###
 
 For setting up pre-trained models, please check out the readme in the `pretrained_weights` folder.
