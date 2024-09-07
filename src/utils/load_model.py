@@ -1,13 +1,14 @@
 from pathlib import Path
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
-from predictors.dummy import DummyCNN
+from predictors.linears import SingleLinear, MultiLinear
 from predictors.rnns import SingleLSTM
 from encoders import VGG16Encoder, MC3VideoEncoder, CustomEncoder
 from models import DeepRetinaModel
 
 PREDICTORS: dict[str, Predictor] = {
-    "DummyCNN": DummyCNN,
+    "SingleLinear": SingleLinear,
+    "MultiLinear": MultiLinear,
     "SingleLSTM": SingleLSTM,
 }
 
