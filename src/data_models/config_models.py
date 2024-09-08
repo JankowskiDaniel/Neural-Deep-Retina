@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 
-class DataConfig(BaseModel, extra="allow"):
+class DataConfig(BaseModel, extra="allow"):  # type: ignore
     data_handler: str
     img_shape: list[int]
     path: str
