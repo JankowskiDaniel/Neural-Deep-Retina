@@ -2,13 +2,16 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from time import time
-from pathlib import Path
 import pandas as pd
-
-from data_handlers import H5Dataset, H5SeqDataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
-from utils import get_testing_arguments, load_config, load_model, get_metric_tracker
+from utils import (
+    get_testing_arguments,
+    load_config,
+    load_model,
+    get_metric_tracker,
+    load_data_handler,
+)
 from visualize.visualize_dataset import visualize_outputs_and_targets
 from sklearn.preprocessing import StandardScaler
 
@@ -39,26 +42,13 @@ if __name__ == "__main__":
     model = load_model(config)
     model.load_state_dict(torch.load(weights_path))
 
-    # load the test dataset
-    if config.data.seq_len:
-        test_dataset = H5SeqDataset(
-            path=Path(config.data.path),
-            response_type="firing_rate_10ms",
-            is_train=False,
-            is_rgb=config.data.rgb,
-            seq_length=config.data.seq_len,
-            y_scaler=StandardScaler(),
-            results_dir=results_dir_path,
-        )
-    else:
-        test_dataset = H5Dataset(
-            path=Path(config.data.path),
-            response_type="firing_rate_10ms",
-            is_train=False,
-            is_rgb=config.data.rgb,
-            y_scaler=StandardScaler(),
-            results_dir=results_dir_path,
-        )
+    test_dataset = load_data_handler(
+        config.data,
+        results_dir=results_dir_path,
+        is_train=False,
+        y_scaler=StandardScaler(),
+        use_saved_scaler=True,
+    )
 
     # Get sample data to check dimensions
     X, y = test_dataset[0]
@@ -77,7 +67,9 @@ if __name__ == "__main__":
     BATCH_SIZE = config.testing.batch_size
 
     # Define data loaders
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(
+        test_dataset, batch_size=BATCH_SIZE, shuffle=False
+    )
 
     # Define loss function
     loss_fn = nn.MSELoss()
@@ -113,7 +105,9 @@ if __name__ == "__main__":
     # Create a DataFrame from the metrics dictionary
     df_results = pd.DataFrame(metrics_dict)
     logger.info(
-        "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
+        "Results {}".format(
+            df_results.to_string().replace("\n", "\n\t\t\t\t\t")
+        )
     )
     # Save results to a csv file
     df_results.to_csv(results_dir_path / "test_results.csv", index=False)
@@ -126,31 +120,24 @@ if __name__ == "__main__":
         file_name="test_outputs_and_targets.png",
         is_train=False,
     )
-    logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
+    logger.info(
+        f"Outputs and targets visualization saved to {predictions_dir}"
+    )
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
-        # load the datasets
-        if config.data.seq_len:
-            train_dataset = H5SeqDataset(
-                path=Path(config.data.path),
-                response_type="firing_rate_10ms",
-                is_train=True,
-                is_rgb=config.data.rgb,
-                seq_length=config.data.seq_len,
-                results_dir=results_dir_path,
-                use_saved_scaler=True,
-            )
-        else:
-            train_dataset = H5Dataset(
-                path=Path(config.data.path),
-                response_type="firing_rate_10ms",
-                is_train=True,
-                is_rgb=config.data.rgb,
-                results_dir=results_dir_path,
-                use_saved_scaler=True,
-            )
-        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+        train_dataset = load_data_handler(
+            config.data,
+            results_dir=results_dir_path,
+            is_train=True,
+            y_scaler=StandardScaler(),
+            use_saved_scaler=True,
+        )
+
+        train_loader = DataLoader(
+            train_dataset, batch_size=BATCH_SIZE, shuffle=False
+        )
 
         # Set the path for saving predictions
         predictions_dir = results_dir_path / "trainset_predictions"
@@ -179,10 +166,14 @@ if __name__ == "__main__":
         # Create a DataFrame from the metrics dictionary
         df_results = pd.DataFrame(metrics_dict)
         logger.info(
-            "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
+            "Results {}".format(
+                df_results.to_string().replace("\n", "\n\t\t\t\t\t")
+            )
         )
         # Save results to a csv file
-        df_results.to_csv(results_dir_path / "test_traindata_results.csv", index=False)
+        df_results.to_csv(
+            results_dir_path / "test_traindata_results.csv", index=False
+        )
         logger.info(
             f"Results saved to {results_dir_path / 'test_traindata_results.csv'}"
         )
@@ -194,4 +185,6 @@ if __name__ == "__main__":
             file_name="train_outputs_and_targets.png",
             is_train=True,
         )
-        logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
+        logger.info(
+            f"Outputs and targets visualization saved to {predictions_dir}"
+        )

@@ -1,7 +1,9 @@
 DATA:
+  data_handler: H5SeqDataset # "H5Dataset", "H5SeqDataset", "BaselineRGBDataset", "BaselineSeqRGBDataset"
   img_shape: [1, 50, 50]
-  rgb: True
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
+  response_type: firing_rate_10ms
+  is_rgb: True
   seq_len: 16
 TRAINING:
   ENCODER:
@@ -13,7 +15,7 @@ TRAINING:
     name: SingleLSTM
     learning_rate: 0.001
   batch_size: 16
-  epochs: 100
+  epochs: 10
   num_units: 9
   early_stopping: False
   early_stopping_patience: 5
@@ -24,3 +26,4 @@ TESTING:
   metrics: ["mae", "mse"]
   save_logs: True
   run_on_test_data: True
+  run_on_train_data: True

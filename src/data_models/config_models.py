@@ -1,12 +1,13 @@
 from dataclasses import dataclass
+from typing import Literal
+from pydantic import BaseModel
 
 
-@dataclass
-class DataConfig:
+class DataConfig(BaseModel, extra="allow"):  # type: ignore
+    data_handler: str
     img_shape: list[int]
-    rgb: bool
     path: str
-    seq_len: int | None
+    response_type: Literal["firing_rate_10ms", "binned"]
 
 
 @dataclass

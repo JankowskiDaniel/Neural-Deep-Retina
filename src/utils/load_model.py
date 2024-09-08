@@ -25,7 +25,7 @@ def load_model(config: Config) -> DeepRetinaModel:
 
     # resolve input size
     img_shape = config.data.img_shape
-    is_rgb = config.data.rgb
+    is_rgb = config.data.is_rgb
     if is_rgb:
         img_shape[0] = 3
     batch_size = config.training.batch_size

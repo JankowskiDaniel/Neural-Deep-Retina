@@ -1,109 +1,53 @@
 import torch
-from h5py import File
-from torchvision.transforms import v2
-import numpy as np
-from numpy import ndarray, dtype
-from typing import Any, Tuple
+from typing import Any, Literal, Tuple
 from pathlib import Path
-import pickle
+from interfaces.base_handler import BaseHandler
+import warnings
 
-transform_x: v2.Compose = v2.Compose([v2.ToDtype(torch.float32, scale=True)])
 
-
-class H5Dataset(torch.utils.data.Dataset):
+class H5Dataset(BaseHandler):
     def __init__(
         self,
+        is_rgb: bool,
         path: Path,
-        response_type: str,
+        response_type: Literal["firing_rate_10ms", "binned"],
         results_dir: Path,
         is_train: bool = True,
-        is_rgb: bool = False,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
-    ):
-        """
-        Initializes the H5Dataset object.
-
-        Args:
-            path (Path): The path to the .h5 file.
-            response_type (str): The type of response data. Available types are 'firing_rate_10ms' and 'binned'.
-            is_train (bool, optional): Whether the data is for training or testing. Defaults to True.
-            is_rgb (bool, optional): Whether the data is in RGB format. Defaults to False.
-            y_scaler (Any, optional): The scaler for the response data. Any scaler from sklearn.preprocessing, for example, StandardScaler. Defaults to None.
-        """  # noqa: E501
-
-        self.file_path = path
-        # The available types are firing_rate_10ms, binned
-        self.response_type = response_type
-        # Choose either train or test subsets
-        self.data_type = "train" if is_train else "test"
-        self.is_train = is_train
+        **kwargs: Any,
+    ) -> None:
+        super(H5Dataset, self).__init__(
+            path,
+            response_type,
+            results_dir,
+            is_train,
+            y_scaler,
+            use_saved_scaler,
+        )
         self.is_rgb = is_rgb
-        self.y_scaler = y_scaler
-        self.results_dir = results_dir
-        self.transform_x = transform_x
-        # Allows to use the saved scaler for the train data
-        self.use_saved_scaler = use_saved_scaler
-        # Read dataset from file
-        X, y = self.read_h5_to_numpy()
-        self.dataset_len = len(X)
-        self.X: ndarray[Any, dtype[Any]] = X
-        self.Y: ndarray[Any, dtype[Any]] = y
-        self.input_shape: tuple = X.shape
-        self.output_shape: tuple = y.shape
 
-    def read_h5_to_numpy(
-        self,
-    ) -> Tuple[ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]]]:
-        """
-        Reads data from an HDF5 file and converts it to numpy arrays. Normalizes the output data if the scaler is provided.
-        Returns:
-            Tuple[ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]]]: A tuple containing the input data (X) and the output data (y).
-        """  # noqa: E501
-        with File(self.file_path, "r") as h5file:
-            # Read as numpy arrays
-            X = np.asarray(h5file[self.data_type]["stimulus"][:500])
-            y = np.asarray(h5file[self.data_type]["response"][self.response_type])
+        # List of allowed arguments in the constructor
+        allowed_args = {
+            "path",
+            "response_type",
+            "results_dir",
+            "is_train",
+            "y_scaler",
+            "use_saved_scaler",
+            "is_rgb",
+        }
 
-        y = y.astype("float32")
+        # Check for unused kwargs
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
-        # Normalize the output data
-        if self.y_scaler is not None or self.use_saved_scaler:
-            y = self.transform_y(y)
-
-        return X, y
-
-    def transform_y(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
-        """
-        Transforms the target variable 'y' using a scaler.
-
-        Parameters:
-        - y: ndarray[Any, dtype[Any]]
-            The target variable to be transformed.
-
-        Returns:
-        - ndarray[Any, dtype[Any]]
-            The transformed target variable.
-        """
-        y_tran = y.T  # scale the data to the (n_samples, n_features) shape
-        if self.is_train and not self.use_saved_scaler:
-            # Fit the scaler on the training data and transform the data
-            y_fit = self.y_scaler.fit_transform(y_tran)
-            # Save the scaler
-            with open(self.results_dir / "y_scaler.pkl", "wb") as f:
-                pickle.dump(self.y_scaler, f)
-        else:
-            try:
-                # load the scaler
-                with open(self.results_dir / "y_scaler.pkl", "rb") as f:
-                    self.y_scaler = pickle.load(f)
-                # Only transform the test data
-                y_fit = self.y_scaler.transform(y_tran)
-            except FileNotFoundError:
-                print("The scaler file is not found. Target will not be scaled")
-                y_fit = y_tran
-        y = y_fit.T  # return the data to the original shape
-        return y
+        if unused_kwargs:
+            # Print warning for unused kwargs
+            warnings.warn(
+                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."  # noqa: E501
+            )
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
