@@ -16,7 +16,7 @@ class BaselineSeqRGBDataset(BaseHandler):
         is_train: bool = True,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         super(BaselineSeqRGBDataset, self).__init__(
             path=path,
@@ -41,11 +41,13 @@ class BaselineSeqRGBDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             warnings.warn(
-                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."
+                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."  # noqa: E501
             )
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -65,7 +67,9 @@ class BaselineSeqRGBDataset(BaseHandler):
         out = torch.stack(images_sequence, dim=0)
         out = self.transform_x(out)
         # Get the target for the last image in the sequence
-        y = torch.tensor(self.Y[:, idx + self.seq_length + 1], dtype=torch.float32)
+        y = torch.tensor(
+            self.Y[:, idx + self.seq_length + 1], dtype=torch.float32
+        )
 
         return out, y
 

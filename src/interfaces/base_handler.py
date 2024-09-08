@@ -52,7 +52,9 @@ class BaseHandler(torch.utils.data.Dataset):
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
             X = np.asarray(h5file[self.data_type]["stimulus"][:500])
-            y = np.asarray(h5file[self.data_type]["response"][self.response_type])
+            y = np.asarray(
+                h5file[self.data_type]["response"][self.response_type]
+            )
 
         y = y.astype("float32")
 
@@ -62,7 +64,9 @@ class BaseHandler(torch.utils.data.Dataset):
 
         return X, y
 
-    def transform_y(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
+    def transform_y(
+        self, y: ndarray[Any, dtype[Any]]
+    ) -> ndarray[Any, dtype[Any]]:
         """
         Transforms the target variable 'y' using a scaler.
 
@@ -89,7 +93,9 @@ class BaseHandler(torch.utils.data.Dataset):
                 # Only transform the test data
                 y_fit = self.y_scaler.transform(y_tran)
             except FileNotFoundError:
-                print("The scaler file is not found. Target will not be scaled")
+                print(
+                    "The scaler file is not found. Target will not be scaled"
+                )
                 y_fit = y_tran
         y = y_fit.T  # return the data to the original shape
         return y

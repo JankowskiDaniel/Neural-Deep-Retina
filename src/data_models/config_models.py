@@ -2,11 +2,13 @@ from dataclasses import dataclass
 from typing import Literal
 from pydantic import BaseModel
 
-class DataConfig(BaseModel, extra='allow'):
+
+class DataConfig(BaseModel, extra="allow"):
     data_handler: str
     img_shape: list[int]
     path: str
     response_type: Literal["firing_rate_10ms", "binned"]
+
 
 @dataclass
 class EncoderConfig:

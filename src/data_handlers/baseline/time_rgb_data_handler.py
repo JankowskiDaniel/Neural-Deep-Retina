@@ -4,6 +4,7 @@ from typing import Any, Literal, Tuple
 from pathlib import Path
 from interfaces.base_handler import BaseHandler
 
+
 class BaselineRGBDataset(BaseHandler):
     def __init__(
         self,
@@ -15,31 +16,38 @@ class BaselineRGBDataset(BaseHandler):
         use_saved_scaler: bool = False,
         **kwargs: Any,
     ) -> None:
-        super(BaselineRGBDataset, self).__init__(path,
-                                        response_type,
-                                        results_dir,
-                                        is_train, y_scaler,
-                                        use_saved_scaler
-                                        )
+        super(BaselineRGBDataset, self).__init__(
+            path,
+            response_type,
+            results_dir,
+            is_train,
+            y_scaler,
+            use_saved_scaler,
+        )
 
         self.subseq_length: int = 3
         self.dataset_len: int = self.dataset_len - self.subseq_length
 
         # List of allowed arguments in the constructor
-        allowed_args = {'path',
-                        'response_type',
-                        'results_dir',
-                        'is_train',
-                        'y_scaler',
-                        'use_saved_scaler',
-                        }
+        allowed_args = {
+            "path",
+            "response_type",
+            "results_dir",
+            "is_train",
+            "y_scaler",
+            "use_saved_scaler",
+        }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             # Print warning for unused kwargs
-            warnings.warn(f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored.")
+            warnings.warn(
+                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."  # noqa: E501
+            )
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         # Stack three consecutive grayscale images
@@ -53,7 +61,9 @@ class BaselineRGBDataset(BaseHandler):
         # Apply any transformations to the stacked images
         x = self.transform_x(x)
         # Get the target for the fourth image
-        y = torch.tensor(self.Y[:, idx + self.subseq_length - 1], dtype=torch.float32)
+        y = torch.tensor(
+            self.Y[:, idx + self.subseq_length - 1], dtype=torch.float32
+        )
 
         return x, y
 

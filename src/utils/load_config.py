@@ -42,4 +42,6 @@ def load_config(path: str) -> Config:
         run_on_train_data=config["TESTING"]["run_on_train_data"],
     )
 
-    return Config(data=data_conf, training=training_conf, testing=testing_config)
+    return Config(
+        data=data_conf, training=training_conf, testing=testing_config
+    )

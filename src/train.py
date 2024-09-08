@@ -3,12 +3,17 @@ from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 from time import time
-from pathlib import Path
 from sklearn.preprocessing import StandardScaler
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
-from utils import get_training_arguments, load_config, load_model, EarlyStopping, load_data_handler
+from utils import (
+    get_training_arguments,
+    load_config,
+    load_model,
+    EarlyStopping,
+    load_data_handler,
+)
 from visualize.visualize_loss import visualize_loss
 
 
@@ -37,11 +42,12 @@ if __name__ == "__main__":
 
     # load the data handler
     logger.info("Loading data handler...")
-    train_dataset = load_data_handler(config.data,
-                                     results_dir=results_dir_path,
-                                     is_train=True,
-                                     y_scaler=y_scaler,
-                                     )
+    train_dataset = load_data_handler(
+        config.data,
+        results_dir=results_dir_path,
+        is_train=True,
+        y_scaler=y_scaler,
+    )
 
     # Get sample data to check dimensions
     X, y = train_dataset[0]
@@ -72,7 +78,9 @@ if __name__ == "__main__":
     BATCH_SIZE = config.training.batch_size
 
     # Define data loaders
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    train_loader = DataLoader(
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True
+    )
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Define optimizer and loss function
@@ -108,20 +116,29 @@ if __name__ == "__main__":
         )
         train_history["train_loss"].append(train_loss)
 
-        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
+        logger.info(
+            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}"
+        )
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
         # validation
         valid_loss = valid_epoch(
-            model=model, valid_loader=val_loader, loss_fn=loss_fn, device=DEVICE
+            model=model,
+            valid_loader=val_loader,
+            loss_fn=loss_fn,
+            device=DEVICE,
         )
         train_history["valid_loss"].append(valid_loss)
 
-        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}")
+        logger.info(
+            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
+        )
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
-            torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
+            torch.save(
+                model.state_dict(), results_dir_path / "models" / "best.pth"
+            )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:

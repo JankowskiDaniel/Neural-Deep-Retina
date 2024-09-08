@@ -5,7 +5,7 @@ from data_handlers import (
     H5Dataset,
     H5SeqDataset,
     BaselineRGBDataset,
-    BaselineSeqRGBDataset
+    BaselineSeqRGBDataset,
 )
 from data_models.config_models import DataConfig
 
@@ -13,18 +13,20 @@ HANDLERS: dict[str, BaseHandler] = {
     "H5Dataset": H5Dataset,
     "H5SeqDataset": H5SeqDataset,
     "BaselineRGBDataset": BaselineRGBDataset,
-    "BaselineSeqRGBDataset": BaselineSeqRGBDataset
+    "BaselineSeqRGBDataset": BaselineSeqRGBDataset,
 }
 
+
 def load_data_handler(
-        data_config: DataConfig,
-        results_dir: Path,
-        is_train: bool = True,
-        y_scaler: Any = None,
-        use_saved_scaler: bool = False,) -> BaseHandler:
+    data_config: DataConfig,
+    results_dir: Path,
+    is_train: bool = True,
+    y_scaler: Any = None,
+    use_saved_scaler: bool = False,
+) -> BaseHandler:
     """Initialize the dataset handler based on the YAML config."""
     # Extract the DATA block from the config
-    
+
     # Dynamically get the handler class from the config
     handler_class_name = data_config.data_handler
     handler_class: BaseHandler = HANDLERS.get(handler_class_name)
@@ -34,9 +36,11 @@ def load_data_handler(
 
     # Initialize the handler class with remaining parameters
     parsed_config = data_config.dict(exclude={"data_handler", "img_shape"})
-    dataset = handler_class(results_dir=results_dir,
-                            is_train=is_train,
-                            y_scaler=y_scaler,
-                            use_saved_scaler=use_saved_scaler,
-                            **parsed_config)
+    dataset = handler_class(
+        results_dir=results_dir,
+        is_train=is_train,
+        y_scaler=y_scaler,
+        use_saved_scaler=use_saved_scaler,
+        **parsed_config,
+    )
     return dataset

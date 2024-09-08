@@ -18,7 +18,7 @@ class H5SeqDataset(BaseHandler):
         is_train: bool = True,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         """
         Initializes the H5Dataset object.
@@ -59,11 +59,13 @@ class H5SeqDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             warnings.warn(
-                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."
+                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."  # noqa: E501
             )
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -79,7 +81,9 @@ class H5SeqDataset(BaseHandler):
         x = self.transform_x(x)
         # Get one output value
         # Transform the output value to tensor
-        y = torch.tensor(self.Y[:, idx + self.seq_length - 1], dtype=torch.float32)
+        y = torch.tensor(
+            self.Y[:, idx + self.seq_length - 1], dtype=torch.float32
+        )
         return x, y
 
     def __len__(self):
@@ -107,8 +111,9 @@ if __name__ == "__main__":
         is_train=is_train,
         is_rgb=is_rgb,
         y_scaler=y_scaler,
-        seq_length=seq_length,
+        seq_len=seq_length,
         results_dir=Path("results"),
+
     )
 
     X, y = dataset[0]

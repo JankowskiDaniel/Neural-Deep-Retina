@@ -4,6 +4,7 @@ from pathlib import Path
 from interfaces.base_handler import BaseHandler
 import warnings
 
+
 class H5Dataset(BaseHandler):
     def __init__(
         self,
@@ -16,29 +17,37 @@ class H5Dataset(BaseHandler):
         use_saved_scaler: bool = False,
         **kwargs: Any,
     ) -> None:
-        super(H5Dataset, self).__init__(path,
-                                        response_type,
-                                        results_dir,
-                                        is_train, y_scaler,
-                                        use_saved_scaler
-                                        )
+        super(H5Dataset, self).__init__(
+            path,
+            response_type,
+            results_dir,
+            is_train,
+            y_scaler,
+            use_saved_scaler,
+        )
         self.is_rgb = is_rgb
 
         # List of allowed arguments in the constructor
-        allowed_args = {'path',
-                        'response_type',
-                        'results_dir',
-                        'is_train',
-                        'y_scaler',
-                        'use_saved_scaler',
-                        'is_rgb'}
+        allowed_args = {
+            "path",
+            "response_type",
+            "results_dir",
+            "is_train",
+            "y_scaler",
+            "use_saved_scaler",
+            "is_rgb",
+        }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             # Print warning for unused kwargs
-            warnings.warn(f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored.")
+            warnings.warn(
+                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."  # noqa: E501
+            )
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
 
