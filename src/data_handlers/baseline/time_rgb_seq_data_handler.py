@@ -1,20 +1,22 @@
+import warnings
 import torch
 from typing import Any, Tuple
 from pathlib import Path
 
-from data_handlers import BaselineRGBDataset
+from interfaces.base_handler import BaseHandler
 
 
-class BaselineSeqRGBDataset(BaselineRGBDataset):
+class BaselineSeqRGBDataset(BaseHandler):
     def __init__(
         self,
+        seq_len: int,
         path: Path,
         response_type: str,
         results_dir: Path,
         is_train: bool = True,
         y_scaler: Any = None,
-        seq_length: int = 10,
         use_saved_scaler: bool = False,
+        **kwargs: Any
     ):
         super(BaselineSeqRGBDataset, self).__init__(
             path=path,
@@ -24,8 +26,27 @@ class BaselineSeqRGBDataset(BaselineRGBDataset):
             results_dir=results_dir,
             use_saved_scaler=use_saved_scaler,
         )
-        self.dataset_len: int = self.dataset_len - seq_length - 1
-        self.seq_length: int = seq_length
+        self.dataset_len: int = self.dataset_len - seq_len - 1
+        self.seq_length: int = seq_len
+
+        # List of allowed arguments in the constructor
+        allowed_args = {
+            "path",
+            "response_type",
+            "results_dir",
+            "is_train",
+            "y_scaler",
+            "use_saved_scaler",
+            "seq_len",
+        }
+
+        # Check for unused kwargs
+        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+
+        if unused_kwargs:
+            warnings.warn(
+                f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."
+            )
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         images_sequence = []

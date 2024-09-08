@@ -2,13 +2,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from time import time
-from pathlib import Path
 import pandas as pd
-
-from data_handlers import H5Dataset, H5SeqDataset
 from utils.training_utils import test_model
 from utils.logger import get_logger
-from utils import get_testing_arguments, load_config, load_model, get_metric_tracker
+from utils import get_testing_arguments, load_config, load_model, get_metric_tracker, load_data_handler
 from visualize.visualize_dataset import visualize_outputs_and_targets
 from sklearn.preprocessing import StandardScaler
 
@@ -39,26 +36,13 @@ if __name__ == "__main__":
     model = load_model(config)
     model.load_state_dict(torch.load(weights_path))
 
-    # load the test dataset
-    if config.data.seq_len:
-        test_dataset = H5SeqDataset(
-            path=Path(config.data.path),
-            response_type="firing_rate_10ms",
-            is_train=False,
-            is_rgb=config.data.rgb,
-            seq_length=config.data.seq_len,
-            y_scaler=StandardScaler(),
-            results_dir=results_dir_path,
-        )
-    else:
-        test_dataset = H5Dataset(
-            path=Path(config.data.path),
-            response_type="firing_rate_10ms",
-            is_train=False,
-            is_rgb=config.data.rgb,
-            y_scaler=StandardScaler(),
-            results_dir=results_dir_path,
-        )
+    test_dataset = load_data_handler(
+        config.data,
+        results_dir=results_dir_path,
+        is_train=False,
+        y_scaler=StandardScaler(),
+        use_saved_scaler=True,
+    )
 
     # Get sample data to check dimensions
     X, y = test_dataset[0]
@@ -130,26 +114,15 @@ if __name__ == "__main__":
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
-        # load the datasets
-        if config.data.seq_len:
-            train_dataset = H5SeqDataset(
-                path=Path(config.data.path),
-                response_type="firing_rate_10ms",
-                is_train=True,
-                is_rgb=config.data.rgb,
-                seq_length=config.data.seq_len,
-                results_dir=results_dir_path,
-                use_saved_scaler=True,
-            )
-        else:
-            train_dataset = H5Dataset(
-                path=Path(config.data.path),
-                response_type="firing_rate_10ms",
-                is_train=True,
-                is_rgb=config.data.rgb,
-                results_dir=results_dir_path,
-                use_saved_scaler=True,
-            )
+
+        train_dataset = load_data_handler(
+            config.data,
+            results_dir=results_dir_path,
+            is_train=True,
+            y_scaler=StandardScaler(),
+            use_saved_scaler=True,
+        )
+
         train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
         # Set the path for saving predictions

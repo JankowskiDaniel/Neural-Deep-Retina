@@ -5,11 +5,10 @@ import torch.nn as nn
 from time import time
 from pathlib import Path
 from sklearn.preprocessing import StandardScaler
-from data_handlers import H5Dataset, H5SeqDataset
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
-from utils import get_training_arguments, load_config, load_model, EarlyStopping
+from utils import get_training_arguments, load_config, load_model, EarlyStopping, load_data_handler
 from visualize.visualize_loss import visualize_loss
 
 
@@ -35,26 +34,14 @@ if __name__ == "__main__":
     model = load_model(config)
 
     y_scaler = StandardScaler(with_mean=False)
-    # load the datasets
-    if config.data.seq_len:
-        train_dataset = H5SeqDataset(
-            path=Path(config.data.path),
-            response_type="firing_rate_10ms",
-            is_train=True,
-            is_rgb=config.data.rgb,
-            seq_length=config.data.seq_len,
-            results_dir=results_dir_path,
-            y_scaler=y_scaler,
-        )
-    else:
-        train_dataset = H5Dataset(
-            path=Path(config.data.path),
-            response_type="firing_rate_10ms",
-            is_train=True,
-            is_rgb=config.data.rgb,
-            results_dir=results_dir_path,
-            y_scaler=y_scaler,
-        )
+
+    # load the data handler
+    logger.info("Loading data handler...")
+    train_dataset = load_data_handler(config.data,
+                                     results_dir=results_dir_path,
+                                     is_train=True,
+                                     y_scaler=y_scaler,
+                                     )
 
     # Get sample data to check dimensions
     X, y = train_dataset[0]
