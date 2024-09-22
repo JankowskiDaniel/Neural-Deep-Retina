@@ -15,6 +15,7 @@ class H5Dataset(BaseHandler):
         is_train: bool = True,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
+        prediction_step: int = 0,
         **kwargs: Any,
     ) -> None:
         super(H5Dataset, self).__init__(
@@ -24,6 +25,7 @@ class H5Dataset(BaseHandler):
             is_train,
             y_scaler,
             use_saved_scaler,
+            prediction_step,
         )
         self.is_rgb = is_rgb
 
@@ -59,7 +61,8 @@ class H5Dataset(BaseHandler):
         # Transform the image to tensor
         x = self.transform_x(x)
         # Transform the output value to tensor
-        y = torch.tensor(self.Y[:, idx], dtype=torch.float32)
+        y = torch.tensor(self.Y[:, idx + self.prediction_step],
+                         dtype=torch.float32)
         return x, y
 
     def __len__(self):

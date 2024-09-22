@@ -14,6 +14,7 @@ class BaselineRGBDataset(BaseHandler):
         is_train: bool = True,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
+        prediction_step: int = 0,
         **kwargs: Any,
     ) -> None:
         super(BaselineRGBDataset, self).__init__(
@@ -23,6 +24,7 @@ class BaselineRGBDataset(BaseHandler):
             is_train,
             y_scaler,
             use_saved_scaler,
+            prediction_step,
         )
 
         self.subseq_length: int = 3
@@ -62,7 +64,8 @@ class BaselineRGBDataset(BaseHandler):
         x = self.transform_x(x)
         # Get the target for the fourth image
         y = torch.tensor(
-            self.Y[:, idx + self.subseq_length - 1], dtype=torch.float32
+            self.Y[:, idx + self.subseq_length - 1 + self.prediction_step],
+            dtype=torch.float32
         )
 
         return x, y

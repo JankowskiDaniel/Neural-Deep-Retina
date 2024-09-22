@@ -16,6 +16,7 @@ class BaselineSeqRGBDataset(BaseHandler):
         is_train: bool = True,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
+        prediction_step: int = 0,
         **kwargs: Any,
     ):
         super(BaselineSeqRGBDataset, self).__init__(
@@ -25,6 +26,7 @@ class BaselineSeqRGBDataset(BaseHandler):
             y_scaler=y_scaler,
             results_dir=results_dir,
             use_saved_scaler=use_saved_scaler,
+            prediction_step=prediction_step,
         )
         self.dataset_len: int = self.dataset_len - seq_len - 1
         self.seq_length: int = seq_len
@@ -68,7 +70,8 @@ class BaselineSeqRGBDataset(BaseHandler):
         out = self.transform_x(out)
         # Get the target for the last image in the sequence
         y = torch.tensor(
-            self.Y[:, idx + self.seq_length + 1], dtype=torch.float32
+            self.Y[:, idx + self.seq_length + 1 + self.prediction_step],
+            dtype=torch.float32
         )
 
         return out, y
