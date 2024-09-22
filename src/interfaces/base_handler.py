@@ -20,6 +20,7 @@ class BaseHandler(torch.utils.data.Dataset):
         is_train: bool = True,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
+        prediction_step: int = 0,
         **kwargs: Any,
     ) -> None:
         self.file_path = path
@@ -35,11 +36,12 @@ class BaseHandler(torch.utils.data.Dataset):
         self.use_saved_scaler = use_saved_scaler
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
-        self.dataset_len = len(X)
+        self.dataset_len = len(X) - prediction_step
         self.X: ndarray[Any, dtype[Any]] = X
         self.Y: ndarray[Any, dtype[Any]] = y
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
+        self.prediction_step: int = prediction_step
 
     def read_h5_to_numpy(
         self,

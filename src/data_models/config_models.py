@@ -8,6 +8,7 @@ class DataConfig(BaseModel, extra="allow"):  # type: ignore
     img_shape: list[int]
     path: str
     response_type: Literal["firing_rate_10ms", "binned"]
+    prediction_step: int
 
 
 @dataclass

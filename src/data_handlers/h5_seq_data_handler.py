@@ -18,6 +18,7 @@ class H5SeqDataset(BaseHandler):
         is_train: bool = True,
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
+        prediction_step: int = 0,
         **kwargs: Any,
     ):
         """
@@ -40,6 +41,7 @@ class H5SeqDataset(BaseHandler):
             y_scaler=y_scaler,
             results_dir=results_dir,
             use_saved_scaler=use_saved_scaler,
+            prediction_step=prediction_step,
         )
         self.dataset_len: int = self.dataset_len - seq_len
         self.seq_length: int = seq_len
@@ -82,7 +84,8 @@ class H5SeqDataset(BaseHandler):
         # Get one output value
         # Transform the output value to tensor
         y = torch.tensor(
-            self.Y[:, idx + self.seq_length - 1], dtype=torch.float32
+            self.Y[:, idx + self.seq_length - 1 + self.prediction_step],
+            dtype=torch.float32
         )
         return x, y
 

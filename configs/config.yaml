@@ -5,6 +5,7 @@ DATA:
   response_type: firing_rate_10ms
   is_rgb: True
   seq_len: 16
+  prediction_step: 2
 TRAINING:
   ENCODER:
     name: VGG16Encoder
