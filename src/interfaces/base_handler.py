@@ -53,7 +53,10 @@ class BaseHandler(torch.utils.data.Dataset):
         """  # noqa: E501
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
-            X = np.asarray(h5file[self.data_type]["stimulus"][:500])
+            if self.is_train:
+                X = np.asarray(h5file[self.data_type]["stimulus"][:2000])
+            else:
+                X = np.asarray(h5file[self.data_type]["stimulus"][:500])
             y = np.asarray(
                 h5file[self.data_type]["response"][self.response_type]
             )

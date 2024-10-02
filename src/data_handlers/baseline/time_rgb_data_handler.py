@@ -27,7 +27,7 @@ class BaselineRGBDataset(BaseHandler):
             prediction_step,
         )
 
-        self.subseq_length: int = 3
+        self.subseq_length: int = 40
         self.dataset_len: int = self.dataset_len - self.subseq_length
 
         # List of allowed arguments in the constructor

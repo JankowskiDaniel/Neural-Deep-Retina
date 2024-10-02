@@ -1,21 +1,23 @@
 from pathlib import Path
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
-from predictors.linears import SingleLinear, MultiLinear
+from predictors.linears import SingleLinear, MultiLinear, OgLinear
 from predictors.rnns import SingleLSTM
-from encoders import VGG16Encoder, MC3VideoEncoder, CustomEncoder
+from encoders import VGG16Encoder, MC3VideoEncoder, CustomEncoder, OgEncoder
 from models import DeepRetinaModel
 
 PREDICTORS: dict[str, Predictor] = {
     "SingleLinear": SingleLinear,
     "MultiLinear": MultiLinear,
     "SingleLSTM": SingleLSTM,
+    "OgLinear": OgLinear,
 }
 
 ENCODERS: dict[str, Encoder] = {
     "VGG16Encoder": VGG16Encoder,
     "MC3VideoEncoder": MC3VideoEncoder,
     "CustomEncoder": CustomEncoder,
+    "OgEncoder": OgEncoder,
 }
 
 
