@@ -4,4 +4,5 @@ h5py==3.11.0
 scikit-learn==1.5.1
 seaborn==0.13.2
 torchmetrics==1.4.1
+pydantic==2.9.2
 types-PyYAML
