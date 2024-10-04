@@ -81,6 +81,8 @@ class H5SeqDataset(BaseHandler):
 
         # Apply image transformations
         x = self.transform_x(x)
+        if not self.is_rgb:
+            x = x.unsqueeze(1)
         # Get one output value
         # Transform the output value to tensor
         y = torch.tensor(
