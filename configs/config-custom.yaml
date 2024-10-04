@@ -1,8 +1,11 @@
 DATA:
+  data_handler: H5SeqDataset
   img_shape: [1, 50, 50]
-  rgb: False
+  is_rgb: False
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
+  response_type: firing_rate_10ms
   seq_len: 8
+  prediction_step: 2
 TRAINING:
   ENCODER:
     name: CustomEncoder
