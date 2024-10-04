@@ -45,7 +45,8 @@ def visualize_outputs_and_targets(
     plots_dir: Path,
     file_name: str = "outputs_and_targets.png",
     is_train: bool = False,
-) -> None:
+    return_fig: bool = False,
+) -> plt.Figure | None:
     """
     Visualizes the model outputs and targets by plotting them on separate channels.
 
@@ -89,6 +90,9 @@ def visualize_outputs_and_targets(
 
     fig.tight_layout()
     fig.savefig(plots_dir / file_name, dpi=150)
+    if return_fig:
+        return fig
+    return None
 
 
 if __name__ == "__main__":

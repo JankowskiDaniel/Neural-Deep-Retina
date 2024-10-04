@@ -15,6 +15,8 @@ from utils import (
     load_data_handler,
 )
 from visualize.visualize_loss import visualize_loss
+import wandb
+from uuid import uuid4
 
 
 if __name__ == "__main__":
@@ -77,6 +79,47 @@ if __name__ == "__main__":
     PREDICTOR_LR = config.training.predictor.learning_rate
     BATCH_SIZE = config.training.batch_size
 
+    _id = str(uuid4())
+
+    # save _id into txt file
+    with open(results_dir_path / "id.txt", "w") as f:
+        f.write(_id)
+
+    wandb.init(
+        entity="jankowskidaniel06-put",
+        project="Neural Deep Retina",
+        name=str(results_dir_path),
+        id=_id,
+        config={
+            "data": {
+                "data_handler": config.data.data_handler,
+                "img_shape": config.data.img_shape,
+                "is_rgb": config.data.is_rgb,
+                "seq_len": config.data.seq_len,
+                "prediction_step": config.data.prediction_step
+            },
+            "model": {
+                "encoder": {
+                    "name": config.training.encoder.name,
+                    "freeze": config.training.encoder.freeze,
+                    "learning_rate": config.training.encoder.learning_rate,
+                },
+                "predictor": {
+                    "name": config.training.predictor.name,
+                    "learning_rate": config.training.predictor.learning_rate,
+                }
+            },
+            "epochs": N_EPOCHS,
+            "batch_size": BATCH_SIZE,
+            "num_units": 9
+        },
+        resume="allow"
+    )
+
+    # log the data length
+    wandb.log({"train_data_length": len(train_dataset),
+               "val_data_length": len(val_dataset)})
+
     # Define data loaders
     train_loader = DataLoader(
         train_dataset, batch_size=BATCH_SIZE, shuffle=True
@@ -121,6 +164,9 @@ if __name__ == "__main__":
         )
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
+        wandb.log({"training/train_loss": train_loss,
+                   "epoch": epoch})
+
         # validation
         valid_loss = valid_epoch(
             model=model,
@@ -133,6 +179,11 @@ if __name__ == "__main__":
         logger.info(
             f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
         )
+
+        wandb.log({
+                "training/valid_loss": valid_loss,
+                "epoch": epoch
+                })
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
@@ -151,5 +202,9 @@ if __name__ == "__main__":
 
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
+
+    wandb.log({"training/total_time": total_time})
+
     torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
     visualize_loss(train_history, results_dir_path)
+    wandb.finish()

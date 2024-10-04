@@ -2,11 +2,13 @@ from pathlib import Path
 import torch.nn as nn
 import torch
 
+
 class Flatten(nn.Module):
     """
     Reshapes the activations to be of shape (B,-1) where B
     is the batch size
     """
+
     def __init__(self):
         super(Flatten, self).__init__()
 
@@ -20,6 +22,7 @@ class Reshape(nn.Module):
     Reshapes the activations to be of shape (B, *shape) where B
     is the batch size.
     """
+
     def __init__(self, shape):
         super(Reshape, self).__init__()
         self.shape = shape
@@ -37,7 +40,7 @@ class OgEncoder(nn.Module):
         input_shape: tuple,
         weights_path: Path,
         freeze: bool,
-        seq_len: int | None = None,
+        seq_len: int,
     ) -> None:
         super(OgEncoder, self).__init__()
         self.seq_len = seq_len
@@ -47,8 +50,8 @@ class OgEncoder(nn.Module):
                 param.requires_grad = False
 
         # Dummy input to determine the output shape
-        
-        if seq_len > 1:
+
+        if self.seq_len > 1:
             self.in_channels = input_shape[2]
             self.width = input_shape[3]
             self.height = input_shape[4]
@@ -59,26 +62,54 @@ class OgEncoder(nn.Module):
         self.out_channels = 8
 
         # Declare a model with 3 2D-Conv layers
-        self.conv1 = nn.Conv2d(in_channels=self.in_channels, out_channels=self.out_channels, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(
+            in_channels=self.in_channels,
+            out_channels=self.out_channels,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+        )
         self.flat1 = Flatten()
-        self.bn1d1 = nn.BatchNorm1d(self.out_channels * self.width * self.height, momentum=0.01, eps=1e-3)
-        self.reshape1 = Reshape((-1, self.out_channels, self.width, self.height))
+        self.bn1d1 = nn.BatchNorm1d(
+            self.out_channels * self.width * self.height,
+            momentum=0.01,
+            eps=1e-3,
+        )
+        self.reshape1 = Reshape(
+            (-1, self.out_channels, self.width, self.height)
+        )
         self.relu1 = nn.ReLU()
-        
-        self.conv2 = nn.Conv2d(in_channels=self.out_channels, out_channels=self.out_channels * 2, kernel_size=3, stride=1, padding=1)
+
+        self.conv2 = nn.Conv2d(
+            in_channels=self.out_channels,
+            out_channels=self.out_channels * 2,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+        )
         self.flat2 = Flatten()
-        self.bn1d2 = nn.BatchNorm1d(self.out_channels * 2 * self.width * self.height, momentum=0.01, eps=1e-3)
-        self.reshape2 = Reshape((-1, self.out_channels * 2, self.width, self.height))
+        self.bn1d2 = nn.BatchNorm1d(
+            self.out_channels * 2 * self.width * self.height,
+            momentum=0.01,
+            eps=1e-3,
+        )
+        self.reshape2 = Reshape(
+            (-1, self.out_channels * 2, self.width, self.height)
+        )
         self.relu2 = nn.ReLU()
 
-        self.conv3 = nn.Conv2d(in_channels=self.out_channels * 2, out_channels=self.out_channels * 4, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(
+            in_channels=self.out_channels * 2,
+            out_channels=self.out_channels * 4,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+        )
         self.flat3 = Flatten()
 
         self._dummy_input = torch.zeros(input_shape)
         self._output_shape = self._compute_output_shape()
 
-
-    
     def forward(self, x):
         if self.seq_len > 1:
             latent_seq = []
@@ -122,7 +153,6 @@ class OgEncoder(nn.Module):
             x = self.flat3(x)
 
         return x
-
 
     def get_output_shape(self):
         return self._output_shape
