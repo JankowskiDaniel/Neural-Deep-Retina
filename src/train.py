@@ -96,7 +96,7 @@ if __name__ == "__main__":
                 "img_shape": config.data.img_shape,
                 "is_rgb": config.data.is_rgb,
                 "seq_len": config.data.seq_len,
-                "prediction_step": config.data.prediction_step
+                "prediction_step": config.data.prediction_step,
             },
             "model": {
                 "encoder": {
@@ -107,23 +107,22 @@ if __name__ == "__main__":
                 "predictor": {
                     "name": config.training.predictor.name,
                     "learning_rate": config.training.predictor.learning_rate,
-                }
+                },
             },
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
-            "num_units": 9
+            "num_units": 9,
         },
-        resume="allow"
+        resume="allow",
     )
 
     # log the data length
-    wandb.log({"train_data_length": len(train_dataset),
-               "val_data_length": len(val_dataset)})
+    wandb.log(
+        {"train_data_length": len(train_dataset), "val_data_length": len(val_dataset)}
+    )
 
     # Define data loaders
-    train_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True
-    )
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Define optimizer and loss function
@@ -159,13 +158,10 @@ if __name__ == "__main__":
         )
         train_history["train_loss"].append(train_loss)
 
-        logger.info(
-            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}"
-        )
+        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
-        wandb.log({"training/train_loss": train_loss,
-                   "epoch": epoch})
+        wandb.log({"training/train_loss": train_loss, "epoch": epoch})
 
         # validation
         valid_loss = valid_epoch(
@@ -176,20 +172,13 @@ if __name__ == "__main__":
         )
         train_history["valid_loss"].append(valid_loss)
 
-        logger.info(
-            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
-        )
+        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}")
 
-        wandb.log({
-                "training/valid_loss": valid_loss,
-                "epoch": epoch
-                })
+        wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
-            torch.save(
-                model.state_dict(), results_dir_path / "models" / "best.pth"
-            )
+            torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:
