@@ -6,6 +6,7 @@ DATA:
   is_rgb: True
   seq_len: 16
   prediction_step: 2
+  subset_size: 2000
 TRAINING:
   ENCODER:
     name: VGG16Encoder

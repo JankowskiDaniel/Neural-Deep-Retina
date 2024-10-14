@@ -12,6 +12,24 @@ transform_x: v2.Compose = v2.Compose([v2.ToDtype(torch.float32, scale=True)])
 
 
 class BaseHandler(torch.utils.data.Dataset):
+    """
+    Initialize the base handler.
+
+    Args:
+        path (Path): Path to the dataset file.
+        response_type (Literal["firing_rate_10ms", "binned"]): Type of response data.
+        results_dir (Path): Directory to save results.
+        is_train (bool, optional): Flag to indicate if training or testing data should be read. Defaults to True.
+        y_scaler (Any, optional): Scaler for the response variable. Defaults to None.
+        use_saved_scaler (bool, optional): Flag to use a saved scaler for training data. Defaults to False.
+        prediction_step (int, optional): Step size for prediction. Defaults to 0.
+        subset_size (int, optional): Size of the subset to use. Defaults to -1 (full dataset).
+        **kwargs (Any): Additional keyword arguments.
+
+    Returns:
+        None
+    """  # noqa: E501
+
     def __init__(
         self,
         path: Path,
@@ -21,6 +39,7 @@ class BaseHandler(torch.utils.data.Dataset):
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
+        subset_size: int = -1,
         **kwargs: Any,
     ) -> None:
         self.file_path = path
@@ -34,6 +53,7 @@ class BaseHandler(torch.utils.data.Dataset):
         self.transform_x = transform_x
         # Allows to use the saved scaler for the train data
         self.use_saved_scaler = use_saved_scaler
+        self.subset_size: int = subset_size
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
         self.dataset_len = len(X) - prediction_step
@@ -54,11 +74,14 @@ class BaseHandler(torch.utils.data.Dataset):
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
             if self.is_train:
-                X = np.asarray(h5file[self.data_type]["stimulus"][:2000])
+                X = np.asarray(h5file[self.data_type]["stimulus"][: self.subset_size])
             else:
-                X = np.asarray(h5file[self.data_type]["stimulus"][:500])
-            y = np.asarray(h5file[self.data_type]["response"][self.response_type])
-
+                X = np.asarray(h5file[self.data_type]["stimulus"][: self.subset_size])
+            y = np.asarray(
+                h5file[self.data_type]["response"][self.response_type][
+                    : self.subset_size
+                ]
+            )
         y = y.astype("float32")
 
         # Normalize the output data

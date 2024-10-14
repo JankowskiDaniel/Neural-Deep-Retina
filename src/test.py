@@ -66,6 +66,8 @@ if __name__ == "__main__":
     # Define training parameters
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
     DEVICE_NAME = torch.cuda.get_device_name(0) if DEVICE == "cuda" else "CPU"
+    PIN_MEMORY = False  # torch.cuda.is_available()
+    NUM_WORKERS = 0  # if torch.cuda.is_available() else 0
     BATCH_SIZE = config.testing.batch_size
 
     # read _id from .txt file
@@ -82,7 +84,13 @@ if __name__ == "__main__":
     wandb.log({"test_data_length": len(test_dataset)})
 
     # Define data loaders
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        pin_memory=PIN_MEMORY,
+        num_workers=NUM_WORKERS,
+    )
 
     # Define loss function
     loss_fn = nn.MSELoss()
@@ -159,7 +167,13 @@ if __name__ == "__main__":
             use_saved_scaler=True,
         )
 
-        train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=BATCH_SIZE,
+            shuffle=False,
+            pin_memory=PIN_MEMORY,
+            num_workers=NUM_WORKERS,
+        )
 
         # Set the path for saving predictions
         predictions_dir = results_dir_path / "trainset_predictions"

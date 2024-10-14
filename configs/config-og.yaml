@@ -6,6 +6,7 @@ DATA:
   is_rgb: False
   seq_len: 1
   prediction_step: 1
+  subset_size: 2000
 TRAINING:
   ENCODER:
     name: OgEncoder

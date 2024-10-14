@@ -15,6 +15,7 @@ class BaselineRGBDataset(BaseHandler):
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
+        subset_size: int = -1,
         **kwargs: Any,
     ) -> None:
         super(BaselineRGBDataset, self).__init__(
@@ -25,6 +26,7 @@ class BaselineRGBDataset(BaseHandler):
             y_scaler,
             use_saved_scaler,
             prediction_step,
+            subset_size,
         )
 
         self.subseq_length: int = 40

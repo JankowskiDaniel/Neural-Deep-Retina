@@ -9,6 +9,7 @@ class DataConfig(BaseModel, extra="allow"):  # type: ignore
     path: str
     response_type: Literal["firing_rate_10ms", "binned"]
     prediction_step: int
+    subset_size: int
 
 
 @dataclass

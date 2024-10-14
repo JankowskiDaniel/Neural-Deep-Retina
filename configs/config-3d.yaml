@@ -6,6 +6,7 @@ DATA:
   response_type: firing_rate_10ms
   seq_len: 16
   prediction_step: 2
+  subset_size: 2000
 TRAINING:
   ENCODER:
     name: MC3VideoEncoder
