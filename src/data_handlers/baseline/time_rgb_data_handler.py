@@ -41,9 +41,7 @@ class BaselineRGBDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {
-            k: v for k, v in kwargs.items() if k not in allowed_args
-        }
+        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
 
         if unused_kwargs:
             # Print warning for unused kwargs
@@ -65,7 +63,7 @@ class BaselineRGBDataset(BaseHandler):
         # Get the target for the fourth image
         y = torch.tensor(
             self.Y[:, idx + self.subseq_length - 1 + self.prediction_step],
-            dtype=torch.float32
+            dtype=torch.float32,
         )
 
         return x, y

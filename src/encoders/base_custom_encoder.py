@@ -47,9 +47,7 @@ class BaseCustomEncoder(Encoder):
             EncodingBlock(2 * out_channels, 4 * out_channels),
         )
         self.bottleneck = nn.Sequential(
-            nn.Conv2d(
-                4 * out_channels, 4 * out_channels, kernel_size=3, padding=1
-            ),
+            nn.Conv2d(4 * out_channels, 4 * out_channels, kernel_size=3, padding=1),
             activation,
         )
 
