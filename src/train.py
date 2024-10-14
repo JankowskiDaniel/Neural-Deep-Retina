@@ -73,6 +73,8 @@ if __name__ == "__main__":
 
     # Define training parameters
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    PIN_MEMORY = False  # torch.cuda.is_available()
+    NUM_WORKERS = 0  # if torch.cuda.is_available() else 0
     DEVICE_NAME = torch.cuda.get_device_name(0) if DEVICE == "cuda" else "CPU"
     N_EPOCHS = config.training.epochs
     ENCODER_LR = config.training.encoder.learning_rate
@@ -122,8 +124,10 @@ if __name__ == "__main__":
     )
 
     # Define data loaders
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,
+                              pin_memory=PIN_MEMORY, num_workers=NUM_WORKERS)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False,
+                            pin_memory=PIN_MEMORY, num_workers=NUM_WORKERS)
 
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(
