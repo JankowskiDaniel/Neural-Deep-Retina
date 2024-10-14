@@ -124,10 +124,20 @@ if __name__ == "__main__":
     )
 
     # Define data loaders
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True,
-                              pin_memory=PIN_MEMORY, num_workers=NUM_WORKERS)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False,
-                            pin_memory=PIN_MEMORY, num_workers=NUM_WORKERS)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        pin_memory=PIN_MEMORY,
+        num_workers=NUM_WORKERS,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        pin_memory=PIN_MEMORY,
+        num_workers=NUM_WORKERS,
+    )
 
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(
