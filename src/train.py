@@ -78,9 +78,7 @@ if __name__ == "__main__":
     BATCH_SIZE = config.training.batch_size
 
     # Define data loaders
-    train_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True
-    )
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # Define optimizer and loss function
@@ -116,9 +114,7 @@ if __name__ == "__main__":
         )
         train_history["train_loss"].append(train_loss)
 
-        logger.info(
-            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}"
-        )
+        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
         # validation
@@ -130,15 +126,11 @@ if __name__ == "__main__":
         )
         train_history["valid_loss"].append(valid_loss)
 
-        logger.info(
-            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
-        )
+        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}")
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
-            torch.save(
-                model.state_dict(), results_dir_path / "models" / "best.pth"
-            )
+            torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:

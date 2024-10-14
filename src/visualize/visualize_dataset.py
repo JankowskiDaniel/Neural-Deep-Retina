@@ -73,9 +73,7 @@ def visualize_outputs_and_targets(
             linewidth=0.5,
             label="model output",
         )
-        sns.lineplot(
-            targets.iloc[:, channel], ax=ax, linewidth=0.5, label="target"
-        )
+        sns.lineplot(targets.iloc[:, channel], ax=ax, linewidth=0.5, label="target")
         ax.set_title(f"Channel {channel}")
         # Show only one legend
         if channel == 0:

@@ -61,9 +61,7 @@ class H5SeqDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {
-            k: v for k, v in kwargs.items() if k not in allowed_args
-        }
+        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
 
         if unused_kwargs:
             warnings.warn(
@@ -85,7 +83,7 @@ class H5SeqDataset(BaseHandler):
         # Transform the output value to tensor
         y = torch.tensor(
             self.Y[:, idx + self.seq_length - 1 + self.prediction_step],
-            dtype=torch.float32
+            dtype=torch.float32,
         )
         return x, y
 
@@ -116,7 +114,6 @@ if __name__ == "__main__":
         y_scaler=y_scaler,
         seq_len=seq_length,
         results_dir=Path("results"),
-
     )
 
     X, y = dataset[0]

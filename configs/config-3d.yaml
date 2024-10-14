@@ -1,8 +1,11 @@
 DATA:
+  data_handler: H5SeqDataset
   img_shape: [1, 50, 50]
-  rgb: True
+  is_rgb: True
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
-  seq_len: 16
+  response_type: firing_rate_10ms
+  seq_len: 8
+  prediction_step: 0
 TRAINING:
   ENCODER:
     name: MC3VideoEncoder
@@ -10,10 +13,10 @@ TRAINING:
     freeze: False
     learning_rate: 0.00001
   PREDICTOR:
-    name: DummyCNN
+    name: SingleLSTM
     learning_rate: 0.001
   batch_size: 16
-  epochs: 20
+  epochs: 100
   num_units: 9
   early_stopping: True
   early_stopping_patience: 10
@@ -21,6 +24,6 @@ TRAINING:
 TESTING:
   batch_size: 16
   weights: "best.pth"
-  metrics: ["mae", "mse"]
+  metrics: ["mae", "mse", "rmse"]
   save_logs: True
   run_on_train_data: True
