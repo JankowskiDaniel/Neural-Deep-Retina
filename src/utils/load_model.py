@@ -32,7 +32,7 @@ def load_model(config: Config) -> DeepRetinaModel:
         img_shape[0] = 3
     batch_size = config.training.batch_size
     seq_len = config.data.seq_len
-    if seq_len > 1:
+    if seq_len >= 1:
         if enc_name == "CustomEncoder":
             # CustomEncoder works with (batch, seq_len, height, width)
             input_shape = (batch_size, seq_len, *img_shape[1:])

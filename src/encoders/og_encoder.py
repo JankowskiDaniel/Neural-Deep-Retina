@@ -51,7 +51,7 @@ class OgEncoder(nn.Module):
 
         # Dummy input to determine the output shape
 
-        if self.seq_len > 1:
+        if self.seq_len >= 1:
             self.in_channels = input_shape[2]
             self.width = input_shape[3]
             self.height = input_shape[4]
@@ -107,7 +107,8 @@ class OgEncoder(nn.Module):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
-        if self.seq_len > 1:
+        print(x.shape)
+        if self.seq_len >= 1:
             latent_seq = []
             # batch
             for t in range(self.seq_len):
