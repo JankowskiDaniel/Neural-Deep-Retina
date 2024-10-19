@@ -9,6 +9,7 @@ class BaselineRGBDataset(BaseHandler):
     def __init__(
         self,
         path: Path,
+        subseq_len: int,
         response_type: Literal["firing_rate_10ms", "binned"],
         results_dir: Path,
         is_train: bool = True,
@@ -29,12 +30,13 @@ class BaselineRGBDataset(BaseHandler):
             subset_size,
         )
 
-        self.subseq_length: int = 40
-        self.dataset_len: int = self.dataset_len - self.subseq_length
+        self.subseq_len: int = subseq_len
+        self.dataset_len: int = self.dataset_len - self.subseq_len
 
         # List of allowed arguments in the constructor
         allowed_args = {
             "path",
+            "subseq_len",
             "response_type",
             "results_dir",
             "is_train",
@@ -54,7 +56,7 @@ class BaselineRGBDataset(BaseHandler):
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         # Stack three consecutive grayscale images
         images = []
-        for i in range(self.subseq_length):
+        for i in range(self.subseq_len):
             x = self.X[idx + i]
             x = torch.from_numpy(x)
             images.append(x)
@@ -64,7 +66,7 @@ class BaselineRGBDataset(BaseHandler):
         x = self.transform_x(x)
         # Get the target for the fourth image
         y = torch.tensor(
-            self.Y[:, idx + self.subseq_length - 1 + self.prediction_step],
+            self.Y[:, idx + self.subseq_len - 1 + self.prediction_step],
             dtype=torch.float32,
         )
 

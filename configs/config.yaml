@@ -1,15 +1,16 @@
 DATA:
-  data_handler: H5SeqDataset # "H5Dataset", "H5SeqDataset", "BaselineRGBDataset", "BaselineSeqRGBDataset"
-  img_shape: [1, 50, 50]
+  data_handler: BaselineSeqRGBDataset # "H5Dataset", "H5SeqDataset", "BaselineRGBDataset", "BaselineSeqRGBDataset"
+  img_shape: [40, 50, 50]
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
   response_type: firing_rate_10ms
-  is_rgb: True
-  seq_len: 16
-  prediction_step: 2
+  is_rgb: False
+  seq_len: 1
+  subseq_len: 40
+  prediction_step: 0
   subset_size: 2000
 TRAINING:
   ENCODER:
-    name: VGG16Encoder
+    name: OgEncoder
     weights: vgg16-397923af.pth
     freeze: False
     learning_rate: 0.0001

@@ -35,7 +35,7 @@ class CustomEncoder(Encoder):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
-        if self.seq_len > 1:
+        if self.seq_len >= 1:
             latent_seq = []
             # batch
             for t in range(self.seq_len):

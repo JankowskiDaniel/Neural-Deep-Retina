@@ -11,6 +11,7 @@ class BaselineSeqRGBDataset(BaseHandler):
         self,
         seq_len: int,
         path: Path,
+        subseq_len: int,
         response_type: str,
         results_dir: Path,
         is_train: bool = True,
@@ -30,7 +31,8 @@ class BaselineSeqRGBDataset(BaseHandler):
             prediction_step=prediction_step,
             subset_size=subset_size,
         )
-        self.dataset_len: int = self.dataset_len - seq_len - 1
+        self.subseq_len: int = subseq_len
+        self.dataset_len: int = self.dataset_len - seq_len - 1 - self.subseq_len
         self.seq_length: int = seq_len
 
         # List of allowed arguments in the constructor
@@ -42,6 +44,7 @@ class BaselineSeqRGBDataset(BaseHandler):
             "y_scaler",
             "use_saved_scaler",
             "seq_len",
+            "subseq_len"
         }
 
         # Check for unused kwargs
@@ -57,7 +60,7 @@ class BaselineSeqRGBDataset(BaseHandler):
 
         for i in range(self.seq_length):
             images = []
-            for j in range(3):
+            for j in range(self.subseq_len):
                 x = self.X[idx + i + j]
                 x = torch.from_numpy(x)
                 images.append(x)
@@ -65,7 +68,7 @@ class BaselineSeqRGBDataset(BaseHandler):
             stacked_image = torch.stack(images, dim=0)  # (3, H, W)
             images_sequence.append(stacked_image)
 
-        # (sequence_length, 3, H, W)
+        # (sequence_length, subseq_len, H, W)
         out = torch.stack(images_sequence, dim=0)
         out = self.transform_x(out)
         # Get the target for the last image in the sequence
@@ -73,7 +76,6 @@ class BaselineSeqRGBDataset(BaseHandler):
             self.Y[:, idx + self.seq_length + 1 + self.prediction_step],
             dtype=torch.float32,
         )
-
         return out, y
 
     def __len__(self):
