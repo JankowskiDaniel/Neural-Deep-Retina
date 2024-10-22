@@ -19,6 +19,7 @@ class H5SeqDataset(BaseHandler):
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
+        subset_size: int = -1,
         **kwargs: Any,
     ):
         """
@@ -37,11 +38,11 @@ class H5SeqDataset(BaseHandler):
             path=path,
             response_type=response_type,
             is_train=is_train,
-            is_rgb=is_rgb,
             y_scaler=y_scaler,
             results_dir=results_dir,
             use_saved_scaler=use_saved_scaler,
             prediction_step=prediction_step,
+            subset_size=subset_size,
         )
         self.dataset_len: int = self.dataset_len - seq_len
         self.seq_length: int = seq_len

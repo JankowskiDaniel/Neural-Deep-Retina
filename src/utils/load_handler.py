@@ -34,13 +34,19 @@ def load_data_handler(
     if handler_class is None:
         raise ValueError(f"Unknown data handler: {handler_class_name}")
 
+    prediction_step = data_config.prediction_step
+    subset_size = data_config.subset_size
     # Initialize the handler class with remaining parameters
-    parsed_config = data_config.dict(exclude={"data_handler", "img_shape"})
+    parsed_config = data_config.dict(
+        exclude={"data_handler", "img_shape", "prediction_step", "subset_size"}
+    )
     dataset = handler_class(
         results_dir=results_dir,
         is_train=is_train,
         y_scaler=y_scaler,
         use_saved_scaler=use_saved_scaler,
+        prediction_step=prediction_step,
+        subset_size=subset_size,
         **parsed_config,
     )
     return dataset

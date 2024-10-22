@@ -39,7 +39,8 @@ class CustomEncoder(Encoder):
             latent_seq = []
             # batch
             for t in range(self.seq_len):
-                x_t = self.features(x[:, t].unsqueeze(1))
+                x_t = x[:, t]
+                x_t = self.features(x_t)
                 x_t = x_t.view(x_t.size(0), -1)
                 latent_seq.append(x_t)
 

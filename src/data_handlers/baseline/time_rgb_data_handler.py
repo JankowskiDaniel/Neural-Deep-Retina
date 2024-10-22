@@ -20,14 +20,14 @@ class BaselineRGBDataset(BaseHandler):
         **kwargs: Any,
     ) -> None:
         super(BaselineRGBDataset, self).__init__(
-            path,
-            response_type,
-            results_dir,
-            is_train,
-            y_scaler,
-            use_saved_scaler,
-            prediction_step,
-            subset_size,
+            path=path,
+            response_type=response_type,
+            is_train=is_train,
+            y_scaler=y_scaler,
+            results_dir=results_dir,
+            use_saved_scaler=use_saved_scaler,
+            prediction_step=prediction_step,
+            subset_size=subset_size,
         )
 
         self.subseq_len: int = subseq_len
