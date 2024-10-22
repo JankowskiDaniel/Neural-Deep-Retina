@@ -44,7 +44,7 @@ class BaselineSeqRGBDataset(BaseHandler):
             "y_scaler",
             "use_saved_scaler",
             "seq_len",
-            "subseq_len"
+            "subseq_len",
         }
 
         # Check for unused kwargs

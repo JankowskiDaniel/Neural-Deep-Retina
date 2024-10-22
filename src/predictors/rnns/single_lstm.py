@@ -19,9 +19,9 @@ class SingleLSTM(Predictor):
 
         # Orthogonal initialization for LSTM weights
         for name, param in self.lstm.named_parameters():
-            if 'weight_ih' in name:  # Input-hidden weights
+            if "weight_ih" in name:  # Input-hidden weights
                 init.orthogonal_(param.data)
-            elif 'weight_hh' in name:  # Hidden-hidden weights
+            elif "weight_hh" in name:  # Hidden-hidden weights
                 init.orthogonal_(param.data)
 
     def forward(self, x):

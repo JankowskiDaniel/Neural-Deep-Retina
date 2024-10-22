@@ -77,8 +77,8 @@ class BaseHandler(torch.utils.data.Dataset):
             y = np.asarray(h5file[self.data_type]["response"][self.response_type])
         # Subset the data if positive subset_size is provided
         if self.subset_size > 0:
-            X = X[:self.subset_size]
-            y = y[:, :self.subset_size]
+            X = X[: self.subset_size]
+            y = y[:, : self.subset_size]
         y = y.astype("float32")
 
         # Normalize the output data
