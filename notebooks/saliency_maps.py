@@ -17,6 +17,31 @@ from utils import (
     load_data_handler,
 )
 
+# To run: python .\notebooks\saliency_maps.py
+# Make sure the results from the training are in the results directory
+# The results directory should contain the config.yaml file and the models directory # NOQA E501
+
+
+def get_channel_importance(X: torch.tensor, n_units: int) -> torch.tensor:
+    # we need to find the gradient with respect to the input image
+    # so we need to call requires_grad_ on it
+    X = X.unsqueeze(0)
+    X.requires_grad_()
+    scores = model(X)
+
+    channel_importances = []
+    for c in range(n_units):
+        # Forward pass
+        # Backward pass for channel c
+        scores[0][c].backward(retain_graph=True)
+        # Sum absolute gradient values for each channel
+        channel_importance = torch.sum(X.grad.data.abs(), dim=(2, 3))
+        # Normalize channel importance
+        channel_importance = channel_importance / torch.sum(channel_importance, dim=1)
+        channel_importances.append(channel_importance)
+
+    return torch.stack(channel_importances)
+
 
 results_dir = Path("og_encoder_exp_1")
 
@@ -93,25 +118,52 @@ model = model
 model.eval()
 
 
-def get_channel_importance(X: torch.tensor, n_units: int) -> torch.tensor:
-    # we need to find the gradient with respect to the input image
-    # so we need to call requires_grad_ on it
-    X = X.unsqueeze(0)
-    X.requires_grad_()
-    scores = model(X)
+named_params = model.named_parameters()
 
-    channel_importances = []
-    for c in range(n_units):
-        # Forward pass
-        # Backward pass for channel c
-        scores[0][c].backward(retain_graph=True)
-        # Sum absolute gradient values for each channel
-        channel_importance = torch.sum(X.grad.data.abs(), dim=(2, 3))
-        # Normalize channel importance
-        channel_importance = channel_importance / torch.sum(channel_importance, dim=1)
-        channel_importances.append(channel_importance)
+first_conv_weights = next(named_params)[1]
+first_conv_bias = next(named_params)[1]
 
-    return torch.stack(channel_importances)
+
+first_conv_weights = first_conv_weights.abs().sum(dim=(2, 3))
+combined_first_conv_weights = first_conv_weights.sum(dim=0).detach().numpy()
+
+# Normalize weights
+first_conv_weights = torch.div(first_conv_weights, first_conv_weights.sum(dim=0))
+
+# Detach tensors and convert to numpy
+first_conv_weights = first_conv_weights.detach().numpy()
+first_conv_bias = first_conv_bias.detach().numpy()
+
+# Axis labels for plotting
+x_labels = range(1, first_conv_weights.shape[1] + 1)
+
+n_subplots = first_conv_weights.shape[0]
+fig, _ = plt.subplots(
+    ncols=1,
+    nrows=n_subplots,
+    figsize=(10, 2 * n_subplots),
+    squeeze=False,
+)
+for channel, ax in enumerate(fig.axes):
+    ax.bar(x_labels, first_conv_weights[channel], color="orange")
+    ax.set_title(
+        f"Conv1 output channel {channel} | Bias = {first_conv_bias[channel].item():.3f}"
+    )
+fig.supylabel("Filter weight importance (normalized)")
+fig.supxlabel(f"Number of frame in sequence\nThe most recent image is {x_labels[-1]}")
+fig.suptitle("First convolutional layer mean absolute filter importance\n")
+
+fig.tight_layout()
+fig.savefig("notebooks\\filter_importances.png", dpi=150)
+
+# Plot combined importance
+fig, ax = plt.subplots()
+ax.bar(x_labels, combined_first_conv_weights, color="green")
+ax.set_title("Combined Conv1 absolute filter importance")
+ax.set_ylabel("Sum of absolute filter weights")
+ax.set_xlabel(f"Number of frame in sequence\nThe most recent image is {x_labels[-1]}")
+fig.tight_layout()
+fig.savefig("notebooks\\combined_importance.png", dpi=150)
 
 
 # How many images to use for importance calculation
@@ -130,8 +182,6 @@ mean_importance = importances.mean(dim=1)
 std_importance = importances.std(dim=1)
 
 print(mean_importance.shape, std_importance.shape)
-
-x_labels = range(1, mean_importance.shape[1] + 1)
 
 fig, _ = plt.subplots(
     ncols=1,
