@@ -56,12 +56,12 @@ class BaseHandler(torch.utils.data.Dataset):
         self.subset_size: int = subset_size
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
-        self.dataset_len = len(X) - prediction_step
+        self.prediction_step: int = prediction_step
+        self.dataset_len = len(X) - self.prediction_step
         self.X: ndarray[Any, dtype[Any]] = X
         self.Y: ndarray[Any, dtype[Any]] = y
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
-        self.prediction_step: int = prediction_step
 
     def read_h5_to_numpy(
         self,
@@ -73,15 +73,12 @@ class BaseHandler(torch.utils.data.Dataset):
         """  # noqa: E501
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
-            if self.is_train:
-                X = np.asarray(h5file[self.data_type]["stimulus"][: self.subset_size])
-            else:
-                X = np.asarray(h5file[self.data_type]["stimulus"][: self.subset_size])
-            y = np.asarray(
-                h5file[self.data_type]["response"][self.response_type][
-                    : self.subset_size
-                ]
-            )
+            X = np.asarray(h5file[self.data_type]["stimulus"])
+            y = np.asarray(h5file[self.data_type]["response"][self.response_type])
+        # Subset the data if positive subset_size is provided
+        if self.subset_size > 0:
+            X = X[:self.subset_size]
+            y = y[:, :self.subset_size]
         y = y.astype("float32")
 
         # Normalize the output data

@@ -16,16 +16,18 @@ class H5Dataset(BaseHandler):
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
+        subset_size: int = -1,
         **kwargs: Any,
     ) -> None:
         super(H5Dataset, self).__init__(
-            path,
-            response_type,
-            results_dir,
-            is_train,
-            y_scaler,
-            use_saved_scaler,
-            prediction_step,
+            path=path,
+            response_type=response_type,
+            is_train=is_train,
+            y_scaler=y_scaler,
+            results_dir=results_dir,
+            use_saved_scaler=use_saved_scaler,
+            prediction_step=prediction_step,
+            subset_size=subset_size,
         )
         self.is_rgb = is_rgb
 
