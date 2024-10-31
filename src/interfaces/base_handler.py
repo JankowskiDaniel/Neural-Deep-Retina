@@ -119,6 +119,16 @@ class BaseHandler(torch.utils.data.Dataset):
         y = y_fit.T  # return the data to the original shape
         return y
 
+    def get_y_scaler(self) -> Any:
+        """
+        Returns the y_scaler object.
+
+        Returns:
+        - Any
+            The y_scaler object.
+        """
+        return self.y_scaler
+
     @abstractmethod
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         raise NotImplementedError

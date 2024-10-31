@@ -57,8 +57,8 @@ def visualize_outputs_and_targets(
         None
     """
 
-    targets = pd.read_csv(predictions_dir / "targets.csv", header=0)
-    outputs = pd.read_csv(predictions_dir / "outputs.csv", header=0)
+    targets = pd.read_csv(predictions_dir / "unscaled_targets.csv", header=0)
+    outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv", header=0)
     n_channels: int = targets.shape[-1]
     fig, _ = plt.subplots(
         ncols=1,

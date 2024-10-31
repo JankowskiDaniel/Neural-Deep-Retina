@@ -14,7 +14,6 @@ from utils import (
     load_data_handler,
 )
 from visualize.visualize_dataset import visualize_outputs_and_targets
-from sklearn.preprocessing import StandardScaler
 import wandb
 
 
@@ -48,7 +47,6 @@ if __name__ == "__main__":
         config.data,
         results_dir=results_dir_path,
         is_train=False,
-        y_scaler=StandardScaler(),
         use_saved_scaler=True,
     )
 
@@ -109,6 +107,9 @@ if __name__ == "__main__":
     model.to(DEVICE)
     start_testing_time = time()
 
+    # Get the y_scaler for the test dataset
+    y_scaler = test_dataset.get_y_scaler()
+
     test_loss, metrics_dict = test_model(
         model=model,
         test_loader=test_loader,
@@ -117,10 +118,11 @@ if __name__ == "__main__":
         tracker=metrics_tracker,
         save_outputs_and_targets=True,
         save_dir=predictions_dir,
+        y_scaler=y_scaler,
     )
 
-    outputs = pd.read_csv(predictions_dir / "outputs.csv")
-    targets = pd.read_csv(predictions_dir / "targets.csv")
+    outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
+    targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
 
     # Log raw values as a W&B Table
     for channel in range(outputs.shape[1]):
@@ -163,7 +165,6 @@ if __name__ == "__main__":
             config.data,
             results_dir=results_dir_path,
             is_train=True,
-            y_scaler=StandardScaler(),
             use_saved_scaler=True,
         )
 
@@ -193,10 +194,11 @@ if __name__ == "__main__":
             tracker=metrics_tracker,
             save_outputs_and_targets=True,
             save_dir=predictions_dir,
+            y_scaler=y_scaler,
         )
 
-        outputs = pd.read_csv(predictions_dir / "outputs.csv")
-        targets = pd.read_csv(predictions_dir / "targets.csv")
+        outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
+        targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
 
         # Log raw values as a W&B Table
         for channel in range(outputs.shape[1]):

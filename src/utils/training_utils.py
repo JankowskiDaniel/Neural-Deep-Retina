@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
-from typing import Literal, Tuple
+from typing import Literal, Tuple, Any
 
 from models import DeepRetinaModel
 
@@ -88,6 +88,7 @@ def test_model(
     tracker: MetricTracker,
     save_outputs_and_targets: bool = True,
     save_dir: Path = Path("predicitons"),
+    y_scaler: Any = None,
 ) -> Tuple[float, dict]:
     """
     Test the given model on the test data.
@@ -128,15 +129,30 @@ def test_model(
 
         metrics_dict = tracker.cpu().compute_all()
         test_loss = np.sum(test_losses) / len(test_losses)
+        metrics_dict[f"Loss: {loss_fn.__class__.__name__}"] = test_loss
         # Report RMSE if MSE is present
         if "MeanSquaredError" in metrics_dict:
             metrics_dict["RootMeanSquaredError"] = np.sqrt(
                 metrics_dict["MeanSquaredError"]
             )
-        metrics_dict[f"Loss: {loss_fn.__class__.__name__}"] = test_loss
 
         if save_outputs_and_targets:
-            outputs_df.to_csv(save_dir / "outputs.csv", index=False)
-            targets_df.to_csv(save_dir / "targets.csv", index=False)
+            # Rescale the outputs and targets if a scaler is provided
+            if y_scaler is not None:
+                outputs_df = pd.DataFrame(y_scaler.inverse_transform(outputs_df))
+                targets_df = pd.DataFrame(y_scaler.inverse_transform(targets_df))
+            # Calculate MSE on the unscaled data
+            print(outputs_df.values)
+            mse = np.mean((outputs_df.values - targets_df.values) ** 2)
+            metrics_dict["MSE_unscaled"] = mse
+            metrics_dict["RMSE_unscaled"] = np.sqrt(mse)
+            # Calculate Pearson correlation between outputs and targets
+            pearson_corr = outputs_df.corrwith(targets_df, method="pearson", axis=0)
+            # Add Pearson correlation by each target channel to metrics_dict
+            for i, corr in enumerate(pearson_corr):
+                metrics_dict[f"pcorr_unscaled_ch_{i}"] = corr
+
+            outputs_df.to_csv(save_dir / "unscaled_outputs.csv", index=False)
+            targets_df.to_csv(save_dir / "unscaled_targets.csv", index=False)
 
     return test_loss, metrics_dict
