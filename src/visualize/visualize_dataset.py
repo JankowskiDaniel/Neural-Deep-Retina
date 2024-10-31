@@ -90,7 +90,7 @@ if __name__ == "__main__":
 
     path = Path("../results/my_training/predictions")
 
-    visualize_outputs_and_targets(path, path)
+    # visualize_outputs_and_targets(path, path)
 
     y_scaler = MinMaxScaler()
     with open("../config.yaml", "r") as stream:
