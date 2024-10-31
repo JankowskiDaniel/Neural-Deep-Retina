@@ -152,8 +152,21 @@ if __name__ == "__main__":
         is_train=False,
         return_fig=True,
     )
-    wandb.log({"Plots/Test": fig})
+    wandb.log({"Plots/Test_Unscaled": fig})
 
+    # Plot results for scaled outputs and targets
+    outputs = pd.read_csv(predictions_dir / "scaled_outputs.csv")
+    targets = pd.read_csv(predictions_dir / "scaled_targets.csv")
+
+    fig = visualize_outputs_and_targets(
+        targets=targets,
+        outputs=outputs,
+        plots_dir=plots_dir,
+        file_name="scaled_test_outputs_and_targets.png",
+        is_train=False,
+        return_fig=True,
+    )
+    wandb.log({"Plots/Test_Scaled": fig})
     logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
 
     if config.testing.run_on_train_data:
@@ -226,6 +239,21 @@ if __name__ == "__main__":
             is_train=True,
             return_fig=True,
         )
-        wandb.log({"Plots/Train": fig})
+        wandb.log({"Plots/Train_Unscaled": fig})
+
+        # Plot results for scaled outputs and targets
+        outputs = pd.read_csv(predictions_dir / "scaled_outputs.csv")
+        targets = pd.read_csv(predictions_dir / "scaled_targets.csv")
+
+        fig = visualize_outputs_and_targets(
+            targets=targets,
+            outputs=outputs,
+            plots_dir=plots_dir,
+            file_name="scaled_train_outputs_and_targets.png",
+            is_train=False,
+            return_fig=True,
+        )
+        wandb.log({"Plots/Train_Scaled": fig})
+
         logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
         wandb.finish()
