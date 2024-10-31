@@ -105,11 +105,11 @@ if __name__ == "__main__":
     # Test the model
     logger.info(f"Testing on {DEVICE} using device: {DEVICE_NAME}")
     model.to(DEVICE)
-    start_testing_time = time()
 
     # Get the y_scaler for the test dataset
     y_scaler = test_dataset.get_y_scaler()
 
+    start_testing_time = time()
     test_loss, metrics_dict = test_model(
         model=model,
         test_loader=test_loader,
@@ -120,6 +120,9 @@ if __name__ == "__main__":
         save_dir=predictions_dir,
         y_scaler=y_scaler,
     )
+    total_time = time() - start_testing_time
+    logger.info(f"Test loss: {test_loss:.4f}")
+    logger.info(f"Total testing time: {total_time:.2f} seconds")
 
     outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
     targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
@@ -130,15 +133,10 @@ if __name__ == "__main__":
         table = wandb.Table(data=data, columns=["model_output", "target"])
         wandb.log({f"test_predictions/channel_{channel}": table})
 
-    total_time = time() - start_testing_time
-    logger.info(f"Test loss: {test_loss:.4f}")
-    logger.info(f"Total testing time: {total_time:.2f} seconds")
+    wandb.log({"TEST_DATA_METRICS": metrics_dict})
 
     # Create a DataFrame from the metrics dictionary
     df_results = pd.DataFrame(metrics_dict)
-
-    wandb.log({"MSE_TEST": test_loss})
-
     # Save results to a csv file
     df_results.to_csv(results_dir_path / "test_results.csv", index=False)
     logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
@@ -167,7 +165,7 @@ if __name__ == "__main__":
         return_fig=True,
     )
     wandb.log({"Plots/Test_Scaled": fig})
-    logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
+    logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
@@ -207,6 +205,9 @@ if __name__ == "__main__":
             save_dir=predictions_dir,
             y_scaler=y_scaler,
         )
+        total_time = time() - start_testing_time
+        logger.info(f"Test loss: {test_loss:.4f}")
+        logger.info(f"Total testing time: {total_time:.2f} seconds")
 
         outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
         targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
@@ -217,14 +218,10 @@ if __name__ == "__main__":
             table = wandb.Table(data=data, columns=["model_output", "target"])
             wandb.log({f"train_predictions/channel_{channel}": table})
 
-        total_time = time() - start_testing_time
-        logger.info(f"Test loss: {test_loss:.4f}")
-        logger.info(f"Total testing time: {total_time:.2f} seconds")
+        wandb.log({"TRAIN_DATA_METRICS": metrics_dict})
 
         # Create a DataFrame from the metrics dictionary
         df_results = pd.DataFrame(metrics_dict)
-
-        wandb.log({"MSE_TRAIN": test_loss})
         # Save results to a csv file
         df_results.to_csv(results_dir_path / "test_traindata_results.csv", index=False)
         logger.info(
@@ -255,5 +252,5 @@ if __name__ == "__main__":
         )
         wandb.log({"Plots/Train_Scaled": fig})
 
-        logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
+        logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
         wandb.finish()
