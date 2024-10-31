@@ -136,9 +136,6 @@ if __name__ == "__main__":
 
     # Create a DataFrame from the metrics dictionary
     df_results = pd.DataFrame(metrics_dict)
-    logger.info(
-        "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
-    )
 
     wandb.log({"MSE_TEST": test_loss})
 
@@ -148,9 +145,10 @@ if __name__ == "__main__":
 
     # Plot outputs and targets
     fig = visualize_outputs_and_targets(
-        predictions_dir,
-        plots_dir,
-        file_name="test_outputs_and_targets.png",
+        targets=targets,
+        outputs=outputs,
+        plots_dir=plots_dir,
+        file_name="unscaled_test_outputs_and_targets.png",
         is_train=False,
         return_fig=True,
     )
@@ -212,9 +210,6 @@ if __name__ == "__main__":
 
         # Create a DataFrame from the metrics dictionary
         df_results = pd.DataFrame(metrics_dict)
-        logger.info(
-            "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
-        )
 
         wandb.log({"MSE_TRAIN": test_loss})
         # Save results to a csv file
@@ -222,11 +217,12 @@ if __name__ == "__main__":
         logger.info(
             f"Results saved to {results_dir_path / 'test_traindata_results.csv'}"
         )
-        # Plot outputs and targets
+        # Plot unscaled outputs and targets
         fig = visualize_outputs_and_targets(
-            predictions_dir,
-            plots_dir,
-            file_name="train_outputs_and_targets.png",
+            targets=targets,
+            outputs=outputs,
+            plots_dir=plots_dir,
+            file_name="unscaled_train_outputs_and_targets.png",
             is_train=True,
             return_fig=True,
         )

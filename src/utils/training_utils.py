@@ -137,12 +137,14 @@ def test_model(
             )
 
         if save_outputs_and_targets:
+            # Save scaled outputs and targets
+            outputs_df.to_csv(save_dir / "scaled_outputs.csv", index=False)
+            targets_df.to_csv(save_dir / "scaled_targets.csv", index=False)
             # Rescale the outputs and targets if a scaler is provided
             if y_scaler is not None:
                 outputs_df = pd.DataFrame(y_scaler.inverse_transform(outputs_df))
                 targets_df = pd.DataFrame(y_scaler.inverse_transform(targets_df))
             # Calculate MSE on the unscaled data
-            print(outputs_df.values)
             mse = np.mean((outputs_df.values - targets_df.values) ** 2)
             metrics_dict["MSE_unscaled"] = mse
             metrics_dict["RMSE_unscaled"] = np.sqrt(mse)
@@ -151,7 +153,7 @@ def test_model(
             # Add Pearson correlation by each target channel to metrics_dict
             for i, corr in enumerate(pearson_corr):
                 metrics_dict[f"pcorr_unscaled_ch_{i}"] = corr
-
+            # Save unscaled outputs and targets
             outputs_df.to_csv(save_dir / "unscaled_outputs.csv", index=False)
             targets_df.to_csv(save_dir / "unscaled_targets.csv", index=False)
 
