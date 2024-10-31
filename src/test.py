@@ -14,7 +14,6 @@ from utils import (
     load_data_handler,
 )
 from visualize.visualize_dataset import visualize_outputs_and_targets
-from sklearn.preprocessing import StandardScaler
 import wandb
 
 
@@ -48,7 +47,6 @@ if __name__ == "__main__":
         config.data,
         results_dir=results_dir_path,
         is_train=False,
-        y_scaler=StandardScaler(),
         use_saved_scaler=True,
     )
 
@@ -107,8 +105,11 @@ if __name__ == "__main__":
     # Test the model
     logger.info(f"Testing on {DEVICE} using device: {DEVICE_NAME}")
     model.to(DEVICE)
-    start_testing_time = time()
 
+    # Get the y_scaler for the test dataset
+    y_scaler = test_dataset.get_y_scaler()
+
+    start_testing_time = time()
     test_loss, metrics_dict = test_model(
         model=model,
         test_loader=test_loader,
@@ -117,10 +118,14 @@ if __name__ == "__main__":
         tracker=metrics_tracker,
         save_outputs_and_targets=True,
         save_dir=predictions_dir,
+        y_scaler=y_scaler,
     )
+    total_time = time() - start_testing_time
+    logger.info(f"Test loss: {test_loss:.4f}")
+    logger.info(f"Total testing time: {total_time:.2f} seconds")
 
-    outputs = pd.read_csv(predictions_dir / "outputs.csv")
-    targets = pd.read_csv(predictions_dir / "targets.csv")
+    outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
+    targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
 
     # Log raw values as a W&B Table
     for channel in range(outputs.shape[1]):
@@ -128,33 +133,39 @@ if __name__ == "__main__":
         table = wandb.Table(data=data, columns=["model_output", "target"])
         wandb.log({f"test_predictions/channel_{channel}": table})
 
-    total_time = time() - start_testing_time
-    logger.info(f"Test loss: {test_loss:.4f}")
-    logger.info(f"Total testing time: {total_time:.2f} seconds")
+    wandb.log({"TEST_DATA_METRICS": metrics_dict})
 
     # Create a DataFrame from the metrics dictionary
     df_results = pd.DataFrame(metrics_dict)
-    logger.info(
-        "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
-    )
-
-    wandb.log({"MSE_TEST": test_loss})
-
     # Save results to a csv file
     df_results.to_csv(results_dir_path / "test_results.csv", index=False)
     logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
 
     # Plot outputs and targets
     fig = visualize_outputs_and_targets(
-        predictions_dir,
-        plots_dir,
-        file_name="test_outputs_and_targets.png",
+        targets=targets,
+        outputs=outputs,
+        plots_dir=plots_dir,
+        file_name="unscaled_test_outputs_and_targets.png",
         is_train=False,
         return_fig=True,
     )
-    wandb.log({"Plots/Test": fig})
+    wandb.log({"Plots/Test_Unscaled": fig})
 
-    logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
+    # Plot results for scaled outputs and targets
+    outputs = pd.read_csv(predictions_dir / "scaled_outputs.csv")
+    targets = pd.read_csv(predictions_dir / "scaled_targets.csv")
+
+    fig = visualize_outputs_and_targets(
+        targets=targets,
+        outputs=outputs,
+        plots_dir=plots_dir,
+        file_name="scaled_test_outputs_and_targets.png",
+        is_train=False,
+        return_fig=True,
+    )
+    wandb.log({"Plots/Test_Scaled": fig})
+    logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
@@ -163,7 +174,6 @@ if __name__ == "__main__":
             config.data,
             results_dir=results_dir_path,
             is_train=True,
-            y_scaler=StandardScaler(),
             use_saved_scaler=True,
         )
 
@@ -193,10 +203,14 @@ if __name__ == "__main__":
             tracker=metrics_tracker,
             save_outputs_and_targets=True,
             save_dir=predictions_dir,
+            y_scaler=y_scaler,
         )
+        total_time = time() - start_testing_time
+        logger.info(f"Test loss: {test_loss:.4f}")
+        logger.info(f"Total testing time: {total_time:.2f} seconds")
 
-        outputs = pd.read_csv(predictions_dir / "outputs.csv")
-        targets = pd.read_csv(predictions_dir / "targets.csv")
+        outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
+        targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
 
         # Log raw values as a W&B Table
         for channel in range(outputs.shape[1]):
@@ -204,30 +218,39 @@ if __name__ == "__main__":
             table = wandb.Table(data=data, columns=["model_output", "target"])
             wandb.log({f"train_predictions/channel_{channel}": table})
 
-        total_time = time() - start_testing_time
-        logger.info(f"Test loss: {test_loss:.4f}")
-        logger.info(f"Total testing time: {total_time:.2f} seconds")
+        wandb.log({"TRAIN_DATA_METRICS": metrics_dict})
 
         # Create a DataFrame from the metrics dictionary
         df_results = pd.DataFrame(metrics_dict)
-        logger.info(
-            "Results {}".format(df_results.to_string().replace("\n", "\n\t\t\t\t\t"))
-        )
-
-        wandb.log({"MSE_TRAIN": test_loss})
         # Save results to a csv file
         df_results.to_csv(results_dir_path / "test_traindata_results.csv", index=False)
         logger.info(
             f"Results saved to {results_dir_path / 'test_traindata_results.csv'}"
         )
-        # Plot outputs and targets
+        # Plot unscaled outputs and targets
         fig = visualize_outputs_and_targets(
-            predictions_dir,
-            plots_dir,
-            file_name="train_outputs_and_targets.png",
+            targets=targets,
+            outputs=outputs,
+            plots_dir=plots_dir,
+            file_name="unscaled_train_outputs_and_targets.png",
             is_train=True,
             return_fig=True,
         )
-        wandb.log({"Plots/Train": fig})
-        logger.info(f"Outputs and targets visualization saved to {predictions_dir}")
+        wandb.log({"Plots/Train_Unscaled": fig})
+
+        # Plot results for scaled outputs and targets
+        outputs = pd.read_csv(predictions_dir / "scaled_outputs.csv")
+        targets = pd.read_csv(predictions_dir / "scaled_targets.csv")
+
+        fig = visualize_outputs_and_targets(
+            targets=targets,
+            outputs=outputs,
+            plots_dir=plots_dir,
+            file_name="scaled_train_outputs_and_targets.png",
+            is_train=False,
+            return_fig=True,
+        )
+        wandb.log({"Plots/Train_Scaled": fig})
+
+        logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
         wandb.finish()
