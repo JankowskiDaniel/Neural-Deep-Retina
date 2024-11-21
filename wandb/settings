@@ -1,0 +1,5 @@
+[default]
+entity = jankowskidaniel06-put
+project = Neural Deep Retina
+base_url = https://api.wandb.ai
+

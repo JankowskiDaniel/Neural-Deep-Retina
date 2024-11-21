@@ -50,7 +50,7 @@ class H5Dataset(torch.utils.data.Dataset):
 
     def read_h5_to_numpy(
         self,
-        subset_size: int = 2000,
+        subset_size: int = 100000,
     ) -> ndarray[Any, dtype[Any]]:
         """
         Reads data from an HDF5 file and converts it to numpy arrays.

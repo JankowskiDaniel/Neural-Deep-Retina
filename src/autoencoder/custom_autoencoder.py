@@ -15,8 +15,8 @@ class CustomAutoencoder(nn.Module):
         self,
         image_shape: tuple,
         latent_dim: int = 100,
-        out_channels: int = 16,
-        activation=nn.ReLU(),
+        out_channels: int = 8,
+        activation=nn.ELU(),
     ):
         super(CustomAutoencoder, self).__init__()
         # Initialize the encoder and decoder

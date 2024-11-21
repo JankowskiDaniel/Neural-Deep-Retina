@@ -36,8 +36,8 @@ class CustomDecoder(nn.Module):
         self,
         image_shape: tuple,
         latent_dim: int,
-        out_channels: int = 16,
-        activation=nn.Sigmoid(),
+        out_channels: int = 8,
+        activation=nn.ELU(),
     ) -> None:
         super(CustomDecoder, self).__init__()
 
@@ -47,7 +47,12 @@ class CustomDecoder(nn.Module):
 
         image_channels = image_shape[0]
 
+        self.linear = nn.Sequential(
+            nn.Linear(latent_dim, 8 * out_channels * 6 * 6), activation
+        )
+
         self.transpose_conv = nn.Sequential(
+            DecodingBlock(8 * out_channels, 4 * out_channels),
             DecodingBlock(4 * out_channels, 2 * out_channels),
             DecodingBlock(2 * out_channels, image_channels),
             nn.Conv2d(
@@ -63,5 +68,7 @@ class CustomDecoder(nn.Module):
         self._output_shape = latent_dim
 
     def forward(self, x):
+        x = self.linear(x)
+        x = x.view(-1, 8 * self.out_channels, 6, 6)
         x = self.transpose_conv(x)
         return x

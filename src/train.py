@@ -37,8 +37,8 @@ if __name__ == "__main__":
     model = CustomAutoencoder(
         image_shape=image_shape,
         latent_dim=latent_dim,
-        out_channels=16,
-        activation=nn.Sigmoid(),
+        out_channels=4,
+        activation=nn.ELU(),
     )
 
     logger.info("Model initialized")
