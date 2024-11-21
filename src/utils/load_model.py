@@ -2,7 +2,7 @@ from pathlib import Path
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.linears import SingleLinear, MultiLinear, OgLinear
-from predictors.rnns import SingleLSTM
+from predictors.rnns import SingleLSTM, SimpleCFC
 from encoders import VGG16Encoder, MC3VideoEncoder, CustomEncoder, OgEncoder
 from models import DeepRetinaModel
 
@@ -11,6 +11,7 @@ PREDICTORS: dict[str, Predictor] = {
     "MultiLinear": MultiLinear,
     "SingleLSTM": SingleLSTM,
     "OgLinear": OgLinear,
+    "SimpleCFC": SimpleCFC,
 }
 
 ENCODERS: dict[str, Encoder] = {
