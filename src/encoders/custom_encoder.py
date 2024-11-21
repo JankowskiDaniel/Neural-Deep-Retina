@@ -15,12 +15,14 @@ class CustomEncoder(Encoder):
         weights_path: Path,
         freeze: bool,
         seq_len: int,
-        out_channels: int = 16,
+        out_channels: int = 4,
         activation=nn.ReLU(),
     ) -> None:
         super(CustomEncoder, self).__init__()
 
-        base_custom_encoder = BaseCustomEncoder(out_channels, activation)
+        base_custom_encoder = BaseCustomEncoder(
+            out_channels=out_channels, activation=activation
+        )
         base_custom_encoder.load_state_dict(load(weights_path))
 
         self.features = base_custom_encoder
@@ -49,6 +51,9 @@ class CustomEncoder(Encoder):
         else:  # single image, not processed as a sequence
             x = self.features(x)
             x = x.view(x.size(0), -1)  # Flatten the tensor
+
+        # Scale the output
+        x = x * 0.125
 
         return x
 

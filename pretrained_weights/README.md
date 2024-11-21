@@ -46,5 +46,5 @@ More info about the network here: https://pytorch.org/vision/master/models/video
 
 #### Custom encoder trained from scratch (CustomEncoder)
 
-https://drive.google.com/file/d/14Ws9qtM0lRmCKpHAm82MSubH6sm5cvI4/view?usp=drive_link
 
+[Google Drive folder](https://drive.google.com/drive/folders/1P9nrLoAWMdaUS50MFQk6rHPgglzyTN5N?usp=sharing)

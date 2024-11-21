@@ -4,26 +4,26 @@ DATA:
   is_rgb: False
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
   response_type: firing_rate_10ms
-  seq_len: 16
-  prediction_step: 1
+  seq_len: 4
+  prediction_step: 0
   subset_size: 2000
 TRAINING:
   ENCODER:
     name: CustomEncoder
-    weights: fc_encoder_best.pth
-    freeze: True
-    learning_rate: 0.0001
+    weights: custom_encoder_best_convdense.pth
+    freeze: False
+    learning_rate: 0.00005
   PREDICTOR:
     name: SingleLSTM
-    learning_rate: 0.001
-  batch_size: 32
-  epochs: 10
+    learning_rate: 0.0005
+  batch_size: 64
+  epochs: 100
   num_units: 9
   early_stopping: True
   early_stopping_patience: 5
   save_logs: True
 TESTING:
-  batch_size: 32
+  batch_size: 64
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
