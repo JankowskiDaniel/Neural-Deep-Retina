@@ -15,9 +15,9 @@ class SimpleCFC(Predictor):
             mixed_memory=True,
             return_sequences=False,
         )
-        self.softplus = nn.Softplus()
+        self.activation = nn.ReLU()
 
     def forward(self, x):
         x, _ = self.cfc(x)
-        # x = self.softplus(x)
+        x = self.activation(x)
         return x

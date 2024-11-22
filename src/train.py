@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 from time import time
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     logger.info("Loading model...")
     model = load_model(config)
 
-    y_scaler = StandardScaler(with_mean=False)
+    y_scaler = MinMaxScaler()  # StandardScaler(with_mean=False)
 
     # load the data handler
     logger.info("Loading data handler...")
