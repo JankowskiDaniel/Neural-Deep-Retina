@@ -52,10 +52,10 @@ class ShotSeqEncoder(Encoder):
             EncodingBlock(in_channels, out_channels),
             EncodingBlock(out_channels, 2 * out_channels),
             EncodingBlock(2 * out_channels, 4 * out_channels),
-            EncodingBlock(4 * out_channels, 4 * out_channels),
+            EncodingBlock(4 * out_channels, out_channels),
         )
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(4 * out_channels * 3 * 3, 32)
+        self.linear = nn.Linear(out_channels * 3 * 3, 32)
         self.activation = nn.Tanh()
         self.bn1d = nn.BatchNorm1d(num_features=32)
 

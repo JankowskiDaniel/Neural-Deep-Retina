@@ -16,11 +16,11 @@ TRAINING:
     learning_rate: 0.0005
   PREDICTOR:
     name: SimpleCFC
-    learning_rate: 0.0005
+    learning_rate: 0.001
   batch_size: 128
   epochs: 30
   num_units: 9
-  early_stopping: False
+  early_stopping: True
   early_stopping_patience: 5
   save_logs: True
 TESTING:
