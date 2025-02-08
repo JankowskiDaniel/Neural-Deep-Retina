@@ -8,7 +8,7 @@ class MC3VideoEncoder(Encoder):
     def __init__(
         self,
         input_shape: tuple,
-        weights_path: Path,
+        weights_path: Path | None,
         freeze: bool,
         seq_len: int,
     ) -> None:

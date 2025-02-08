@@ -56,6 +56,7 @@ if __name__ == "__main__":
     logger.info(f"Input data point shape: {X.shape}")
     logger.info(f"Target data point shape: {y.shape}")
 
+    logger.info(f"Predictions will be made for channels: {train_dataset.pred_channels}")
     TORCH_SEED = 12
     TRAIN_SIZE = 0.8
     # Split train dataset into train and validation

@@ -20,6 +20,7 @@ class H5SeqDataset(BaseHandler):
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
         subset_size: int = -1,
+        pred_channels: list[int] = [],
         **kwargs: Any,
     ):
         """
@@ -43,6 +44,7 @@ class H5SeqDataset(BaseHandler):
             use_saved_scaler=use_saved_scaler,
             prediction_step=prediction_step,
             subset_size=subset_size,
+            pred_channels=pred_channels,
         )
         self.dataset_len: int = self.dataset_len - seq_len
         self.seq_length: int = seq_len

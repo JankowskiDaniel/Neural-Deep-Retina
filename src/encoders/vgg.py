@@ -9,13 +9,16 @@ class VGG16Encoder(Encoder):
     def __init__(
         self,
         input_shape: tuple,
-        weights_path: Path,
+        weights_path: Path | None,
         freeze: bool,
         seq_len: int | None = None,
     ) -> None:
         super(VGG16Encoder, self).__init__()
-        weights = models.vgg.VGG16_Weights
-        weights.url = str(weights_path)
+        if weights_path is None:
+            weights = None
+        else:
+            weights = models.vgg.VGG16_Weights
+            weights.url = str(weights_path)
         vgg16 = models.vgg16(weights=weights)
         self.features = nn.Sequential(*list(vgg16.features.children())[:10])
         self.seq_len = seq_len
