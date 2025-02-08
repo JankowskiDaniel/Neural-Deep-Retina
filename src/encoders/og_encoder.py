@@ -103,6 +103,9 @@ class OgEncoder(nn.Module):
         )
         self.flat3 = Flatten()
 
+        if weights_path is not None:
+            self.load_state_dict(torch.load(weights_path))
+
         self._dummy_input = torch.zeros(input_shape)
         self._output_shape = self._compute_output_shape()
 
