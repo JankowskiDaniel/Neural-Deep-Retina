@@ -38,7 +38,7 @@ class OgEncoder(nn.Module):
     def __init__(
         self,
         input_shape: tuple,
-        weights_path: Path,
+        weights_path: Path | None,
         freeze: bool,
         seq_len: int,
     ) -> None:
@@ -110,7 +110,6 @@ class OgEncoder(nn.Module):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
-        print(x.shape)
         if self.seq_len >= 1:
             latent_seq = []
             # batch

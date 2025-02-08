@@ -17,6 +17,7 @@ class H5Dataset(BaseHandler):
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
         subset_size: int = -1,
+        pred_channels: list[int] = [],
         **kwargs: Any,
     ) -> None:
         super(H5Dataset, self).__init__(
@@ -28,6 +29,7 @@ class H5Dataset(BaseHandler):
             use_saved_scaler=use_saved_scaler,
             prediction_step=prediction_step,
             subset_size=subset_size,
+            pred_channels=pred_channels,
         )
         self.is_rgb = is_rgb
 

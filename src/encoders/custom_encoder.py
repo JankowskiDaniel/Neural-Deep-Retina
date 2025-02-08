@@ -12,7 +12,7 @@ class CustomEncoder(Encoder):
     def __init__(
         self,
         input_shape: tuple,
-        weights_path: Path,
+        weights_path: Path | None,
         freeze: bool,
         seq_len: int,
         out_channels: int = 4,
@@ -23,7 +23,8 @@ class CustomEncoder(Encoder):
         base_custom_encoder = BaseCustomEncoder(
             out_channels=out_channels, activation=activation
         )
-        base_custom_encoder.load_state_dict(load(weights_path))
+        if weights_path is not None:
+            base_custom_encoder.load_state_dict(load(weights_path))
 
         self.features = base_custom_encoder
 

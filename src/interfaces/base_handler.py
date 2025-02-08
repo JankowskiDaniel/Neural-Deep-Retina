@@ -40,6 +40,7 @@ class BaseHandler(torch.utils.data.Dataset):
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
         subset_size: int = -1,
+        pred_channels: list[int] = [],
         **kwargs: Any,
     ) -> None:
         self.file_path = path
@@ -54,12 +55,15 @@ class BaseHandler(torch.utils.data.Dataset):
         # Allows to use the saved scaler for the train data
         self.use_saved_scaler = use_saved_scaler
         self.subset_size: int = subset_size
+
+        self.pred_channels: list[int] = pred_channels
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
         self.prediction_step: int = prediction_step
         self.dataset_len = len(X) - self.prediction_step
         self.X: ndarray[Any, dtype[Any]] = X
         self.Y: ndarray[Any, dtype[Any]] = y
+        self.Y = self.Y[self.pred_channels]
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
 
