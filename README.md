@@ -21,6 +21,18 @@ Windows: `venv\Scripts\activate.bat`
     pip install ipykernel==6.29.5 ipython==8.26.0
     ```
 
+## Dataset ##
+
+The data set used in this project can be found [here](https://purl.stanford.edu/rk663dm5577). Please download and unzip in the `data` directory.
+
+We manually create a validation split for the evaluation. This can be done using `make_validation_split.py`. For example, open the terminal in the root directory an run:
+
+```bash
+python -m data.make_validation_split data\neural_code_data\ganglion_cell_data\15-10-07\naturalscene.h5 --train_ratio 0.8
+```
+
+This will create a new file named `naturalscene_with_val.h5`, where the first 80% of the original data will constitue the new train set, and the rest will become the validation set. The test set is copied to the new file without modifications.
+
 ## Training ##
 
 For running model training, use the `src/train.py` script. It is assumed that the script is run at the root level of the repository (follow this convention to avoid directory conflicts).
@@ -78,23 +90,6 @@ An exemplary command for running the testing:
 
 ```sh
 python src/test.py --results_dir my_training
-```
-
-## Dataset ##
-
-The default expected folder structure inside the `data` directory:
-```
-neural_code_data/
-  ganglion_cell_data/
-    15-10-07/
-      naturalscene.h5
-      whitenoise.h5
-    15-11-21a/
-      ...
-    15-11-21b/
-      ...
-  interneuron_data/
-    ...
 ```
 
   
