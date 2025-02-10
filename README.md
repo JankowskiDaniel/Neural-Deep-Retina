@@ -6,10 +6,11 @@
 
 1. Create python 3.11 (or newer) environment: <br>
    `python3.11 -m venv venv`
-2. Activate the environment: <br>
+1. Activate the environment: <br>
 Linux: `source venv/bin/activate` <br>
 Windows: `venv\Scripts\activate.bat`
-3. Install required dependencies: 
+1. Install the project: `pip install -e .`.
+1. Altenatively, install requirements manually: 
     ```sh
     # Install torch with CUDA
     pip install torch==2.3.1 torchvision==0.18.1 --index-url https://download.pytorch.org/whl/cu121
@@ -20,6 +21,8 @@ Windows: `venv\Scripts\activate.bat`
     # Optionally, install jupyter notebook dependencies
     pip install ipykernel==6.29.5 ipython==8.26.0
     ```
+
+Code tests can be executed using `pytest`.
 
 ## Dataset ##
 
