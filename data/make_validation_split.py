@@ -27,7 +27,8 @@ class NeuralCodeData:
         -----------
         train_ratio : float
             The ratio of the data to be used for training. The rest will be used for validation.
-    """
+    """  # noqa: E501
+
     def __init__(self, path: Path, logger: Logger):
         self.path = path
         self.logger = logger
@@ -46,18 +47,24 @@ class NeuralCodeData:
         # Get keys from the data train response
         data_keys = list(self.data["train"]["response"].keys())
         with h5py.File(new_path, "w") as f:
+            # Copy stimulus data
+            train_len = int(self.data["train"]["stimulus"].shape[0] * train_ratio)
+            val_len = self.data["train"]["stimulus"].shape[0] - train_len
+            self.logger.info(f"Train length: {train_len} Validation length: {val_len}")
+            f.create_dataset(
+                "train/stimulus", data=self.data["train"]["stimulus"][:train_len]
+            )
+            f.create_dataset(
+                "val/stimulus", data=self.data["train"]["stimulus"][train_len:]
+            )
+            f.create_dataset("test/stimulus", data=self.data["test"]["stimulus"])
             for key in data_keys:
                 # Calculate the length of the training data
                 train_matrix = self.data["train"]["response"][key]
                 self.logger.info(
                     f"Original train data {key} shape {train_matrix.shape}"
                 )
-                train_len = int(train_matrix.shape[1] * train_ratio)
-                val_len = train_matrix.shape[1] - train_len
                 self.logger.info(f"Splitting {key}")
-                self.logger.info(
-                    f"Train length: {train_len} Validation length: {val_len}"
-                )
                 # Split the data
                 train_data = train_matrix[..., :train_len]
                 val_data = train_matrix[..., train_len:]
