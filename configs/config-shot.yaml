@@ -1,7 +1,7 @@
 DATA:
   data_handler: BaselineRGBDataset
   img_shape: [40, 50, 50]
-  path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5
+  path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
   response_type: firing_rate_10ms
   is_rgb: False
   seq_len: 0
@@ -18,7 +18,7 @@ TRAINING:
     name: SimpleCFC
     learning_rate: 0.001
   batch_size: 128
-  epochs: 30
+  epochs: 3
   num_units: 9
   early_stopping: True
   early_stopping_patience: 5

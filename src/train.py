@@ -50,6 +50,14 @@ if __name__ == "__main__":
         is_train=True,
         y_scaler=y_scaler,
     )
+    val_dataset = load_data_handler(
+        config.data,
+        results_dir=results_dir_path,
+        is_train=False,
+        subset_type="val",
+        use_saved_scaler=True,
+        y_scaler=y_scaler,
+    )
 
     # Get sample data to check dimensions
     X, y = train_dataset[0]
@@ -62,20 +70,14 @@ if __name__ == "__main__":
     # Split train dataset into train and validation
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
     torch.manual_seed(TORCH_SEED)
-    # TODO: Time series data should not be shuffled
-    train_size = int(TRAIN_SIZE * len(train_dataset))
-    val_size = len(train_dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(
-        train_dataset, [train_size, val_size]
-    )
 
     logger.info(f"Train dataset size: {len(train_dataset)}")
     logger.info(f"Validation dataset size: {len(val_dataset)}")
 
     # Define training parameters
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    PIN_MEMORY = False  # torch.cuda.is_available()
-    NUM_WORKERS = 0  # if torch.cuda.is_available() else 0
+    PIN_MEMORY = False
+    NUM_WORKERS = 0
     DEVICE_NAME = torch.cuda.get_device_name(0) if DEVICE == "cuda" else "CPU"
     N_EPOCHS = config.training.epochs
     ENCODER_LR = config.training.encoder.learning_rate
