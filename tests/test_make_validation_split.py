@@ -14,6 +14,7 @@ def temp_hdf5_file(tmp_path):
         f.create_dataset("test/response/key1", data=[[6, 7, 8, 9, 10]])
     yield file_path
 
+
 @pytest.fixture
 def mock_logger():
     # Create a mock logger

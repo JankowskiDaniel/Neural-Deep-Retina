@@ -1,6 +1,6 @@
 import warnings
 import torch
-from typing import Any, Tuple
+from typing import Any, Tuple, Literal
 from pathlib import Path
 
 from interfaces.base_handler import BaseHandler
@@ -15,6 +15,7 @@ class BaselineSeqRGBDataset(BaseHandler):
         response_type: str,
         results_dir: Path,
         is_train: bool = True,
+        subset_type: Literal["train", "val", "test"] = "train",
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
@@ -25,6 +26,7 @@ class BaselineSeqRGBDataset(BaseHandler):
             path=path,
             response_type=response_type,
             is_train=is_train,
+            subset_type=subset_type,
             y_scaler=y_scaler,
             results_dir=results_dir,
             use_saved_scaler=use_saved_scaler,

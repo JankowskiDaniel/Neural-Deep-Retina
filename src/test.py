@@ -47,6 +47,7 @@ if __name__ == "__main__":
         config.data,
         results_dir=results_dir_path,
         is_train=False,
+        subset_type="test",
         use_saved_scaler=True,
     )
 

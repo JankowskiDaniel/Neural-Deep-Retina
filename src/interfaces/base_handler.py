@@ -36,6 +36,7 @@ class BaseHandler(torch.utils.data.Dataset):
         response_type: Literal["firing_rate_10ms", "binned"],
         results_dir: Path,
         is_train: bool = True,
+        subset_type: Literal["train", "val", "test"] = "train",
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
@@ -45,9 +46,8 @@ class BaseHandler(torch.utils.data.Dataset):
         self.file_path = path
         # The available types are firing_rate_10ms, binned
         self.response_type = response_type
-        # Choose either train or test subsets
-        self.data_type = "train" if is_train else "test"
         self.is_train = is_train
+        self.subset_type = subset_type
         self.y_scaler = y_scaler
         self.results_dir = results_dir
         self.transform_x = transform_x
@@ -73,8 +73,8 @@ class BaseHandler(torch.utils.data.Dataset):
         """  # noqa: E501
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
-            X = np.asarray(h5file[self.data_type]["stimulus"])
-            y = np.asarray(h5file[self.data_type]["response"][self.response_type])
+            X = np.asarray(h5file[self.subset_type]["stimulus"])
+            y = np.asarray(h5file[self.subset_type]["response"][self.response_type])
         # Subset the data if positive subset_size is provided
         if self.subset_size > 0:
             X = X[: self.subset_size]

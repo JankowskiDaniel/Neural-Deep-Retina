@@ -107,7 +107,6 @@ class OgEncoder(nn.Module):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
-        print(x.shape)
         if self.seq_len >= 1:
             latent_seq = []
             # batch
