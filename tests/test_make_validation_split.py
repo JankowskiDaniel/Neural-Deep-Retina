@@ -11,7 +11,9 @@ def temp_hdf5_file(tmp_path):
     with h5py.File(file_path, "w") as f:
         # Create mock data
         f.create_dataset("train/response/key1", data=[[1, 2, 3, 4, 5]])
+        f.create_dataset("train/stimulus", data=[1, 2, 3, 4, 5])
         f.create_dataset("test/response/key1", data=[[6, 7, 8, 9, 10]])
+        f.create_dataset("test/stimulus", data=[6, 7, 8, 9, 10])
     yield file_path
 
 
@@ -48,13 +50,22 @@ def test_make_validation_split(temp_hdf5_file, mock_logger):
         assert "train/response/key1" in f
         assert "val/response/key1" in f
         assert "test/response/key1" in f
+        assert "train/stimulus" in f
+        assert "val/stimulus" in f
+        assert "test/stimulus" in f
 
         train_data = f["train/response/key1"][:]
         val_data = f["val/response/key1"][:]
         test_data = f["test/response/key1"][:]
+        train_stimulus = f["train/stimulus"][:]
+        val_stimulus = f["val/stimulus"][:]
+        test_stimulus = f["test/stimulus"][:]
 
         assert train_data.shape[1] == 3  # 60% of 5
         assert val_data.shape[1] == 2  # 40% of 5
         assert (train_data == [[1, 2, 3]]).all()
         assert (val_data == [[4, 5]]).all()
         assert (test_data == [[6, 7, 8, 9, 10]]).all()
+        assert (train_stimulus == [1, 2, 3]).all()
+        assert (val_stimulus == [4, 5]).all()
+        assert (test_stimulus == [6, 7, 8, 9, 10]).all()
