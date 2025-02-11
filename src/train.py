@@ -103,6 +103,7 @@ if __name__ == "__main__":
                 "is_rgb": config.data.is_rgb,
                 "seq_len": config.data.seq_len,
                 "prediction_step": config.data.prediction_step,
+                "scaler": y_scaler.__class__.__name__,
             },
             "model": {
                 "encoder": {
@@ -125,7 +126,7 @@ if __name__ == "__main__":
         resume="allow",
     )
 
-    # log the data length
+    # Log the data length
     wandb.log(
         {"train_data_length": len(train_dataset), "val_data_length": len(val_dataset)}
     )
@@ -137,9 +138,9 @@ if __name__ == "__main__":
     with open(model_summary_filename, "w", encoding="utf-8") as f:
         f.write(model_summary_str)
     # Log model summary txt to wandb
-    artifact = wandb.Artifact("model_summary", "model_details")
-    artifact.add_file(model_summary_filename)
-    wandb.log_artifact(artifact)
+    model_summary_artifact = wandb.Artifact("model_summary", "model_details")
+    model_summary_artifact.add_file(model_summary_filename)
+    wandb.log_artifact(model_summary_artifact)
 
     # Define data loaders
     train_loader = DataLoader(
