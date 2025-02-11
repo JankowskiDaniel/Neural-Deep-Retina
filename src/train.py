@@ -17,6 +17,7 @@ from utils import (
 from visualize.visualize_loss import visualize_loss
 import wandb
 from uuid import uuid4
+from torchinfo import summary
 
 
 if __name__ == "__main__":
@@ -102,29 +103,45 @@ if __name__ == "__main__":
                 "is_rgb": config.data.is_rgb,
                 "seq_len": config.data.seq_len,
                 "prediction_step": config.data.prediction_step,
+                "scaler": y_scaler.__class__.__name__,
+                "prediction_channels": config.data.pred_channels,
             },
             "model": {
                 "encoder": {
                     "name": config.training.encoder.name,
                     "freeze": config.training.encoder.freeze,
                     "learning_rate": config.training.encoder.learning_rate,
+                    "n_trainable_params": model.encoder_n_trainable_params,
                 },
                 "predictor": {
                     "name": config.training.predictor.name,
                     "learning_rate": config.training.predictor.learning_rate,
+                    "n_trainable_params": model.predictor_n_trainable_params,
                 },
+                "total_trainable_params": model.total_n_trainable_params,
             },
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
-            "num_units": 9,
+            "num_units": config.training.num_units,
         },
         resume="allow",
     )
 
-    # log the data length
+    # Log the data length
     wandb.log(
         {"train_data_length": len(train_dataset), "val_data_length": len(val_dataset)}
     )
+
+    # Get model summary
+    model_summary_str = str(summary(model, model.input_shape, device=DEVICE, verbose=0))
+    # Save to a txt file
+    model_summary_filename = results_dir_path / "model_summary.txt"
+    with open(model_summary_filename, "w", encoding="utf-8") as f:
+        f.write(model_summary_str)
+    # Log model summary txt to wandb
+    model_summary_artifact = wandb.Artifact("model_summary", "model_details")
+    model_summary_artifact.add_file(model_summary_filename)
+    wandb.log_artifact(model_summary_artifact)
 
     # Define data loaders
     train_loader = DataLoader(
@@ -149,7 +166,10 @@ if __name__ == "__main__":
             {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
         ]
     )
+    wandb.config.update({"optimizer": optimizer.__class__.__name__})
+
     loss_fn = nn.MSELoss()
+    wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
     if config.training.early_stopping:

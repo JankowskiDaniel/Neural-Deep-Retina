@@ -6,6 +6,7 @@ from .early_stopping import EarlyStopping
 from .loss_functions import SingnalWeightedMSELoss
 from .load_handler import load_data_handler
 from .logger import get_logger
+from .torch_model_stats import count_parameters
 
 __all__ = [
     "load_config",
@@ -17,4 +18,5 @@ __all__ = [
     "SingnalWeightedMSELoss",
     "load_data_handler",
     "get_logger",
+    "count_parameters",
 ]
