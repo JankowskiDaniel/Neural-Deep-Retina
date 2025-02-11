@@ -168,7 +168,7 @@ if __name__ == "__main__":
     )
     wandb.config.update({"optimizer": optimizer.__class__.__name__})
 
-    loss_fn = nn.L1Loss()
+    loss_fn = nn.MSELoss()
     wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
