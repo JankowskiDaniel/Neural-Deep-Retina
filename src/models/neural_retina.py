@@ -1,6 +1,5 @@
 import torch.nn as nn
 from interfaces import Encoder, Predictor
-from utils.torch_model_stats import count_parameters
 
 
 class DeepRetinaModel(nn.Module):
@@ -23,6 +22,9 @@ class DeepRetinaModel(nn.Module):
         """
         Calculate the number of trainable parameters in the model per component.
         """
+        # Importing here to avoid circular imports
+        from utils.torch_model_stats import count_parameters
+
         self.encoder_n_trainable_params = count_parameters(self.encoder)
         self.predictor_n_trainable_params = count_parameters(self.predictor)
         self.total_n_trainable_params = count_parameters(self)
