@@ -141,20 +141,28 @@ def test_model(
             outputs_df.to_csv(save_dir / "scaled_outputs.csv", index=False)
             targets_df.to_csv(save_dir / "scaled_targets.csv", index=False)
             # Rescale the outputs and targets if a scaler is provided
+            corr_data_mode = "scaled"
             if y_scaler is not None:
+                corr_data_mode = "unscaled"
                 outputs_df = pd.DataFrame(y_scaler.inverse_transform(outputs_df))
                 targets_df = pd.DataFrame(y_scaler.inverse_transform(targets_df))
-            # Calculate MSE on the unscaled data
-            mse = np.mean((outputs_df.values - targets_df.values) ** 2)
-            metrics_dict["MSE_unscaled"] = mse
-            metrics_dict["RMSE_unscaled"] = np.sqrt(mse)
+                # Save unscaled outputs and targets
+                outputs_df.to_csv(save_dir / "unscaled_outputs.csv", index=False)
+                targets_df.to_csv(save_dir / "unscaled_targets.csv", index=False)
+                # Calculate MSE on the unscaled data
+                mse = np.mean((outputs_df.values - targets_df.values) ** 2)
+                metrics_dict["MSE_unscaled"] = mse
+                metrics_dict["RMSE_unscaled"] = np.sqrt(mse)
+                # Calculate MAE on the unscaled data
+                mae = np.mean(np.abs(outputs_df.values - targets_df.values))
+                metrics_dict["MAE_unscaled"] = mae
             # Calculate Pearson correlation between outputs and targets
             pearson_corr = outputs_df.corrwith(targets_df, method="pearson", axis=0)
+            # Handle nans in the correlation
+            # If all values are the same, the correlation is nan
+            pearson_corr = pearson_corr.fillna(42)
             # Add Pearson correlation by each target channel to metrics_dict
             for i, corr in enumerate(pearson_corr):
-                metrics_dict[f"pcorr_unscaled_ch_{i}"] = corr
-            # Save unscaled outputs and targets
-            outputs_df.to_csv(save_dir / "unscaled_outputs.csv", index=False)
-            targets_df.to_csv(save_dir / "unscaled_targets.csv", index=False)
+                metrics_dict[f"pcorr_{corr_data_mode}_ch_{i}"] = corr
 
     return test_loss, metrics_dict
