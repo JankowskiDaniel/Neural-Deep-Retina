@@ -158,6 +158,9 @@ def test_model(
                 metrics_dict["MAE_unscaled"] = mae
             # Calculate Pearson correlation between outputs and targets
             pearson_corr = outputs_df.corrwith(targets_df, method="pearson", axis=0)
+            # Handle nans in the correlation
+            # If all values are the same, the correlation is nan
+            pearson_corr = pearson_corr.fillna(42)
             # Add Pearson correlation by each target channel to metrics_dict
             for i, corr in enumerate(pearson_corr):
                 metrics_dict[f"pcorr_{corr_data_mode}_ch_{i}"] = corr
