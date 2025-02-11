@@ -129,7 +129,7 @@ def test_model(
 
         metrics_dict = tracker.cpu().compute_all()
         test_loss = np.sum(test_losses) / len(test_losses)
-        metrics_dict[f"Loss: {loss_fn.__class__.__name__}"] = test_loss
+        metrics_dict["test_loss"] = test_loss
         # Report RMSE if MSE is present
         if "MeanSquaredError" in metrics_dict:
             metrics_dict["RootMeanSquaredError"] = np.sqrt(

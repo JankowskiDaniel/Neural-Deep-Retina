@@ -108,11 +108,14 @@ if __name__ == "__main__":
                     "name": config.training.encoder.name,
                     "freeze": config.training.encoder.freeze,
                     "learning_rate": config.training.encoder.learning_rate,
+                    "n_trainable_params": model.encoder_n_trainable_params,
                 },
                 "predictor": {
                     "name": config.training.predictor.name,
                     "learning_rate": config.training.predictor.learning_rate,
+                    "n_trainable_params": model.predictor_n_trainable_params,
                 },
+                "total_trainable_params": model.total_n_trainable_params,
             },
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
@@ -149,7 +152,10 @@ if __name__ == "__main__":
             {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
         ]
     )
-    loss_fn = nn.MSELoss()
+    wandb.config.update({"optimizer": optimizer.__class__.__name__})
+    
+    loss_fn = nn.L1Loss()
+    wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
     if config.training.early_stopping:
