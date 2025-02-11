@@ -122,7 +122,7 @@ if __name__ == "__main__":
             },
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
-            "num_units": 9,
+            "num_units": config.training.num_units,
         },
         resume="allow",
     )
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         {"train_data_length": len(train_dataset), "val_data_length": len(val_dataset)}
     )
 
-    # Log model summary
+    # Get model summary
     model_summary_str = str(summary(model, model.input_shape, device=DEVICE, verbose=0))
     # Save to a txt file
     model_summary_filename = results_dir_path / "model_summary.txt"
