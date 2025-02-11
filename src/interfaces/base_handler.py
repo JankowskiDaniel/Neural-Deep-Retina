@@ -63,7 +63,6 @@ class BaseHandler(torch.utils.data.Dataset):
         self.dataset_len = len(X) - self.prediction_step
         self.X: ndarray[Any, dtype[Any]] = X
         self.Y: ndarray[Any, dtype[Any]] = y
-        self.Y = self.Y[self.pred_channels]
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
 
@@ -85,6 +84,7 @@ class BaseHandler(torch.utils.data.Dataset):
             y = y[:, : self.subset_size]
         y = y.astype("float32")
 
+        y = y[self.pred_channels]  # Select the prediction channels
         # Normalize the output data
         if self.y_scaler is not None or self.use_saved_scaler:
             y = self.transform_y(y)
