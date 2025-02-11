@@ -104,6 +104,7 @@ if __name__ == "__main__":
                 "seq_len": config.data.seq_len,
                 "prediction_step": config.data.prediction_step,
                 "scaler": y_scaler.__class__.__name__,
+                "prediction_channels": config.data.pred_channels,
             },
             "model": {
                 "encoder": {
