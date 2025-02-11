@@ -10,10 +10,13 @@ class DeepRetinaModel(nn.Module):
     predictor into a single model.
     """
 
-    def __init__(self, encoder: Encoder, predictor: Predictor):
+    def __init__(
+        self, encoder: Encoder, predictor: Predictor, input_shape: tuple
+    ) -> None:
         super(DeepRetinaModel, self).__init__()
         self.encoder = encoder
         self.predictor = predictor
+        self.input_shape = input_shape
         self.calculate_num_params()
 
     def calculate_num_params(self) -> None:

@@ -69,6 +69,8 @@ def load_model(config: Config) -> DeepRetinaModel:
         input_size=encoder_output_shape, num_classes=config.training.num_units
     )
 
-    model = DeepRetinaModel(encoder=encoder, predictor=predictor)
+    model = DeepRetinaModel(
+        encoder=encoder, predictor=predictor, input_shape=input_shape
+    )
 
     return model

@@ -17,6 +17,7 @@ from utils import (
 from visualize.visualize_loss import visualize_loss
 import wandb
 from uuid import uuid4
+from torchinfo import summary
 
 
 if __name__ == "__main__":
@@ -129,6 +130,17 @@ if __name__ == "__main__":
         {"train_data_length": len(train_dataset), "val_data_length": len(val_dataset)}
     )
 
+    # Log model summary
+    model_summary_str = str(summary(model, model.input_shape, device=DEVICE, verbose=0))
+    # Save to a txt file
+    model_summary_filename = results_dir_path / "model_summary.txt"
+    with open(model_summary_filename, "w", encoding="utf-8") as f:
+        f.write(model_summary_str)
+    # Log model summary txt to wandb
+    artifact = wandb.Artifact("model_summary", "model_details")
+    artifact.add_file(model_summary_filename)
+    wandb.log_artifact(artifact)
+
     # Define data loaders
     train_loader = DataLoader(
         train_dataset,
@@ -153,7 +165,7 @@ if __name__ == "__main__":
         ]
     )
     wandb.config.update({"optimizer": optimizer.__class__.__name__})
-    
+
     loss_fn = nn.L1Loss()
     wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
