@@ -92,7 +92,7 @@ if __name__ == "__main__":
     )
 
     # Define loss function
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.BCEWithLogitsLoss()
 
     # Create metric tracker
     metrics_tracker = get_metric_tracker(config.testing.metrics)

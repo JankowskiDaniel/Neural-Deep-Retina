@@ -114,6 +114,9 @@ def test_model(
             targets = labels.to(device)
             outputs = model(images)
 
+            probs = torch.sigmoid(outputs)
+            binary_outputs = (probs > 0.5).float()
+
             loss = loss_fn(outputs, targets)
             pbar.set_description(f"Test loss: {str(loss.item())}")
             test_losses.append(loss.item())
@@ -121,7 +124,7 @@ def test_model(
 
             if save_outputs_and_targets:
                 outputs_df = pd.concat(
-                    [outputs_df, pd.DataFrame(outputs.cpu().numpy())]
+                    [outputs_df, pd.DataFrame(binary_outputs.cpu().numpy())]
                 )
                 targets_df = pd.concat(
                     [targets_df, pd.DataFrame(targets.cpu().numpy())]

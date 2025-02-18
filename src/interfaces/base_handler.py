@@ -42,6 +42,8 @@ class BaseHandler(torch.utils.data.Dataset):
         prediction_step: int = 0,
         subset_size: int = -1,
         pred_channels: list[int] = [],
+        is_classification: bool = False,
+        class_epsilon: float = 1.0,
         **kwargs: Any,
     ) -> None:
         self.file_path = path
@@ -55,6 +57,10 @@ class BaseHandler(torch.utils.data.Dataset):
         # Allows to use the saved scaler for the train data
         self.use_saved_scaler = use_saved_scaler
         self.subset_size: int = subset_size
+
+        # Classification parameters
+        self.is_classification: bool = is_classification
+        self.class_epsilon: float = class_epsilon
 
         self.pred_channels: list[int] = pred_channels
         # Read dataset from file
@@ -89,7 +95,21 @@ class BaseHandler(torch.utils.data.Dataset):
         if self.y_scaler is not None or self.use_saved_scaler:
             y = self.transform_y(y)
 
+        # binarize the output data
+        if self.is_classification:
+            y = self.binarize(y)
+
         return X, y
+
+    def get_target(self) -> ndarray[Any, dtype[Any]]:
+        """
+        Returns the target variable 'y'.
+
+        Returns:
+        - ndarray[Any, dtype[Any]]
+            The target variable.
+        """
+        return self.Y
 
     def transform_y(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
         """
@@ -132,6 +152,9 @@ class BaseHandler(torch.utils.data.Dataset):
             The y_scaler object.
         """
         return self.y_scaler
+
+    def binarize(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
+        return np.where(y >= self.class_epsilon, 1, 0)
 
     @abstractmethod
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:

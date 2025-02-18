@@ -1,3 +1,4 @@
+import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
@@ -105,6 +106,8 @@ if __name__ == "__main__":
                 "prediction_step": config.data.prediction_step,
                 "scaler": y_scaler.__class__.__name__,
                 "prediction_channels": config.data.pred_channels,
+                "is_classification": config.data.is_classification,
+                "class_epsilon": config.data.class_epsilon
             },
             "model": {
                 "encoder": {
@@ -126,6 +129,10 @@ if __name__ == "__main__":
         },
         resume="allow",
     )
+
+    # log this additionaly to easily filter classification runs in the main
+    # table in wandb
+    wandb.log({"is_classification": config.data.is_classification})
 
     # Log the data length
     wandb.log(
@@ -168,7 +175,19 @@ if __name__ == "__main__":
     )
     wandb.config.update({"optimizer": optimizer.__class__.__name__})
 
-    loss_fn = nn.MSELoss()
+    # get Y to compute pos_weight for BCEWithLogitsLoss
+    Y = train_dataset.get_target()
+
+    pos_counts = np.sum(Y, axis=1)  # Count of positive (1s) per class
+    neg_counts = Y.shape[1] - pos_counts  # Count of negative (0s) per class
+
+    # Compute pos_weight (negatives / positives), ensuring no division by zero
+    pos_weight = np.where(pos_counts > 0, neg_counts / pos_counts, 1.0)
+
+    # Convert to PyTorch tensor
+    pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
+    print(f"POS WEIGHT: {pos_weight_tensor}")
+    loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
     wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
