@@ -13,6 +13,7 @@ from utils import (
     get_metric_tracker,
     load_data_handler,
 )
+from utils.classification_metrics import save_classification_report
 from visualize.visualize_dataset import visualize_outputs_and_targets
 import wandb
 
@@ -165,6 +166,16 @@ if __name__ == "__main__":
         is_train=False,
         return_fig=True,
     )
+    
+    if config.data.is_classification:
+        save_classification_report(
+                targets=targets,
+                outputs=outputs,
+                plots_dir=plots_dir,
+                is_train=False,
+                file_name="classification_report",
+            )
+
     wandb.log({"Plots/Test_Scaled": fig})
     logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
 
@@ -251,6 +262,16 @@ if __name__ == "__main__":
             is_train=False,
             return_fig=True,
         )
+
+        if config.data.is_classification:
+            save_classification_report(
+                targets=targets,
+                outputs=outputs,
+                plots_dir=plots_dir,
+                is_train=True,
+                file_name="classification_report",
+            )
+
         wandb.log({"Plots/Train_Scaled": fig})
 
         logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
