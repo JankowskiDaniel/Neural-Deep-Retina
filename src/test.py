@@ -166,7 +166,7 @@ if __name__ == "__main__":
         is_train=False,
         return_fig=True,
     )
-    
+
     if config.data.is_classification:
         save_classification_report(
                 targets=targets,
