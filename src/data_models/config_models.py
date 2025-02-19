@@ -11,6 +11,8 @@ class DataConfig(BaseModel, extra="allow"):  # type: ignore
     prediction_step: int
     subset_size: int
     pred_channels: list[int]
+    is_classification: bool
+    class_epsilon: float
 
 
 @dataclass

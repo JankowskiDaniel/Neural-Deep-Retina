@@ -22,6 +22,8 @@ class H5SeqDataset(BaseHandler):
         prediction_step: int = 0,
         subset_size: int = -1,
         pred_channels: list[int] = [],
+        is_classification: bool = False,
+        class_epsilon: float = 1.0,
         **kwargs: Any,
     ):
         """
@@ -47,6 +49,8 @@ class H5SeqDataset(BaseHandler):
             prediction_step=prediction_step,
             subset_size=subset_size,
             pred_channels=pred_channels,
+            is_classification=is_classification,
+            class_epsilon=class_epsilon,
         )
         self.dataset_len: int = self.dataset_len - seq_len
         self.seq_length: int = seq_len

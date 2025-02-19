@@ -21,6 +21,8 @@ class BaselineSeqRGBDataset(BaseHandler):
         prediction_step: int = 0,
         subset_size: int = -1,
         pred_channels: list[int] = [],
+        is_classification: bool = False,
+        class_epsilon: float = 1.0,
         **kwargs: Any,
     ):
         super(BaselineSeqRGBDataset, self).__init__(
@@ -34,6 +36,8 @@ class BaselineSeqRGBDataset(BaseHandler):
             prediction_step=prediction_step,
             subset_size=subset_size,
             pred_channels=pred_channels,
+            is_classification=is_classification,
+            class_epsilon=class_epsilon
         )
         self.subseq_len: int = subseq_len
         self.dataset_len: int = self.dataset_len - seq_len - 1 - self.subseq_len

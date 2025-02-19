@@ -19,6 +19,8 @@ class H5Dataset(BaseHandler):
         prediction_step: int = 0,
         subset_size: int = -1,
         pred_channels: list[int] = [],
+        is_classification: bool = False,
+        class_epsilon: float = 1.0,
         **kwargs: Any,
     ) -> None:
         super(H5Dataset, self).__init__(
@@ -32,6 +34,8 @@ class H5Dataset(BaseHandler):
             prediction_step=prediction_step,
             subset_size=subset_size,
             pred_channels=pred_channels,
+            is_classification=is_classification,
+            class_epsilon=class_epsilon,
         )
         self.is_rgb = is_rgb
 
