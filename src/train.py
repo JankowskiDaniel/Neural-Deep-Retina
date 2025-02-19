@@ -23,7 +23,8 @@ from torchinfo import summary
 
 if __name__ == "__main__":
 
-    config_path, results_dir = get_training_arguments()
+    config_path, results_dir, if_wandb = get_training_arguments()
+    print(if_wandb)
     config = load_config(config_path)
 
     # Organize folders
@@ -39,6 +40,8 @@ if __name__ == "__main__":
     )
 
     # load the model
+    if not if_wandb:
+        logger.warning("Logging to wandb is disabled.")
     logger.info("Loading model...")
     model = load_model(config)
 
@@ -92,52 +95,57 @@ if __name__ == "__main__":
     with open(results_dir_path / "id.txt", "w") as f:
         f.write(_id)
 
-    wandb.init(
-        entity="jankowskidaniel06-put",
-        project="Neural Deep Retina",
-        name=str(results_dir_path),
-        id=_id,
-        config={
-            "data": {
-                "data_handler": config.data.data_handler,
-                "img_shape": config.data.img_shape,
-                "is_rgb": config.data.is_rgb,
-                "seq_len": config.data.seq_len,
-                "prediction_step": config.data.prediction_step,
-                "scaler": y_scaler.__class__.__name__,
-                "prediction_channels": config.data.pred_channels,
-                "is_classification": config.data.is_classification,
-                "class_epsilon": config.data.class_epsilon
-            },
-            "model": {
-                "encoder": {
-                    "name": config.training.encoder.name,
-                    "freeze": config.training.encoder.freeze,
-                    "learning_rate": config.training.encoder.learning_rate,
-                    "n_trainable_params": model.encoder_n_trainable_params,
+    if if_wandb:
+        wandb.init(
+            entity="jankowskidaniel06-put",
+            project="Neural Deep Retina",
+            name=str(results_dir_path),
+            id=_id,
+            config={
+                "data": {
+                    "data_handler": config.data.data_handler,
+                    "img_shape": config.data.img_shape,
+                    "is_rgb": config.data.is_rgb,
+                    "seq_len": config.data.seq_len,
+                    "prediction_step": config.data.prediction_step,
+                    "scaler": y_scaler.__class__.__name__,
+                    "prediction_channels": config.data.pred_channels,
+                    "is_classification": config.data.is_classification,
+                    "class_epsilon": config.data.class_epsilon
                 },
-                "predictor": {
-                    "name": config.training.predictor.name,
-                    "learning_rate": config.training.predictor.learning_rate,
-                    "n_trainable_params": model.predictor_n_trainable_params,
+                "model": {
+                    "encoder": {
+                        "name": config.training.encoder.name,
+                        "freeze": config.training.encoder.freeze,
+                        "learning_rate": config.training.encoder.learning_rate,
+                        "n_trainable_params": model.encoder_n_trainable_params,
+                    },
+                    "predictor": {
+                        "name": config.training.predictor.name,
+                        "learning_rate": config.training.predictor.learning_rate,
+                        "n_trainable_params": model.predictor_n_trainable_params,
+                    },
+                    "total_trainable_params": model.total_n_trainable_params,
                 },
-                "total_trainable_params": model.total_n_trainable_params,
+                "epochs": N_EPOCHS,
+                "batch_size": BATCH_SIZE,
+                "num_units": config.training.num_units,
             },
-            "epochs": N_EPOCHS,
-            "batch_size": BATCH_SIZE,
-            "num_units": config.training.num_units,
-        },
-        resume="allow",
-    )
+            resume="allow",
+        )
 
     # log this additionaly to easily filter classification runs in the main
     # table in wandb
-    wandb.log({"is_classification": config.data.is_classification})
+    if if_wandb:
+        wandb.log({"is_classification": config.data.is_classification})
 
-    # Log the data length
-    wandb.log(
-        {"train_data_length": len(train_dataset), "val_data_length": len(val_dataset)}
-    )
+        # Log the data length
+        wandb.log(
+            {
+                "train_data_length": len(train_dataset),
+                "val_data_length": len(val_dataset)
+            }
+        )
 
     # Get model summary
     model_summary_str = str(summary(model, model.input_shape, device=DEVICE, verbose=0))
@@ -146,9 +154,10 @@ if __name__ == "__main__":
     with open(model_summary_filename, "w", encoding="utf-8") as f:
         f.write(model_summary_str)
     # Log model summary txt to wandb
-    model_summary_artifact = wandb.Artifact("model_summary", "model_details")
-    model_summary_artifact.add_file(model_summary_filename)
-    wandb.log_artifact(model_summary_artifact)
+    if if_wandb:
+        model_summary_artifact = wandb.Artifact("model_summary", "model_details")
+        model_summary_artifact.add_file(model_summary_filename)
+        wandb.log_artifact(model_summary_artifact)
 
     # Define data loaders
     train_loader = DataLoader(
@@ -173,7 +182,9 @@ if __name__ == "__main__":
             {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
         ]
     )
-    wandb.config.update({"optimizer": optimizer.__class__.__name__})
+
+    if if_wandb:
+        wandb.config.update({"optimizer": optimizer.__class__.__name__})
 
     # get Y to compute pos_weight for BCEWithLogitsLoss
     Y = train_dataset.get_target()
@@ -188,7 +199,8 @@ if __name__ == "__main__":
     pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
     print(f"POS WEIGHT: {pos_weight_tensor}")
     loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
-    wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
+    if if_wandb:
+        wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
     if config.training.early_stopping:
@@ -217,7 +229,8 @@ if __name__ == "__main__":
         logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
-        wandb.log({"training/train_loss": train_loss, "epoch": epoch})
+        if if_wandb:
+            wandb.log({"training/train_loss": train_loss, "epoch": epoch})
 
         # validation
         valid_loss = valid_epoch(
@@ -230,7 +243,8 @@ if __name__ == "__main__":
 
         logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}")
 
-        wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
+        if if_wandb:
+            wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
@@ -248,8 +262,11 @@ if __name__ == "__main__":
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
 
-    wandb.log({"training/total_time": total_time})
+    if if_wandb:
+        wandb.log({"training/total_time": total_time})
 
     torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
     visualize_loss(train_history, results_dir_path)
-    wandb.finish()
+
+    if if_wandb:
+        wandb.finish()

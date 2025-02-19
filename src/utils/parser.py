@@ -2,11 +2,12 @@ import argparse
 from pathlib import Path
 
 
-def get_training_arguments() -> tuple[Path, Path]:
+def get_training_arguments() -> tuple[Path, Path, bool]:
     """Parse training arguments from command line.
 
     Returns:
-        tuple[Path, Path]: Return a tuple of config path and results directory
+        tuple[Path, Path, bool]: Return a tuple of config path, results
+        directory and if wandb logging is enabled
     """
     parser = argparse.ArgumentParser(description="Main training script")
 
@@ -23,19 +24,30 @@ def get_training_arguments() -> tuple[Path, Path]:
         help="Name of th config file. Assumed to be in the configs directory",
     )
 
+    parser.add_argument(
+        "--no_log_wandb",
+        action="store_false",
+        help=(
+            "Whether to log to wandb. "
+            "If True, make sure to set the WANDB_API_KEY environment variable"
+        ),
+    )
+
     args = parser.parse_args()
 
     config_path = Path("configs") / args.config
     results_dir = Path(args.results_dir)
-    return config_path, results_dir
+    if_wandb = args.no_log_wandb
+    return config_path, results_dir, if_wandb
 
 
-def get_testing_arguments() -> Path:
+def get_testing_arguments() -> tuple[Path, bool]:
     """Parse testing arguments from command line.
     The config file is assumed to be in the results directory.
 
     Returns:
-        Path: Return results directory
+        tuple[Path, bool]: Return results directory,
+        and if wandb logging is enabled
     """
     parser = argparse.ArgumentParser(description="Main testing script")
 
@@ -45,7 +57,17 @@ def get_testing_arguments() -> Path:
         required=True,
         help="Name of the results directory",
     )
+
+    parser.add_argument(
+        "--no_log_wandb",
+        action="store_false",
+        help=(
+            "Whether to log to wandb. "
+        ),
+    )
+
     args = parser.parse_args()
 
     results_dir = Path(args.results_dir)
-    return results_dir
+    if_wandb = args.no_log_wandb
+    return results_dir, if_wandb
