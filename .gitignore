@@ -167,3 +167,6 @@ cython_debug/
 .vscode/
 results/*/
 pretrained_weights/*.pth
+
+notebooks/predictions/
+notebooks/plots/
