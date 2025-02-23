@@ -8,24 +8,27 @@ DATA:
   subseq_len: 40
   prediction_step: 1
   subset_size: 2000
-  pred_channels: [0,1]
+  pred_channels: [0,1,2,3,4,5,6,7,8]
+  # two below parameters are added for classification
+  is_classification: True
+  class_epsilon: 1.0 # below this value, the response is considered as 0, otherwise 1
 TRAINING:
   ENCODER:
-    name: OgEncoder
+    name: ShotSeqEncoder
     weights: null # set to null if you want to train from scratch
     freeze: False
-    learning_rate: 0.0001
+    learning_rate: 0.0005
   PREDICTOR:
-    name: OgLinear
+    name: SimpleCFC
     learning_rate: 0.001
-  batch_size: 16
-  epochs: 10
-  num_units: 2
+  batch_size: 32
+  epochs: 50
+  num_units: 9
   early_stopping: False
   early_stopping_patience: 5
   save_logs: True
 TESTING:
-  batch_size: 16
+  batch_size: 32
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
-from typing import Literal, Tuple
+from typing import Literal, Tuple, Any
 
 from models import DeepRetinaModel
 
@@ -88,6 +88,7 @@ def test_model(
     tracker: MetricTracker,
     save_outputs_and_targets: bool = True,
     save_dir: Path = Path("predicitons"),
+    y_scaler: Any = None,
 ) -> Tuple[float, dict]:
     """
     Test the given model on the test data.
@@ -113,6 +114,9 @@ def test_model(
             targets = labels.to(device)
             outputs = model(images)
 
+            probs = torch.sigmoid(outputs)
+            binary_outputs = (probs > 0.5).float()
+
             loss = loss_fn(outputs, targets)
             pbar.set_description(f"Test loss: {str(loss.item())}")
             test_losses.append(loss.item())
@@ -120,7 +124,7 @@ def test_model(
 
             if save_outputs_and_targets:
                 outputs_df = pd.concat(
-                    [outputs_df, pd.DataFrame(outputs.cpu().numpy())]
+                    [outputs_df, pd.DataFrame(binary_outputs.cpu().numpy())]
                 )
                 targets_df = pd.concat(
                     [targets_df, pd.DataFrame(targets.cpu().numpy())]
@@ -128,10 +132,40 @@ def test_model(
 
         metrics_dict = tracker.cpu().compute_all()
         test_loss = np.sum(test_losses) / len(test_losses)
-        metrics_dict[f"Loss: {loss_fn.__class__.__name__}"] = test_loss
+        metrics_dict["test_loss"] = test_loss
+        # Report RMSE if MSE is present
+        if "MeanSquaredError" in metrics_dict:
+            metrics_dict["RootMeanSquaredError"] = np.sqrt(
+                metrics_dict["MeanSquaredError"]
+            )
 
         if save_outputs_and_targets:
-            outputs_df.to_csv(save_dir / "outputs.csv", index=False)
-            targets_df.to_csv(save_dir / "targets.csv", index=False)
+            # Save scaled outputs and targets
+            outputs_df.to_csv(save_dir / "scaled_outputs.csv", index=False)
+            targets_df.to_csv(save_dir / "scaled_targets.csv", index=False)
+            # Rescale the outputs and targets if a scaler is provided
+            corr_data_mode = "scaled"
+            if y_scaler is not None:
+                corr_data_mode = "unscaled"
+                outputs_df = pd.DataFrame(y_scaler.inverse_transform(outputs_df))
+                targets_df = pd.DataFrame(y_scaler.inverse_transform(targets_df))
+                # Save unscaled outputs and targets
+                outputs_df.to_csv(save_dir / "unscaled_outputs.csv", index=False)
+                targets_df.to_csv(save_dir / "unscaled_targets.csv", index=False)
+                # Calculate MSE on the unscaled data
+                mse = np.mean((outputs_df.values - targets_df.values) ** 2)
+                metrics_dict["MSE_unscaled"] = mse
+                metrics_dict["RMSE_unscaled"] = np.sqrt(mse)
+                # Calculate MAE on the unscaled data
+                mae = np.mean(np.abs(outputs_df.values - targets_df.values))
+                metrics_dict["MAE_unscaled"] = mae
+            # Calculate Pearson correlation between outputs and targets
+            pearson_corr = outputs_df.corrwith(targets_df, method="pearson", axis=0)
+            # Handle nans in the correlation
+            # If all values are the same, the correlation is nan
+            pearson_corr = pearson_corr.fillna(42)
+            # Add Pearson correlation by each target channel to metrics_dict
+            for i, corr in enumerate(pearson_corr):
+                metrics_dict[f"pcorr_{corr_data_mode}_ch_{i}"] = corr
 
     return test_loss, metrics_dict

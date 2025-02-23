@@ -9,33 +9,46 @@ class BaselineRGBDataset(BaseHandler):
     def __init__(
         self,
         path: Path,
+        subseq_len: int,
         response_type: Literal["firing_rate_10ms", "binned"],
         results_dir: Path,
         is_train: bool = True,
+        subset_type: Literal["train", "val", "test"] = "train",
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
+        subset_size: int = -1,
+        pred_channels: list[int] = [],
+        is_classification: bool = False,
+        class_epsilon: float = 1.0,
         **kwargs: Any,
     ) -> None:
         super(BaselineRGBDataset, self).__init__(
-            path,
-            response_type,
-            results_dir,
-            is_train,
-            y_scaler,
-            use_saved_scaler,
-            prediction_step,
+            path=path,
+            response_type=response_type,
+            is_train=is_train,
+            subset_type=subset_type,
+            y_scaler=y_scaler,
+            results_dir=results_dir,
+            use_saved_scaler=use_saved_scaler,
+            prediction_step=prediction_step,
+            subset_size=subset_size,
+            pred_channels=pred_channels,
+            is_classification=is_classification,
+            class_epsilon=class_epsilon,
         )
 
-        self.subseq_length: int = 3
-        self.dataset_len: int = self.dataset_len - self.subseq_length
+        self.subseq_len: int = subseq_len
+        self.dataset_len: int = self.dataset_len - self.subseq_len
 
         # List of allowed arguments in the constructor
         allowed_args = {
             "path",
+            "subseq_len",
             "response_type",
             "results_dir",
             "is_train",
+            "subset_type",
             "y_scaler",
             "use_saved_scaler",
         }
@@ -52,7 +65,7 @@ class BaselineRGBDataset(BaseHandler):
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         # Stack three consecutive grayscale images
         images = []
-        for i in range(self.subseq_length):
+        for i in range(self.subseq_len):
             x = self.X[idx + i]
             x = torch.from_numpy(x)
             images.append(x)
@@ -62,7 +75,7 @@ class BaselineRGBDataset(BaseHandler):
         x = self.transform_x(x)
         # Get the target for the fourth image
         y = torch.tensor(
-            self.Y[:, idx + self.subseq_length - 1 + self.prediction_step],
+            self.Y[:, idx + self.subseq_len - 1 + self.prediction_step],
             dtype=torch.float32,
         )
 

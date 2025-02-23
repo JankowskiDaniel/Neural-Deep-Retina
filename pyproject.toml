@@ -1,0 +1,57 @@
+[project]
+name = "neural-deep-retina"
+version = "0.1.0"
+description = "A project for retinal ganglion cell firing rate prediction"
+readme = "README.md"
+authors = [
+    {name = "Daniel Jankowski", email = "jankowskidaniel06@gmail.com"},
+    {name = "Kacper Dobek", email =  "kacperdobek01@gmail.com"}
+    ]
+requires-python = ">=3.10"
+dependencies = [
+    "tqdm==4.66.4",
+    "pyyaml==6.0.1",
+    "h5py==3.11.0",
+    "scikit-learn==1.5.1",
+    "seaborn==0.13.2",
+    "torchmetrics==1.4.1",
+    "wandb==0.18.3",
+    "plotly==5.24.1",
+    "torch==2.3.1",
+    "torchvision==0.18.1",
+    "pydantic==2.9.2",
+    "ncps==1.0.1",
+    "torchinfo==1.8.0",
+    "types-PyYAML>=6.0.12"
+    ]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+
+[project.optional-dependencies]
+dev = ["mypy",
+       "pytest",
+       "black",
+       "isort",
+       "flake8"]
+
+[tool.isort]
+profile = "black"
+known_first_party = ["src"]
+
+[tool.mypy]
+follow_imports = "silent"
+strict_optional = true
+ignore_missing_imports = true
+explicit-package-bases = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = "tests"  # directory containing your tests
+norecursedirs = [
+    ".vscode",
+    "__pycache__"
+]
+# Warnings that should be ignored
+filterwarnings = [
+    "ignore::DeprecationWarning"
+]

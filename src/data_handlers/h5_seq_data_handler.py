@@ -1,6 +1,6 @@
 import warnings
 import torch
-from typing import Any, Tuple
+from typing import Any, Tuple, Literal
 from pathlib import Path
 from yaml import safe_load
 
@@ -16,9 +16,14 @@ class H5SeqDataset(BaseHandler):
         response_type: str,
         results_dir: Path,
         is_train: bool = True,
+        subset_type: Literal["train", "val", "test"] = "train",
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
+        subset_size: int = -1,
+        pred_channels: list[int] = [],
+        is_classification: bool = False,
+        class_epsilon: float = 1.0,
         **kwargs: Any,
     ):
         """
@@ -37,11 +42,15 @@ class H5SeqDataset(BaseHandler):
             path=path,
             response_type=response_type,
             is_train=is_train,
-            is_rgb=is_rgb,
+            subset_type=subset_type,
             y_scaler=y_scaler,
             results_dir=results_dir,
             use_saved_scaler=use_saved_scaler,
             prediction_step=prediction_step,
+            subset_size=subset_size,
+            pred_channels=pred_channels,
+            is_classification=is_classification,
+            class_epsilon=class_epsilon,
         )
         self.dataset_len: int = self.dataset_len - seq_len
         self.seq_length: int = seq_len
@@ -79,6 +88,8 @@ class H5SeqDataset(BaseHandler):
 
         # Apply image transformations
         x = self.transform_x(x)
+        if not self.is_rgb:
+            x = x.unsqueeze(1)
         # Get one output value
         # Transform the output value to tensor
         y = torch.tensor(

@@ -9,12 +9,16 @@ class DataConfig(BaseModel, extra="allow"):  # type: ignore
     path: str
     response_type: Literal["firing_rate_10ms", "binned"]
     prediction_step: int
+    subset_size: int
+    pred_channels: list[int]
+    is_classification: bool
+    class_epsilon: float
 
 
 @dataclass
 class EncoderConfig:
     name: str
-    weights: str
+    weights: str | None
     freeze: bool
     learning_rate: float
 

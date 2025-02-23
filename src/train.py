@@ -1,9 +1,10 @@
+import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 from time import time
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
@@ -15,11 +16,15 @@ from utils import (
     load_data_handler,
 )
 from visualize.visualize_loss import visualize_loss
+import wandb
+from uuid import uuid4
+from torchinfo import summary
 
 
 if __name__ == "__main__":
 
-    config_path, results_dir = get_training_arguments()
+    config_path, results_dir, if_wandb = get_training_arguments()
+    print(if_wandb)
     config = load_config(config_path)
 
     # Organize folders
@@ -35,10 +40,12 @@ if __name__ == "__main__":
     )
 
     # load the model
+    if not if_wandb:
+        logger.warning("Logging to wandb is disabled.")
     logger.info("Loading model...")
     model = load_model(config)
 
-    y_scaler = StandardScaler(with_mean=False)
+    y_scaler = MinMaxScaler()  # StandardScaler(with_mean=False)
 
     # load the data handler
     logger.info("Loading data handler...")
@@ -48,38 +55,125 @@ if __name__ == "__main__":
         is_train=True,
         y_scaler=y_scaler,
     )
+    val_dataset = load_data_handler(
+        config.data,
+        results_dir=results_dir_path,
+        is_train=False,
+        subset_type="val",
+        use_saved_scaler=True,
+        y_scaler=y_scaler,
+    )
 
     # Get sample data to check dimensions
     X, y = train_dataset[0]
     logger.info(f"Input data point shape: {X.shape}")
     logger.info(f"Target data point shape: {y.shape}")
 
+    logger.info(f"Predictions will be made for channels: {train_dataset.pred_channels}")
     TORCH_SEED = 12
     TRAIN_SIZE = 0.8
     # Split train dataset into train and validation
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
     torch.manual_seed(TORCH_SEED)
-    # TODO: Time series data should not be shuffled
-    train_size = int(TRAIN_SIZE * len(train_dataset))
-    val_size = len(train_dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(
-        train_dataset, [train_size, val_size]
-    )
 
     logger.info(f"Train dataset size: {len(train_dataset)}")
     logger.info(f"Validation dataset size: {len(val_dataset)}")
 
     # Define training parameters
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+    PIN_MEMORY = False
+    NUM_WORKERS = 0
     DEVICE_NAME = torch.cuda.get_device_name(0) if DEVICE == "cuda" else "CPU"
     N_EPOCHS = config.training.epochs
     ENCODER_LR = config.training.encoder.learning_rate
     PREDICTOR_LR = config.training.predictor.learning_rate
     BATCH_SIZE = config.training.batch_size
 
+    _id = str(uuid4())
+
+    # save _id into txt file
+    with open(results_dir_path / "id.txt", "w") as f:
+        f.write(_id)
+
+    if if_wandb:
+        wandb.init(
+            entity="jankowskidaniel06-put",
+            project="Neural Deep Retina",
+            name=str(results_dir_path),
+            id=_id,
+            config={
+                "data": {
+                    "data_handler": config.data.data_handler,
+                    "img_shape": config.data.img_shape,
+                    "is_rgb": config.data.is_rgb,
+                    "seq_len": config.data.seq_len,
+                    "prediction_step": config.data.prediction_step,
+                    "scaler": y_scaler.__class__.__name__,
+                    "prediction_channels": config.data.pred_channels,
+                    "is_classification": config.data.is_classification,
+                    "class_epsilon": config.data.class_epsilon
+                },
+                "model": {
+                    "encoder": {
+                        "name": config.training.encoder.name,
+                        "freeze": config.training.encoder.freeze,
+                        "learning_rate": config.training.encoder.learning_rate,
+                        "n_trainable_params": model.encoder_n_trainable_params,
+                    },
+                    "predictor": {
+                        "name": config.training.predictor.name,
+                        "learning_rate": config.training.predictor.learning_rate,
+                        "n_trainable_params": model.predictor_n_trainable_params,
+                    },
+                    "total_trainable_params": model.total_n_trainable_params,
+                },
+                "epochs": N_EPOCHS,
+                "batch_size": BATCH_SIZE,
+                "num_units": config.training.num_units,
+            },
+            resume="allow",
+        )
+
+    # log this additionaly to easily filter classification runs in the main
+    # table in wandb
+    if if_wandb:
+        wandb.log({"is_classification": config.data.is_classification})
+
+        # Log the data length
+        wandb.log(
+            {
+                "train_data_length": len(train_dataset),
+                "val_data_length": len(val_dataset)
+            }
+        )
+
+    # Get model summary
+    model_summary_str = str(summary(model, model.input_shape, device=DEVICE, verbose=0))
+    # Save to a txt file
+    model_summary_filename = results_dir_path / "model_summary.txt"
+    with open(model_summary_filename, "w", encoding="utf-8") as f:
+        f.write(model_summary_str)
+    # Log model summary txt to wandb
+    if if_wandb:
+        model_summary_artifact = wandb.Artifact("model_summary", "model_details")
+        model_summary_artifact.add_file(model_summary_filename)
+        wandb.log_artifact(model_summary_artifact)
+
     # Define data loaders
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        pin_memory=PIN_MEMORY,
+        num_workers=NUM_WORKERS,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        pin_memory=PIN_MEMORY,
+        num_workers=NUM_WORKERS,
+    )
 
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(
@@ -88,7 +182,25 @@ if __name__ == "__main__":
             {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
         ]
     )
-    loss_fn = nn.MSELoss()
+
+    if if_wandb:
+        wandb.config.update({"optimizer": optimizer.__class__.__name__})
+
+    # get Y to compute pos_weight for BCEWithLogitsLoss
+    Y = train_dataset.get_target()
+
+    pos_counts = np.sum(Y, axis=1)  # Count of positive (1s) per class
+    neg_counts = Y.shape[1] - pos_counts  # Count of negative (0s) per class
+
+    # Compute pos_weight (negatives / positives), ensuring no division by zero
+    pos_weight = np.where(pos_counts > 0, neg_counts / pos_counts, 1.0)
+
+    # Convert to PyTorch tensor
+    pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
+    print(f"POS WEIGHT: {pos_weight_tensor}")
+    loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
+    if if_wandb:
+        wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
     if config.training.early_stopping:
@@ -117,6 +229,9 @@ if __name__ == "__main__":
         logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
+        if if_wandb:
+            wandb.log({"training/train_loss": train_loss, "epoch": epoch})
+
         # validation
         valid_loss = valid_epoch(
             model=model,
@@ -127,6 +242,9 @@ if __name__ == "__main__":
         train_history["valid_loss"].append(valid_loss)
 
         logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}")
+
+        if if_wandb:
+            wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
@@ -143,5 +261,12 @@ if __name__ == "__main__":
 
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
+
+    if if_wandb:
+        wandb.log({"training/total_time": total_time})
+
     torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
     visualize_loss(train_history, results_dir_path)
+
+    if if_wandb:
+        wandb.finish()

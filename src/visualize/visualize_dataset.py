@@ -41,23 +41,14 @@ def visualize_target(
 
 
 def visualize_outputs_and_targets(
-    predictions_dir: Path,
+    targets: pd.DataFrame,
+    outputs: pd.DataFrame,
     plots_dir: Path,
     file_name: str = "outputs_and_targets.png",
     is_train: bool = False,
-) -> None:
-    """
-    Visualizes the model outputs and targets by plotting them on separate channels.
+    return_fig: bool = False,
+) -> plt.Figure | None:
 
-    Args:
-        predictions_dir (Path): The directory containing the predictions.
-
-    Returns:
-        None
-    """
-
-    targets = pd.read_csv(predictions_dir / "targets.csv", header=0)
-    outputs = pd.read_csv(predictions_dir / "outputs.csv", header=0)
     n_channels: int = targets.shape[-1]
     fig, _ = plt.subplots(
         ncols=1,
@@ -87,6 +78,9 @@ def visualize_outputs_and_targets(
 
     fig.tight_layout()
     fig.savefig(plots_dir / file_name, dpi=150)
+    if return_fig:
+        return fig
+    return None
 
 
 if __name__ == "__main__":
@@ -96,7 +90,7 @@ if __name__ == "__main__":
 
     path = Path("../results/my_training/predictions")
 
-    visualize_outputs_and_targets(path, path)
+    # visualize_outputs_and_targets(path, path)
 
     y_scaler = MinMaxScaler()
     with open("../config.yaml", "r") as stream:

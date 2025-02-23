@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from interfaces.base_handler import BaseHandler
 from data_handlers import (
     H5Dataset,
@@ -21,6 +21,7 @@ def load_data_handler(
     data_config: DataConfig,
     results_dir: Path,
     is_train: bool = True,
+    subset_type: Literal["train", "val", "test"] = "train",
     y_scaler: Any = None,
     use_saved_scaler: bool = False,
 ) -> BaseHandler:
@@ -34,13 +35,20 @@ def load_data_handler(
     if handler_class is None:
         raise ValueError(f"Unknown data handler: {handler_class_name}")
 
+    prediction_step = data_config.prediction_step
+    subset_size = data_config.subset_size
     # Initialize the handler class with remaining parameters
-    parsed_config = data_config.dict(exclude={"data_handler", "img_shape"})
+    parsed_config = data_config.dict(
+        exclude={"data_handler", "img_shape", "prediction_step", "subset_size"}
+    )
     dataset = handler_class(
         results_dir=results_dir,
         is_train=is_train,
+        subset_type=subset_type,
         y_scaler=y_scaler,
         use_saved_scaler=use_saved_scaler,
+        prediction_step=prediction_step,
+        subset_size=subset_size,
         **parsed_config,
     )
     return dataset

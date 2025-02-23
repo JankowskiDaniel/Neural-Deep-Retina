@@ -14,36 +14,65 @@ transform_x: v2.Compose = v2.Compose([v2.ToDtype(torch.float32, scale=True)])
 
 
 class BaseHandler(torch.utils.data.Dataset):
+    """
+    Initialize the base handler.
+
+    Args:
+        path (Path): Path to the dataset file.
+        response_type (Literal["firing_rate_10ms", "binned"]): Type of response data.
+        results_dir (Path): Directory to save results.
+        is_train (bool, optional): Flag to indicate if training or testing data should be read. Defaults to True.
+        y_scaler (Any, optional): Scaler for the response variable. Defaults to None.
+        use_saved_scaler (bool, optional): Flag to use a saved scaler for training data. Defaults to False.
+        prediction_step (int, optional): Step size for prediction. Defaults to 0.
+        subset_size (int, optional): Size of the subset to use. Defaults to -1 (full dataset).
+        **kwargs (Any): Additional keyword arguments.
+
+    Returns:
+        None
+    """  # noqa: E501
+
     def __init__(
         self,
         path: Path,
         response_type: Literal["firing_rate_10ms", "binned"],
         results_dir: Path,
         is_train: bool = True,
+        subset_type: Literal["train", "val", "test"] = "train",
         y_scaler: Any = None,
         use_saved_scaler: bool = False,
         prediction_step: int = 0,
+        subset_size: int = -1,
+        pred_channels: list[int] = [],
+        is_classification: bool = False,
+        class_epsilon: float = 1.0,
         **kwargs: Any,
     ) -> None:
         self.file_path = path
         # The available types are firing_rate_10ms, binned
         self.response_type = response_type
-        # Choose either train or test subsets
-        self.data_type = "train" if is_train else "test"
         self.is_train = is_train
+        self.subset_type = subset_type
         self.y_scaler = y_scaler
         self.results_dir = results_dir
         self.transform_x = transform_x
         # Allows to use the saved scaler for the train data
         self.use_saved_scaler = use_saved_scaler
+        self.subset_size: int = subset_size
+
+        # Classification parameters
+        self.is_classification: bool = is_classification
+        self.class_epsilon: float = class_epsilon
+
+        self.pred_channels: list[int] = pred_channels
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
-        self.dataset_len = len(X) - prediction_step
+        self.prediction_step: int = prediction_step
+        self.dataset_len = len(X) - self.prediction_step
         self.X: ndarray[Any, dtype[Any]] = X
         self.Y: ndarray[Any, dtype[Any]] = y
         self.input_shape: tuple = X.shape
         self.output_shape: tuple = y.shape
-        self.prediction_step: int = prediction_step
 
     def read_h5_to_numpy(
         self,
@@ -55,19 +84,34 @@ class BaseHandler(torch.utils.data.Dataset):
         """  # noqa: E501
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
-            X = np.asarray(h5file[self.data_type]["stimulus"][:500])
-            y = np.asarray(h5file[self.data_type]["response"][self.response_type])
-
+            X = np.asarray(h5file[self.subset_type]["stimulus"])
+            y = np.asarray(h5file[self.subset_type]["response"][self.response_type])
+        # Subset the data if positive subset_size is provided
+        if self.subset_size > 0:
+            X = X[: self.subset_size]
+            y = y[:, : self.subset_size]
         y = y.astype("float32")
 
+        y = y[self.pred_channels]  # Select the prediction channels
         # Normalize the output data
         if self.y_scaler is not None or self.use_saved_scaler:
             y = self.transform_y(y)
 
-        # Apply Gaussian filter to the output data
-        # y = gaussian_filter(y, sigma=1)
+        # binarize the output data
+        if self.is_classification:
+            y = self.binarize(y)
 
         return X, y
+
+    def get_target(self) -> ndarray[Any, dtype[Any]]:
+        """
+        Returns the target variable 'y'.
+
+        Returns:
+        - ndarray[Any, dtype[Any]]
+            The target variable.
+        """
+        return self.Y
 
     def transform_y(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
         """
@@ -100,6 +144,19 @@ class BaseHandler(torch.utils.data.Dataset):
                 y_fit = y_tran
         y = y_fit.T  # return the data to the original shape
         return y
+
+    def get_y_scaler(self) -> Any:
+        """
+        Returns the y_scaler object.
+
+        Returns:
+        - Any
+            The y_scaler object.
+        """
+        return self.y_scaler
+
+    def binarize(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
+        return np.where(y >= self.class_epsilon, 1, 0)
 
     @abstractmethod
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:

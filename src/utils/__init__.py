@@ -6,6 +6,8 @@ from .early_stopping import EarlyStopping
 from .loss_functions import SingnalWeightedMSELoss, FrequencyWeightedMSELoss
 from .load_handler import load_data_handler
 from .logger import get_logger
+from .torch_model_stats import count_parameters
+from .classification_metrics import save_classification_report
 
 __all__ = [
     "load_config",
@@ -18,4 +20,6 @@ __all__ = [
     "FrequencyWeightedMSELoss",
     "load_data_handler",
     "get_logger",
+    "count_parameters",
+    "save_classification_report",
 ]

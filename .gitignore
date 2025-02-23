@@ -141,6 +141,7 @@ venv.bak/
 
 # mkdocs documentation
 /site
+/wandb
 
 # mypy
 .mypy_cache/
@@ -166,3 +167,6 @@ cython_debug/
 .vscode/
 results/*/
 pretrained_weights/*.pth
+
+notebooks/predictions/
+notebooks/plots/
