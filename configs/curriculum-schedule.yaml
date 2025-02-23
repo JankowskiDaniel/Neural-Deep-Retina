@@ -1,0 +1,15 @@
+# A curriculum learning schedule features successive training stages, each with its own configuration.
+STAGES:
+  0:
+    is_smoothened: True
+    start_epoch: 0
+    sigma: 5
+  1:
+    is_smoothened: True
+    start_epoch: 5
+    sigma: 3
+  2:
+    # This disables smoothening for the last stage.
+    is_smoothened: False
+    start_epoch: 10
+    sigma: 0
