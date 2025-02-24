@@ -173,12 +173,12 @@ if __name__ == "__main__":
 
     if config.data.is_classification:
         save_classification_report(
-                targets=targets,
-                outputs=outputs,
-                plots_dir=plots_dir,
-                is_train=False,
-                file_name="classification_report",
-            )
+            targets=targets,
+            outputs=outputs,
+            plots_dir=plots_dir,
+            is_train=False,
+            file_name="classification_report",
+        )
     if if_wandb:
         wandb.log({"Plots/Test_Scaled": fig})
     logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")

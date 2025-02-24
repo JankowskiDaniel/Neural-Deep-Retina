@@ -111,7 +111,7 @@ if __name__ == "__main__":
                     "scaler": y_scaler.__class__.__name__,
                     "prediction_channels": config.data.pred_channels,
                     "is_classification": config.data.is_classification,
-                    "class_epsilon": config.data.class_epsilon
+                    "class_epsilon": config.data.class_epsilon,
                 },
                 "model": {
                     "encoder": {
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         wandb.log(
             {
                 "train_data_length": len(train_dataset),
-                "val_data_length": len(val_dataset)
+                "val_data_length": len(val_dataset),
             }
         )
 

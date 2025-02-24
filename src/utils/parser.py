@@ -61,9 +61,7 @@ def get_testing_arguments() -> tuple[Path, bool]:
     parser.add_argument(
         "--no_log_wandb",
         action="store_false",
-        help=(
-            "Whether to log to wandb. "
-        ),
+        help=("Whether to log to wandb. "),
     )
 
     args = parser.parse_args()
