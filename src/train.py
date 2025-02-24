@@ -11,6 +11,7 @@ from utils.file_manager import organize_folders, copy_config
 from utils import (
     get_training_arguments,
     load_config,
+    load_curriculum_schedule,
     load_model,
     EarlyStopping,
     load_data_handler,
@@ -23,9 +24,14 @@ from torchinfo import summary
 
 if __name__ == "__main__":
 
-    config_path, results_dir, if_wandb = get_training_arguments()
+    config_path, curriculum_schedule_path, results_dir, if_wandb = (
+        get_training_arguments()
+    )
     print(if_wandb)
     config = load_config(config_path)
+
+    curr_schedule = load_curriculum_schedule(curriculum_schedule_path)
+    print(curr_schedule)
 
     # Organize folders
     organize_folders(results_dir)

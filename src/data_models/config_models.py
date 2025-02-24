@@ -55,3 +55,15 @@ class Config:
     data: DataConfig
     training: TrainingConfig
     testing: TestingConfig
+
+
+@dataclass
+class CurriculumStageSchedule:
+    is_smoothened: bool
+    start_epoch: int
+    sigma: float
+
+
+@dataclass
+class CurriculumSchedule:
+    stages: dict[int, CurriculumStageSchedule]
