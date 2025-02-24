@@ -9,6 +9,8 @@ DATA:
   prediction_step: 0
   subset_size: 2000
   pred_channels: [0,1,2,3,4,5,6,7,8]
+  is_classification: False
+  class_epsilon: 1.0
 TRAINING:
   ENCODER:
     name: ShotSeqEncoder
@@ -19,7 +21,7 @@ TRAINING:
     name: SimpleCFC
     learning_rate: 0.001
   batch_size: 128
-  epochs: 50
+  epochs: 5
   num_units: 9
   early_stopping: True
   early_stopping_patience: 5
