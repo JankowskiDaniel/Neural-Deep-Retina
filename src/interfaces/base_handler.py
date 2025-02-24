@@ -67,6 +67,16 @@ class BaseHandler(torch.utils.data.Dataset):
         self.pred_channels: list[int] = pred_channels
         # Read dataset from file
         X, y = self.read_h5_to_numpy()
+        # Truncate the data if subset_size is provided
+        X, y = self.truncate_data(X, y)
+        # Select the channels
+        y = self.select_channels(y)
+        # Normalize the output data
+        if self.y_scaler is not None or self.use_saved_scaler:
+            y = self.transform_y(y)
+        # Optional binarization of the output data
+        if self.is_classification:
+            y = self.binarize(y)
         self.prediction_step: int = prediction_step
         self.dataset_len = len(X) - self.prediction_step
         self.X: ndarray[Any, dtype[Any]] = X
@@ -86,20 +96,7 @@ class BaseHandler(torch.utils.data.Dataset):
             # Read as numpy arrays
             X = np.asarray(h5file[self.subset_type]["stimulus"])
             y = np.asarray(h5file[self.subset_type]["response"][self.response_type])
-        # Subset the data if positive subset_size is provided
-        if self.subset_size > 0:
-            X = X[: self.subset_size]
-            y = y[:, : self.subset_size]
         y = y.astype("float32")
-
-        y = y[self.pred_channels]  # Select the prediction channels
-        # Normalize the output data
-        if self.y_scaler is not None or self.use_saved_scaler:
-            y = self.transform_y(y)
-
-        # binarize the output data
-        if self.is_classification:
-            y = self.binarize(y)
 
         return X, y
 
@@ -112,6 +109,18 @@ class BaseHandler(torch.utils.data.Dataset):
             The target variable.
         """
         return self.Y
+
+    def truncate_data(
+        self, X: ndarray[Any, dtype[Any]], y: ndarray[Any, dtype[Any]]
+    ) -> Tuple[ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]]]:
+        # Subset the data if positive subset_size is provided
+        if self.subset_size > 0:
+            X = X[: self.subset_size]
+            y = y[:, : self.subset_size]
+        return X, y
+
+    def select_channels(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
+        return y[self.pred_channels]
 
     def transform_y(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
         """
