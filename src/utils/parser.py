@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 
 
-def get_training_arguments() -> tuple[Path, Path, bool]:
+def get_training_arguments() -> tuple[Path, Path, Path, bool]:
     """Parse training arguments from command line.
 
     Returns:
@@ -21,7 +21,14 @@ def get_training_arguments() -> tuple[Path, Path, bool]:
         "--config",
         type=str,
         default="config.yaml",
-        help="Name of th config file. Assumed to be in the configs directory",
+        help="Name of the config file. Assumed to be in the configs directory",
+    )
+
+    parser.add_argument(
+        "--curr_config",
+        type=str,
+        default="curriculum-schedule.yaml",
+        help="Name of curriculum schedule file. Assumed to be in the configs directory",
     )
 
     parser.add_argument(
@@ -36,9 +43,10 @@ def get_training_arguments() -> tuple[Path, Path, bool]:
     args = parser.parse_args()
 
     config_path = Path("configs") / args.config
+    curr_schedule_path = Path("configs") / args.curr_config
     results_dir = Path(args.results_dir)
     if_wandb = args.no_log_wandb
-    return config_path, results_dir, if_wandb
+    return config_path, curr_schedule_path, results_dir, if_wandb
 
 
 def get_testing_arguments() -> tuple[Path, bool]:
