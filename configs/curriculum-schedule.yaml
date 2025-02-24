@@ -6,10 +6,10 @@ STAGES:
     sigma: 5
   1:
     is_smoothened: True
-    start_epoch: 5
+    start_epoch: 2
     sigma: 3
   2:
     # This disables smoothening for the last stage.
     is_smoothened: False
-    start_epoch: 10
+    start_epoch: 4
     sigma: 0

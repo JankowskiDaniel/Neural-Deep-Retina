@@ -1,4 +1,3 @@
-import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
@@ -8,6 +7,7 @@ from sklearn.preprocessing import MinMaxScaler
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
+from data_handlers import CurriculumHandler, CurriculumDatasets, CurriculumDataloaders
 from utils import (
     get_training_arguments,
     load_config,
@@ -181,6 +181,14 @@ if __name__ == "__main__":
         num_workers=NUM_WORKERS,
     )
 
+    # Create curriculum handler
+    curriculum_handler = CurriculumHandler(
+        curriculum_dataloaders=CurriculumDataloaders(train_loader, val_loader),
+        curriculum_datasets=CurriculumDatasets(train_dataset, val_dataset),
+        is_curriculum=True,
+        curriculum_schedule=curr_schedule,
+    )
+
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(
         [
@@ -222,6 +230,7 @@ if __name__ == "__main__":
     best_val_loss = float("inf")
     for epoch in tqdm(range(N_EPOCHS)):
         start_epoch_time = time()
+        train_loader, val_loader = curriculum_handler.get_dataloaders(epoch)
         # training
         train_loss = train_epoch(
             model=model,

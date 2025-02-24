@@ -21,14 +21,14 @@ def get_training_arguments() -> tuple[Path, Path, Path, bool]:
         "--config",
         type=str,
         default="config.yaml",
-        help="Name of th config file. Assumed to be in the configs directory",
+        help="Name of the config file. Assumed to be in the configs directory",
     )
 
     parser.add_argument(
         "--curr_config",
         type=str,
         default="curriculum-schedule.yaml",
-        help="Name of th curriculum schedule file. Assumed to be in the configs directory",
+        help="Name of curriculum schedule file. Assumed to be in the configs directory",
     )
 
     parser.add_argument(
