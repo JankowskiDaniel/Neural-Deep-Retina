@@ -1,5 +1,5 @@
 DATA:
-  data_handler: BaselineRGBDataset
+  data_handler: CurriculumBaselineRGBDataset
   img_shape: [40, 50, 50]
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
   response_type: firing_rate_10ms

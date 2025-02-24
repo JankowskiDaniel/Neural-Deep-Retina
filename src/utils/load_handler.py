@@ -6,6 +6,7 @@ from data_handlers import (
     H5SeqDataset,
     BaselineRGBDataset,
     BaselineSeqRGBDataset,
+    CurriculumBaselineRGBDataset,
 )
 from data_models.config_models import DataConfig
 
@@ -14,6 +15,7 @@ HANDLERS: dict[str, BaseHandler] = {
     "H5SeqDataset": H5SeqDataset,
     "BaselineRGBDataset": BaselineRGBDataset,
     "BaselineSeqRGBDataset": BaselineSeqRGBDataset,
+    "CurriculumBaselineRGBDataset": CurriculumBaselineRGBDataset,
 }
 
 
