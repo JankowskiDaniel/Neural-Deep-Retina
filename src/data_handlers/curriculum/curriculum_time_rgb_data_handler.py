@@ -105,6 +105,7 @@ class CurriculumBaselineRGBDataset(BaseHandler):
 
             self.curr_Y = apply_gaussian_smoothening(self.curr_Y, sigma)
             # self.curr_Y = apply_asymmetric_gaussian_smoothening(self.curr_Y, sigma)
+
             # TODO: Remove this plot after debugging
             # fig, ax = plt.subplots(figsize=(20, 6))
             # ax.plot(self.curr_Y[1], label='gaussian filtered')

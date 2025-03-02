@@ -66,13 +66,7 @@ class BaselineRGBDataset(BaseHandler):
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         # Stack three consecutive grayscale images
-        images = []
-        for i in range(self.subseq_len):
-            x = self.X[idx + i]
-            x = torch.from_numpy(x)
-            images.append(x)
-        # Stack images along the channel dimension
-        x = torch.stack(images, dim=0)  # Shape will be (3, H, W)
+        x = self.X[idx : idx + self.subseq_len]
         # Apply any transformations to the stacked images
         x = self.transform_x(x)
         # Get the target for the fourth image

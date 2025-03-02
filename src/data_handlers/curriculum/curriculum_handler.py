@@ -123,7 +123,7 @@ class CurriculumHandler:
         self, epoch: int
     ) -> Tuple[DataLoader, DataLoader]:
         # Extract schedule for current stage
-        stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]  # type: ignore
+        stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]  # type: ignore  # noqa: E501
         self.logger.info(f"Curriculum current stage: {self.upcoming_stage}")
         if epoch == stage_schedule.start_epoch:
             # Move to the next stage
