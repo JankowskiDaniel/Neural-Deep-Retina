@@ -51,7 +51,9 @@ class H5Dataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             # Print warning for unused kwargs
@@ -69,7 +71,9 @@ class H5Dataset(BaseHandler):
         # Transform the image to tensor
         x = self.transform_x(x)
         # Transform the output value to tensor
-        y = torch.tensor(self.Y[:, idx + self.prediction_step], dtype=torch.float32)
+        y = torch.tensor(
+            self.Y[:, idx + self.prediction_step], dtype=torch.float32
+        )
         return x, y
 
     def __len__(self):

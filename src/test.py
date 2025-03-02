@@ -133,7 +133,9 @@ if __name__ == "__main__":
     if if_wandb:
         # Log raw values as a W&B Table
         for channel in range(outputs.shape[1]):
-            data = list(zip(outputs.iloc[:, channel], targets.iloc[:, channel]))
+            data = list(
+                zip(outputs.iloc[:, channel], targets.iloc[:, channel])
+            )
             table = wandb.Table(data=data, columns=["model_output", "target"])
             wandb.log({f"test_predictions/channel_{channel}": table})
 
@@ -181,7 +183,9 @@ if __name__ == "__main__":
         )
     if if_wandb:
         wandb.log({"Plots/Test_Scaled": fig})
-    logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
+    logger.info(
+        f"Outputs and targets visualizations saved to {predictions_dir}"
+    )
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
@@ -231,8 +235,12 @@ if __name__ == "__main__":
         if if_wandb:
             # Log raw values as a W&B Table
             for channel in range(outputs.shape[1]):
-                data = list(zip(outputs.iloc[:, channel], targets.iloc[:, channel]))
-                table = wandb.Table(data=data, columns=["model_output", "target"])
+                data = list(
+                    zip(outputs.iloc[:, channel], targets.iloc[:, channel])
+                )
+                table = wandb.Table(
+                    data=data, columns=["model_output", "target"]
+                )
                 wandb.log({f"train_predictions/channel_{channel}": table})
 
             wandb.log({"TRAIN_DATA_METRICS": metrics_dict})
@@ -240,7 +248,9 @@ if __name__ == "__main__":
         # Create a DataFrame from the metrics dictionary
         df_results = pd.DataFrame(metrics_dict)
         # Save results to a csv file
-        df_results.to_csv(results_dir_path / "test_traindata_results.csv", index=False)
+        df_results.to_csv(
+            results_dir_path / "test_traindata_results.csv", index=False
+        )
         logger.info(
             f"Results saved to {results_dir_path / 'test_traindata_results.csv'}"
         )
@@ -282,4 +292,6 @@ if __name__ == "__main__":
             wandb.log({"Plots/Train_Scaled": fig})
             wandb.finish()
 
-        logger.info(f"Outputs and targets visualizations saved to {predictions_dir}")
+        logger.info(
+            f"Outputs and targets visualizations saved to {predictions_dir}"
+        )

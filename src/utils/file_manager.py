@@ -29,7 +29,9 @@ def organize_folders(results_dir: str) -> None:
         os.makedirs(directory)
 
     file_list = [
-        f for f in os.listdir(base_dir) if os.path.isfile(os.path.join(base_dir, f))
+        f
+        for f in os.listdir(base_dir)
+        if os.path.isfile(os.path.join(base_dir, f))
     ]
     # Delete each file
     for file_name in file_list:

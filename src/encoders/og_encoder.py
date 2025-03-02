@@ -75,7 +75,9 @@ class OgEncoder(nn.Module):
             momentum=0.01,
             eps=1e-3,
         )
-        self.reshape1 = Reshape((-1, self.out_channels, self.width, self.height))
+        self.reshape1 = Reshape(
+            (-1, self.out_channels, self.width, self.height)
+        )
         self.relu1 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(
@@ -91,7 +93,9 @@ class OgEncoder(nn.Module):
             momentum=0.01,
             eps=1e-3,
         )
-        self.reshape2 = Reshape((-1, self.out_channels * 2, self.width, self.height))
+        self.reshape2 = Reshape(
+            (-1, self.out_channels * 2, self.width, self.height)
+        )
         self.relu2 = nn.ReLU()
 
         self.conv3 = nn.Conv2d(

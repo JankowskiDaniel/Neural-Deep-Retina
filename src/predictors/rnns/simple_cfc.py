@@ -5,7 +5,9 @@ from interfaces import Predictor
 
 
 class SimpleCFC(Predictor):
-    def __init__(self, input_size: int, num_classes: int, hidden_size: int = 16):
+    def __init__(
+        self, input_size: int, num_classes: int, hidden_size: int = 16
+    ):
         super(SimpleCFC, self).__init__()
         wiring = AutoNCP(hidden_size, num_classes)
         self.cfc = CfC(

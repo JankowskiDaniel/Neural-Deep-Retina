@@ -8,7 +8,10 @@ from .load_handler import load_data_handler
 from .logger import get_logger
 from .torch_model_stats import count_parameters
 from .classification_metrics import save_classification_report
-from .curriculum_learning_utils import apply_gaussian_smoothening
+from .curriculum_learning_utils import (
+    apply_gaussian_smoothening,
+    apply_asymmetric_gaussian_smoothening,
+)
 
 __all__ = [
     "load_config",
@@ -25,4 +28,5 @@ __all__ = [
     "count_parameters",
     "save_classification_report",
     "apply_gaussian_smoothening",
+    "apply_asymmetric_gaussian_smoothening",
 ]

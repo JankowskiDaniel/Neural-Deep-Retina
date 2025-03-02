@@ -71,7 +71,9 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             # Print warning for unused kwargs
@@ -91,18 +93,31 @@ class CurriculumBaselineRGBDataset(BaseHandler):
 
     def update_y(self, **kwargs):
         # Copy the original target data
-        self.curr_Y = self.y
+        self.curr_Y = self.Y
         if "sigma" in kwargs:
             # Apply gaussian smoothing to the target data
             sigma = kwargs["sigma"]
             # TODO workaround for circular import
-            from utils import apply_gaussian_smoothening
+            from utils import (
+                apply_gaussian_smoothening,
+                # apply_asymmetric_gaussian_smoothening,
+            )
 
-            apply_gaussian_smoothening(self.curr_Y, sigma)
-
+            self.curr_Y = apply_gaussian_smoothening(self.curr_Y, sigma)
+            # self.curr_Y = apply_asymmetric_gaussian_smoothening(self.curr_Y, sigma)
+            # TODO: Remove this plot after debugging
+            # fig, ax = plt.subplots(figsize=(20, 6))
+            # ax.plot(self.curr_Y[1], label='gaussian filtered')
+            # ax.set_title(f"Gaussian filtered channel 1")
+            # plt.legend()
+            # plt.savefig(f"gaussian_filtered_{sigma}.jpg", format="jpg", dpi=300)
+            # plt.close()
         # Apply the y-scaler to the target data
         if self.y_scaler is not None:
             self.curr_Y = self.y_scaler.fit_transform(self.curr_Y)
+
+        # Transform to torch Tensor
+        self.curr_Y = torch.from_numpy(self.curr_Y)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         x = self.curr_X[idx : idx + self.subseq_len]

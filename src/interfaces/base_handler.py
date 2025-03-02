@@ -95,7 +95,9 @@ class BaseHandler(torch.utils.data.Dataset):
         with File(self.file_path, "r") as h5file:
             # Read as numpy arrays
             X = np.asarray(h5file[self.subset_type]["stimulus"])
-            y = np.asarray(h5file[self.subset_type]["response"][self.response_type])
+            y = np.asarray(
+                h5file[self.subset_type]["response"][self.response_type]
+            )
         y = y.astype("float32")
 
         return X, y
@@ -119,10 +121,14 @@ class BaseHandler(torch.utils.data.Dataset):
             y = y[:, : self.subset_size]
         return X, y
 
-    def select_channels(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
+    def select_channels(
+        self, y: ndarray[Any, dtype[Any]]
+    ) -> ndarray[Any, dtype[Any]]:
         return y[self.pred_channels]
 
-    def transform_y(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
+    def transform_y(
+        self, y: ndarray[Any, dtype[Any]]
+    ) -> ndarray[Any, dtype[Any]]:
         """
         Transforms the target variable 'y' using a scaler.
 
@@ -149,7 +155,9 @@ class BaseHandler(torch.utils.data.Dataset):
                 # Only transform the test data
                 y_fit = self.y_scaler.transform(y_tran)
             except FileNotFoundError:
-                print("The scaler file is not found. Target will not be scaled")
+                print(
+                    "The scaler file is not found. Target will not be scaled"
+                )
                 y_fit = y_tran
         y = y_fit.T  # return the data to the original shape
         return y
@@ -164,7 +172,9 @@ class BaseHandler(torch.utils.data.Dataset):
         """
         return self.y_scaler
 
-    def binarize(self, y: ndarray[Any, dtype[Any]]) -> ndarray[Any, dtype[Any]]:
+    def binarize(
+        self, y: ndarray[Any, dtype[Any]]
+    ) -> ndarray[Any, dtype[Any]]:
         return np.where(y >= self.class_epsilon, 1, 0)
 
     @abstractmethod
