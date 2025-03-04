@@ -121,12 +121,12 @@ class CurriculumHandler:
 
     def get_curriculum_dataloaders(self, epoch: int) -> Tuple[DataLoader, DataLoader]:
         # Ensure we are within the available stages
-        num_stages = len(self.curriculum_schedule.stages)
+        num_stages = len(self.curriculum_schedule.stages)  # type: ignore
         while (
             self.upcoming_stage < num_stages
-            and epoch >= self.curriculum_schedule.stages[self.upcoming_stage].start_epoch  # noqa: E501
+            and epoch >= self.curriculum_schedule.stages[self.upcoming_stage].start_epoch  # type: ignore # noqa: E501
         ):
-            stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]
+            stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]  # type: ignore  # noqa: E501
             self.logger.info(f"Moving to curriculum stage {self.upcoming_stage} with sigma {stage_schedule.sigma}")  # noqa: E501
             # Update datasets and dataloaders based on the new stage
             self.update_datasets(stage_schedule.sigma)
