@@ -39,6 +39,7 @@ class TrainingConfig:
     early_stopping: bool
     early_stopping_patience: int
     save_logs: bool
+    is_curriculum: bool
 
 
 @dataclass

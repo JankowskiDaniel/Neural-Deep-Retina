@@ -49,11 +49,11 @@ class CurriculumBaselineRGBDataset(BaseHandler):
 
         # Apply the y-scaler to the target data
         if self.y_scaler is not None or self.use_saved_scaler:
-            self.curr_Y = self.y_scaler.fit_transform(self.Y)
+            self.curr_Y = self.transform_y(self.Y.copy())
         else:
-            self.curr_Y = self.Y
+            self.curr_Y = self.Y.copy()
         # Transform to torch Tensor
-        self.curr_Y = torch.from_numpy(self.curr_Y)
+        self.curr_Y = torch.from_numpy(self.curr_Y).to(torch.float32)
 
         self.subseq_len: int = subseq_len
         self.dataset_len: int = self.dataset_len - self.subseq_len
@@ -71,9 +71,7 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {
-            k: v for k, v in kwargs.items() if k not in allowed_args
-        }
+        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
 
         if unused_kwargs:
             # Print warning for unused kwargs
@@ -81,19 +79,19 @@ class CurriculumBaselineRGBDataset(BaseHandler):
                 f"Unused arguments passed to the data handler: {unused_kwargs}. These will be ignored."  # noqa: E501
             )
 
-    def update_data(self, **kwargs):
+    def update_data(self, **kwargs) -> None:
         """
         Update the dataset by processing the data.
         """
         self.update_X(**kwargs)
         self.update_y(**kwargs)
 
-    def update_X(self, **kwargs):
+    def update_X(self, **kwargs) -> None:
         pass
 
-    def update_y(self, **kwargs):
+    def update_y(self, **kwargs) -> None:
         # Copy the original target data
-        self.curr_Y = self.Y
+        curr_Y = self.Y.copy()
         if "sigma" in kwargs:
             # Apply gaussian smoothing to the target data
             sigma = kwargs["sigma"]
@@ -103,7 +101,7 @@ class CurriculumBaselineRGBDataset(BaseHandler):
                 # apply_asymmetric_gaussian_smoothening,
             )
 
-            self.curr_Y = apply_gaussian_smoothening(self.curr_Y, sigma)
+            curr_Y = apply_gaussian_smoothening(curr_Y, sigma)
             # self.curr_Y = apply_asymmetric_gaussian_smoothening(self.curr_Y, sigma)
 
             # TODO: Remove this plot after debugging
@@ -115,10 +113,10 @@ class CurriculumBaselineRGBDataset(BaseHandler):
             # plt.close()
         # Apply the y-scaler to the target data
         if self.y_scaler is not None:
-            self.curr_Y = self.y_scaler.fit_transform(self.curr_Y)
+            curr_Y = self.transform_y(curr_Y)
 
         # Transform to torch Tensor
-        self.curr_Y = torch.from_numpy(self.curr_Y)
+        self.curr_Y = torch.from_numpy(curr_Y).to(torch.float32)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         x = self.curr_X[idx : idx + self.subseq_len]

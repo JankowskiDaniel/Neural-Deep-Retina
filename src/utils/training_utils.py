@@ -114,9 +114,6 @@ def test_model(
             targets = labels.to(device)
             outputs = model(images)
 
-            probs = torch.sigmoid(outputs)
-            binary_outputs = (probs > 0.5).float()
-
             loss = loss_fn(outputs, targets)
             pbar.set_description(f"Test loss: {str(loss.item())}")
             test_losses.append(loss.item())
@@ -124,7 +121,7 @@ def test_model(
 
             if save_outputs_and_targets:
                 outputs_df = pd.concat(
-                    [outputs_df, pd.DataFrame(binary_outputs.cpu().numpy())]
+                    [outputs_df, pd.DataFrame(outputs.cpu().numpy())]
                 )
                 targets_df = pd.concat(
                     [targets_df, pd.DataFrame(targets.cpu().numpy())]
@@ -147,19 +144,11 @@ def test_model(
             corr_data_mode = "scaled"
             if y_scaler is not None:
                 corr_data_mode = "unscaled"
-                outputs_df = pd.DataFrame(
-                    y_scaler.inverse_transform(outputs_df)
-                )
-                targets_df = pd.DataFrame(
-                    y_scaler.inverse_transform(targets_df)
-                )
+                outputs_df = pd.DataFrame(y_scaler.inverse_transform(outputs_df))
+                targets_df = pd.DataFrame(y_scaler.inverse_transform(targets_df))
                 # Save unscaled outputs and targets
-                outputs_df.to_csv(
-                    save_dir / "unscaled_outputs.csv", index=False
-                )
-                targets_df.to_csv(
-                    save_dir / "unscaled_targets.csv", index=False
-                )
+                outputs_df.to_csv(save_dir / "unscaled_outputs.csv", index=False)
+                targets_df.to_csv(save_dir / "unscaled_targets.csv", index=False)
                 # Calculate MSE on the unscaled data
                 mse = np.mean((outputs_df.values - targets_df.values) ** 2)
                 metrics_dict["MSE_unscaled"] = mse
@@ -168,9 +157,7 @@ def test_model(
                 mae = np.mean(np.abs(outputs_df.values - targets_df.values))
                 metrics_dict["MAE_unscaled"] = mae
             # Calculate Pearson correlation between outputs and targets
-            pearson_corr = outputs_df.corrwith(
-                targets_df, method="pearson", axis=0
-            )
+            pearson_corr = outputs_df.corrwith(targets_df, method="pearson", axis=0)
             # Handle nans in the correlation
             # If all values are the same, the correlation is nan
             pearson_corr = pearson_corr.fillna(42)

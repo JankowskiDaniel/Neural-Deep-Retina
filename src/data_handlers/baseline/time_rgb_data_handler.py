@@ -37,6 +37,9 @@ class BaselineRGBDataset(BaseHandler):
             is_classification=is_classification,
             class_epsilon=class_epsilon,
         )
+        # Convert the input data to a tensor
+        self.X: torch.Tensor = torch.from_numpy(self.X).to(torch.uint8)
+        self.Y: torch.Tensor = torch.from_numpy(self.Y).to(torch.float32)
 
         self.subseq_len: int = subseq_len
         self.dataset_len: int = self.dataset_len - self.subseq_len
@@ -70,10 +73,7 @@ class BaselineRGBDataset(BaseHandler):
         # Apply any transformations to the stacked images
         x = self.transform_x(x)
         # Get the target for the fourth image
-        y = torch.tensor(
-            self.Y[:, idx + self.subseq_len - 1 + self.prediction_step],
-            dtype=torch.float32,
-        )
+        y = self.Y[:, idx + self.subseq_len - 1 + self.prediction_step]
 
         return x, y
 

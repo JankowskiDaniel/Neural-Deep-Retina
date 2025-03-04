@@ -8,8 +8,6 @@ from pathlib import Path
 import pickle
 from abc import abstractmethod
 
-# from scipy.ndimage import gaussian_filter
-
 transform_x: v2.Compose = v2.Compose([v2.ToDtype(torch.float32, scale=True)])
 
 
