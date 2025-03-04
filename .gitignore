@@ -170,3 +170,7 @@ pretrained_weights/*.pth
 
 notebooks/predictions/
 notebooks/plots/
+
+notebooks/*.csv
+notebooks/*.gif
+notebooks/*.png
