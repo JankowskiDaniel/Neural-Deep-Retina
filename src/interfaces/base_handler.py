@@ -145,11 +145,13 @@ class BaseHandler(torch.utils.data.Dataset):
             # Save the scaler
             with open(self.results_dir / "y_scaler.pkl", "wb") as f:
                 pickle.dump(self.y_scaler, f)
+                print("Saving scaler", self.y_scaler.data_range_)
         else:
             try:
                 # load the scaler
                 with open(self.results_dir / "y_scaler.pkl", "rb") as f:
                     self.y_scaler = pickle.load(f)
+                    print("Loading scaler", self.y_scaler.data_range_)
                 # Only transform the test data
                 y_fit = self.y_scaler.transform(y_tran)
             except FileNotFoundError:

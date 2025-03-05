@@ -53,10 +53,13 @@ class CurriculumHandler:
         pin_memory: bool = False,
         num_workers: int = 0,
     ) -> None:
+        # Store the default dataloaders
         self.dataloaders = curriculum_dataloaders
 
-        # Check requirements for curriculum learning
         if is_curriculum:
+            # et the default dataloaders as initial updated dataloaders
+            self.updated_dataloaders = curriculum_dataloaders
+            # Check requirements for curriculum learning
             assert curriculum_datasets is not None
             assert isinstance(
                 curriculum_datasets.train_dataset, CurriculumBaselineRGBDataset
@@ -85,32 +88,42 @@ class CurriculumHandler:
         self.curriculum_datasets.train_dataset.update_data(sigma=sigma)  # type: ignore
         self.curriculum_datasets.val_dataset.update_data(sigma=sigma)  # type: ignore
 
-    def update_dataloaders(self) -> None:
-        updated_loaders = CurriculumDataloaders(
-            train_dataloader=DataLoader(
-                self.curriculum_datasets.train_dataset,  # type: ignore
-                batch_size=self.batch_size,
-                shuffle=True,
-                pin_memory=self.pin_memory,
-                num_workers=self.num_workers,
-            ),
-            val_dataloader=DataLoader(
-                self.curriculum_datasets.val_dataset,  # type: ignore
-                batch_size=self.batch_size,
-                shuffle=False,
-                pin_memory=self.pin_memory,
-                num_workers=self.num_workers,
-            ),
+    def update_dataloaders(self) -> CurriculumDataloaders:
+        train_dataloader = DataLoader(
+            self.curriculum_datasets.train_dataset,  # type: ignore
+            batch_size=self.batch_size,
+            shuffle=True,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
         )
-        self.dataloaders = updated_loaders
+        val_dataloader = DataLoader(
+            self.curriculum_datasets.val_dataset,  # type: ignore
+            batch_size=self.batch_size,
+            shuffle=False,
+            pin_memory=self.pin_memory,
+            num_workers=self.num_workers,
+        )
+        return CurriculumDataloaders(train_dataloader=train_dataloader,
+                                     val_dataloader=val_dataloader)
 
     def get_dataloaders(self, epoch: int) -> Tuple[DataLoader, DataLoader]:
+        """
+        Retrieves the appropriate dataloaders for training and validation based on the
+        current epoch and whether curriculum learning is enabled.
+
+        Args:
+            epoch (int): The current epoch number.
+
+        Returns:
+            Tuple[DataLoader, DataLoader]: A tuple containing
+            the training and validation dataloaders.
+        """
         train_dataloader, val_dataloader = None, None
         if self.is_curriculum:
             # Get the curriculum dataloaders
-            train_dataloader, val_dataloader = self.get_curriculum_dataloaders(
-                epoch
-            )
+            cds = self.get_curriculum_dataloaders(epoch)
+            train_dataloader, val_dataloader = (cds.train_dataloader,
+                                                cds.val_dataloader)
         else:
             # Return the default dataloaders
             train_dataloader, val_dataloader = (
@@ -119,21 +132,27 @@ class CurriculumHandler:
             )
         return train_dataloader, val_dataloader
 
-    def get_curriculum_dataloaders(self, epoch: int) -> Tuple[DataLoader, DataLoader]:
+    def get_curriculum_dataloaders(self, epoch: int) -> CurriculumDataloaders:
+        # Get the schedule for the upcoming stage
+        stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]
+
         # Ensure we are within the available stages
-        num_stages = len(self.curriculum_schedule.stages)  # type: ignore
-        while (
+        num_stages = len(self.curriculum_schedule.stages)
+
+        if not stage_schedule.is_smoothened:
+            # If the stage is not smoothened, return the default dataloaders
+            self.logger.info(f"Smoothening disabled at stage {self.upcoming_stage}")  # noqa: E501
+            return self.dataloaders
+        
+        elif (
             self.upcoming_stage < num_stages
             and epoch >= self.curriculum_schedule.stages[self.upcoming_stage].start_epoch  # type: ignore # noqa: E501
         ):
-            stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]  # type: ignore  # noqa: E501
+            # If we enter the next stage, update the datasets and dataloaders
             self.logger.info(f"Moving to curriculum stage {self.upcoming_stage} with sigma {stage_schedule.sigma}")  # noqa: E501
-            # Update datasets and dataloaders based on the new stage
-            self.update_datasets(stage_schedule.sigma)
-            self.update_dataloaders()
+            self.update_datasets(stage_schedule.sigma)  # type: ignore  # noqa: E501
+            self.updated_dataloaders = self.update_dataloaders()
             # Move to the next stage
             self.upcoming_stage += 1
-        return (
-            self.dataloaders.train_dataloader,
-            self.dataloaders.val_dataloader,
-        )
+        
+        return self.updated_dataloaders
