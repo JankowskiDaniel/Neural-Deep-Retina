@@ -1,5 +1,5 @@
 from torch.utils.data import DataLoader
-from typing import NamedTuple, Tuple
+from typing import NamedTuple, Tuple, Optional
 from data_handlers import CurriculumBaselineRGBDataset
 from data_models.config_models import CurriculumSchedule
 
@@ -46,9 +46,9 @@ class CurriculumHandler:
         self,
         curriculum_dataloaders: CurriculumDataloaders,
         batch_size: int,
-        curriculum_datasets: CurriculumDatasets | None = None,
+        curriculum_datasets: Optional[CurriculumDatasets] = None,
         is_curriculum: bool = False,
-        curriculum_schedule: CurriculumSchedule | None = None,
+        curriculum_schedule: Optional[CurriculumSchedule] = None,
         # params for data loaders
         pin_memory: bool = False,
         num_workers: int = 0,
@@ -103,8 +103,9 @@ class CurriculumHandler:
             pin_memory=self.pin_memory,
             num_workers=self.num_workers,
         )
-        return CurriculumDataloaders(train_dataloader=train_dataloader,
-                                     val_dataloader=val_dataloader)
+        return CurriculumDataloaders(
+            train_dataloader=train_dataloader, val_dataloader=val_dataloader
+        )
 
     def get_dataloaders(self, epoch: int) -> Tuple[DataLoader, DataLoader]:
         """
@@ -122,8 +123,10 @@ class CurriculumHandler:
         if self.is_curriculum:
             # Get the curriculum dataloaders
             cds = self.get_curriculum_dataloaders(epoch)
-            train_dataloader, val_dataloader = (cds.train_dataloader,
-                                                cds.val_dataloader)
+            train_dataloader, val_dataloader = (
+                cds.train_dataloader,
+                cds.val_dataloader,
+            )
         else:
             # Return the default dataloaders
             train_dataloader, val_dataloader = (
@@ -134,25 +137,29 @@ class CurriculumHandler:
 
     def get_curriculum_dataloaders(self, epoch: int) -> CurriculumDataloaders:
         # Get the schedule for the upcoming stage
-        stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]
+        stage_schedule = self.curriculum_schedule.stages[self.upcoming_stage]  # type: ignore # noqa: E501
 
         # Ensure we are within the available stages
-        num_stages = len(self.curriculum_schedule.stages)
+        num_stages = len(self.curriculum_schedule.stages)  # type: ignore
 
         if not stage_schedule.is_smoothened:
             # If the stage is not smoothened, return the default dataloaders
-            self.logger.info(f"Smoothening disabled at stage {self.upcoming_stage}")  # noqa: E501
+            self.logger.info(
+                f"Smoothening disabled at stage {self.upcoming_stage}"
+            )
             return self.dataloaders
-        
+
         elif (
             self.upcoming_stage < num_stages
             and epoch >= self.curriculum_schedule.stages[self.upcoming_stage].start_epoch  # type: ignore # noqa: E501
         ):
             # If we enter the next stage, update the datasets and dataloaders
-            self.logger.info(f"Moving to curriculum stage {self.upcoming_stage} with sigma {stage_schedule.sigma}")  # noqa: E501
-            self.update_datasets(stage_schedule.sigma)  # type: ignore  # noqa: E501
+            self.logger.info(
+                f"Moving to curriculum stage {self.upcoming_stage} with sigma {stage_schedule.sigma}"  # noqa: E501
+            )  # noqa: E501
+            self.update_datasets(stage_schedule.sigma)  # type: ignore
             self.updated_dataloaders = self.update_dataloaders()
             # Move to the next stage
             self.upcoming_stage += 1
-        
+
         return self.updated_dataloaders

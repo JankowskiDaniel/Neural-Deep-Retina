@@ -81,7 +81,9 @@ if __name__ == "__main__":
     logger.info(f"Input data point shape: {X.shape}")
     logger.info(f"Target data point shape: {y.shape}")
 
-    logger.info(f"Predictions will be made for channels: {train_dataset.pred_channels}")
+    logger.info(
+        f"Predictions will be made for channels: {train_dataset.pred_channels}"
+    )
     TORCH_SEED = 12
     TRAIN_SIZE = 0.8
     # Split train dataset into train and validation
@@ -161,14 +163,18 @@ if __name__ == "__main__":
         )
 
     # Get model summary
-    model_summary_str = str(summary(model, model.input_shape, device=DEVICE, verbose=0))
+    model_summary_str = str(
+        summary(model, model.input_shape, device=DEVICE, verbose=0)
+    )
     # Save to a txt file
     model_summary_filename = results_dir_path / "model_summary.txt"
     with open(model_summary_filename, "w", encoding="utf-8") as f:
         f.write(model_summary_str)
     # Log model summary txt to wandb
     if if_wandb:
-        model_summary_artifact = wandb.Artifact("model_summary", "model_details")
+        model_summary_artifact = wandb.Artifact(
+            "model_summary", "model_details"
+        )
         model_summary_artifact.add_file(model_summary_filename)
         wandb.log_artifact(model_summary_artifact)
 
@@ -191,7 +197,11 @@ if __name__ == "__main__":
     # Create curriculum handler
     curriculum_handler = CurriculumHandler(
         curriculum_dataloaders=CurriculumDataloaders(train_loader, val_loader),
-        curriculum_datasets=CurriculumDatasets(train_dataset, val_dataset) if config.training.is_curriculum else None,
+        curriculum_datasets=(
+            CurriculumDatasets(train_dataset, val_dataset)
+            if config.training.is_curriculum
+            else None
+        ),
         is_curriculum=config.training.is_curriculum,
         curriculum_schedule=curr_schedule,
         batch_size=BATCH_SIZE,
@@ -252,7 +262,9 @@ if __name__ == "__main__":
         )
         train_history["train_loss"].append(train_loss)
 
-        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
+        logger.info(
+            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}"
+        )
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
         if if_wandb:
@@ -267,14 +279,18 @@ if __name__ == "__main__":
         )
         train_history["valid_loss"].append(valid_loss)
 
-        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}")
+        logger.info(
+            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
+        )
 
         if if_wandb:
             wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
-            torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
+            torch.save(
+                model.state_dict(), results_dir_path / "models" / "best.pth"
+            )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:

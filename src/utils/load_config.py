@@ -50,7 +50,9 @@ def load_config(path: Path) -> Config:
         run_on_train_data=config["TESTING"]["run_on_train_data"],
     )
 
-    return Config(data=data_conf, training=training_conf, testing=testing_config)
+    return Config(
+        data=data_conf, training=training_conf, testing=testing_config
+    )
 
 
 def load_curriculum_schedule(path: Path) -> CurriculumSchedule:
