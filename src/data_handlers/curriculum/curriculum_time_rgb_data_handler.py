@@ -24,9 +24,8 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         class_epsilon: float = 1.0,
         **kwargs: Any,
     ) -> None:
-        # Call parent init with scaler as None
-        # This prevents the parent class from applying any scaling
-        # As scaling will be done as part of curriculum learning
+        # Initialize the parent class
+        # Read, truncate and scale the data if needed
         super(CurriculumBaselineRGBDataset, self).__init__(
             path=path,
             response_type=response_type,
@@ -42,10 +41,11 @@ class CurriculumBaselineRGBDataset(BaseHandler):
             class_epsilon=class_epsilon,
         )
 
-        # Transform to torch Tensor
+        # Transform input to torch Tensor
         self.X: torch.Tensor = torch.from_numpy(self.X)
         self.curr_X = self.X
 
+        # curr_Y is a copy of the original target data to be modified
         curr_Y = np.copy(self.Y)
         # Transform to torch Tensor
         self.curr_Y = torch.from_numpy(curr_Y).to(torch.float32)
@@ -87,6 +87,19 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         pass
 
     def update_y(self, **kwargs) -> None:
+        """
+        Update the target data (Y) with optional Gaussian smoothing.
+        This method updates the `curr_Y` attribute by optionally applying Gaussian
+        smoothing to the original target data (`Y`). The smoothed data is then
+        converted to a PyTorch tensor.
+        Args:
+            **kwargs: Arbitrary keyword arguments.
+                - sigma (float, optional): The standard deviation for Gaussian
+                  smoothing. If provided, Gaussian smoothing is applied to the
+                  target data.
+        Returns:
+            None
+        """
         # Copy the original target data
         curr_Y = np.copy(self.Y)
         if "sigma" in kwargs:
@@ -99,7 +112,6 @@ class CurriculumBaselineRGBDataset(BaseHandler):
             )
 
             curr_Y = apply_gaussian_smoothening(curr_Y, sigma)
-            # self.curr_Y = apply_asymmetric_gaussian_smoothening(self.curr_Y, sigma)
 
         # Transform to torch Tensor
         self.curr_Y = torch.from_numpy(curr_Y).to(torch.float32)
