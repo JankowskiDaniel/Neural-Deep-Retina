@@ -17,9 +17,9 @@ class SimpleCFC(Predictor):
             mixed_memory=True,
             return_sequences=False,
         )
-        self.activation = nn.Sigmoid()
+        self.activation = nn.ReLU()
 
     def forward(self, x):
         x, _ = self.cfc(x)
-        # x = self.activation(x)
+        x = self.activation(x)
         return x
