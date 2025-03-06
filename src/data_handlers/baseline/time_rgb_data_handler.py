@@ -37,6 +37,9 @@ class BaselineRGBDataset(BaseHandler):
             is_classification=is_classification,
             class_epsilon=class_epsilon,
         )
+        # Convert the input data to a tensor
+        self.X: torch.Tensor = torch.from_numpy(self.X).to(torch.uint8)
+        self.Y: torch.Tensor = torch.from_numpy(self.Y).to(torch.float32)
 
         self.subseq_len: int = subseq_len
         self.dataset_len: int = self.dataset_len - self.subseq_len
@@ -54,7 +57,9 @@ class BaselineRGBDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             # Print warning for unused kwargs
@@ -64,20 +69,11 @@ class BaselineRGBDataset(BaseHandler):
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         # Stack three consecutive grayscale images
-        images = []
-        for i in range(self.subseq_len):
-            x = self.X[idx + i]
-            x = torch.from_numpy(x)
-            images.append(x)
-        # Stack images along the channel dimension
-        x = torch.stack(images, dim=0)  # Shape will be (3, H, W)
+        x = self.X[idx : idx + self.subseq_len]
         # Apply any transformations to the stacked images
         x = self.transform_x(x)
         # Get the target for the fourth image
-        y = torch.tensor(
-            self.Y[:, idx + self.subseq_len - 1 + self.prediction_step],
-            dtype=torch.float32,
-        )
+        y = self.Y[:, idx + self.subseq_len - 1 + self.prediction_step]
 
         return x, y
 

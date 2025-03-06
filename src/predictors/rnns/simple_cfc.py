@@ -5,7 +5,9 @@ from interfaces import Predictor
 
 
 class SimpleCFC(Predictor):
-    def __init__(self, input_size: int, num_classes: int, hidden_size: int = 16):
+    def __init__(
+        self, input_size: int, num_classes: int, hidden_size: int = 16
+    ):
         super(SimpleCFC, self).__init__()
         wiring = AutoNCP(hidden_size, num_classes)
         self.cfc = CfC(
@@ -15,9 +17,9 @@ class SimpleCFC(Predictor):
             mixed_memory=True,
             return_sequences=False,
         )
-        self.activation = nn.Sigmoid()
+        self.activation = nn.ReLU()
 
     def forward(self, x):
         x, _ = self.cfc(x)
-        # x = self.activation(x)
+        x = self.activation(x)
         return x

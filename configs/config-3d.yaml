@@ -25,6 +25,6 @@ TRAINING:
 TESTING:
   batch_size: 16
   weights: "best.pth"
-  metrics: ["mae", "mse"]
+  metrics: ["mae", "mse", "rmse"]
   save_logs: True
   run_on_train_data: True

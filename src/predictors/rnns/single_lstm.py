@@ -4,7 +4,9 @@ from interfaces import Predictor
 
 
 class SingleLSTM(Predictor):
-    def __init__(self, input_size: int, num_classes: int, hidden_size: int = 16):
+    def __init__(
+        self, input_size: int, num_classes: int, hidden_size: int = 16
+    ):
         super(SingleLSTM, self).__init__()
         self.flattened_size = input_size
         self.lstm = nn.LSTM(

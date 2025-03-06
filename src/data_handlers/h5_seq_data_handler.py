@@ -70,7 +70,9 @@ class H5SeqDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             warnings.warn(

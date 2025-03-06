@@ -47,10 +47,14 @@ def load_model(config: Config) -> DeepRetinaModel:
 
     # Resolve encoder weights
     if config.training.encoder.weights is not None:
-        weights_path = Path("pretrained_weights") / config.training.encoder.weights
+        weights_path = (
+            Path("pretrained_weights") / config.training.encoder.weights
+        )
         # Check if encoder weights exist
         if not weights_path.exists():
-            raise FileNotFoundError(f"Could not find weights at {weights_path}")
+            raise FileNotFoundError(
+                f"Could not find weights at {weights_path}"
+            )
     else:
         weights_path = None
     freeze = config.training.encoder.freeze

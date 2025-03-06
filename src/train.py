@@ -1,4 +1,3 @@
-import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
@@ -8,9 +7,15 @@ from sklearn.preprocessing import MinMaxScaler
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
+from data_handlers import (
+    CurriculumHandler,
+    CurriculumDatasets,
+    CurriculumDataloaders,
+)
 from utils import (
     get_training_arguments,
     load_config,
+    load_curriculum_schedule,
     load_model,
     EarlyStopping,
     load_data_handler,
@@ -23,9 +28,16 @@ from torchinfo import summary
 
 if __name__ == "__main__":
 
-    config_path, results_dir, if_wandb = get_training_arguments()
+    config_path, curriculum_schedule_path, results_dir, if_wandb = (
+        get_training_arguments()
+    )
     print(if_wandb)
     config = load_config(config_path)
+
+    curr_schedule = None
+    if config.training.is_curriculum:
+        curr_schedule = load_curriculum_schedule(curriculum_schedule_path)
+        print(curr_schedule)
 
     # Organize folders
     organize_folders(results_dir)
@@ -69,7 +81,9 @@ if __name__ == "__main__":
     logger.info(f"Input data point shape: {X.shape}")
     logger.info(f"Target data point shape: {y.shape}")
 
-    logger.info(f"Predictions will be made for channels: {train_dataset.pred_channels}")
+    logger.info(
+        f"Predictions will be made for channels: {train_dataset.pred_channels}"
+    )
     TORCH_SEED = 12
     TRAIN_SIZE = 0.8
     # Split train dataset into train and validation
@@ -112,6 +126,7 @@ if __name__ == "__main__":
                     "prediction_channels": config.data.pred_channels,
                     "is_classification": config.data.is_classification,
                     "class_epsilon": config.data.class_epsilon,
+                    "is_curriculum": config.training.is_curriculum,
                 },
                 "model": {
                     "encoder": {
@@ -148,14 +163,18 @@ if __name__ == "__main__":
         )
 
     # Get model summary
-    model_summary_str = str(summary(model, model.input_shape, device=DEVICE, verbose=0))
+    model_summary_str = str(
+        summary(model, model.input_shape, device=DEVICE, verbose=0)
+    )
     # Save to a txt file
     model_summary_filename = results_dir_path / "model_summary.txt"
     with open(model_summary_filename, "w", encoding="utf-8") as f:
         f.write(model_summary_str)
     # Log model summary txt to wandb
     if if_wandb:
-        model_summary_artifact = wandb.Artifact("model_summary", "model_details")
+        model_summary_artifact = wandb.Artifact(
+            "model_summary", "model_details"
+        )
         model_summary_artifact.add_file(model_summary_filename)
         wandb.log_artifact(model_summary_artifact)
 
@@ -175,6 +194,21 @@ if __name__ == "__main__":
         num_workers=NUM_WORKERS,
     )
 
+    # Create curriculum handler
+    curriculum_handler = CurriculumHandler(
+        curriculum_dataloaders=CurriculumDataloaders(train_loader, val_loader),
+        curriculum_datasets=(
+            CurriculumDatasets(train_dataset, val_dataset)
+            if config.training.is_curriculum
+            else None
+        ),
+        is_curriculum=config.training.is_curriculum,
+        curriculum_schedule=curr_schedule,
+        batch_size=BATCH_SIZE,
+        pin_memory=PIN_MEMORY,
+        num_workers=NUM_WORKERS,
+    )
+
     # Define optimizer and loss function
     optimizer = torch.optim.Adam(
         [
@@ -189,16 +223,17 @@ if __name__ == "__main__":
     # get Y to compute pos_weight for BCEWithLogitsLoss
     Y = train_dataset.get_target()
 
-    pos_counts = np.sum(Y, axis=1)  # Count of positive (1s) per class
-    neg_counts = Y.shape[1] - pos_counts  # Count of negative (0s) per class
+    # pos_counts = np.sum(Y, axis=1)  # Count of positive (1s) per class
+    # neg_counts = Y.shape[1] - pos_counts  # Count of negative (0s) per class
 
-    # Compute pos_weight (negatives / positives), ensuring no division by zero
-    pos_weight = np.where(pos_counts > 0, neg_counts / pos_counts, 1.0)
+    # # Compute pos_weight (negatives / positives), ensuring no division by zero
+    # pos_weight = np.where(pos_counts > 0, neg_counts / pos_counts, 1.0)
 
-    # Convert to PyTorch tensor
-    pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
-    print(f"POS WEIGHT: {pos_weight_tensor}")
-    loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
+    # # Convert to PyTorch tensor
+    # pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
+    # print(f"POS WEIGHT: {pos_weight_tensor}")
+    loss_fn = nn.MSELoss()
+    # loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
     if if_wandb:
         wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
@@ -215,6 +250,7 @@ if __name__ == "__main__":
     best_val_loss = float("inf")
     for epoch in tqdm(range(N_EPOCHS)):
         start_epoch_time = time()
+        train_loader, val_loader = curriculum_handler.get_dataloaders(epoch)
         # training
         train_loss = train_epoch(
             model=model,
@@ -226,7 +262,9 @@ if __name__ == "__main__":
         )
         train_history["train_loss"].append(train_loss)
 
-        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
+        logger.info(
+            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}"
+        )
         (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
 
         if if_wandb:
@@ -241,14 +279,18 @@ if __name__ == "__main__":
         )
         train_history["valid_loss"].append(valid_loss)
 
-        logger.info(f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}")
+        logger.info(
+            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
+        )
 
         if if_wandb:
             wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
 
         if valid_loss < best_val_loss:
             best_val_loss = valid_loss
-            torch.save(model.state_dict(), results_dir_path / "models" / "best.pth")
+            torch.save(
+                model.state_dict(), results_dir_path / "models" / "best.pth"
+            )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:

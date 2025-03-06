@@ -21,7 +21,9 @@ def save_classification_report(
     report = classification_report(
         y_true,
         y_pred,
-        target_names=[f"Channel {i}" for i in range(y_true.shape[1])],  # noqa: E501
+        target_names=[
+            f"Channel {i}" for i in range(y_true.shape[1])
+        ],  # noqa: E501
         output_dict=True,
         zero_division=0,
     )

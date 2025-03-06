@@ -40,7 +40,9 @@ class BaselineSeqRGBDataset(BaseHandler):
             class_epsilon=class_epsilon,
         )
         self.subseq_len: int = subseq_len
-        self.dataset_len: int = self.dataset_len - seq_len - 1 - self.subseq_len
+        self.dataset_len: int = (
+            self.dataset_len - seq_len - 1 - self.subseq_len
+        )
         self.seq_length: int = seq_len
 
         # List of allowed arguments in the constructor
@@ -56,7 +58,9 @@ class BaselineSeqRGBDataset(BaseHandler):
         }
 
         # Check for unused kwargs
-        unused_kwargs = {k: v for k, v in kwargs.items() if k not in allowed_args}
+        unused_kwargs = {
+            k: v for k, v in kwargs.items() if k not in allowed_args
+        }
 
         if unused_kwargs:
             warnings.warn(

@@ -1,4 +1,5 @@
 import yaml
+from pathlib import Path
 from data_models.config_models import (
     Config,
     DataConfig,
@@ -6,10 +7,12 @@ from data_models.config_models import (
     PredictorConfig,
     TrainingConfig,
     TestingConfig,
+    CurriculumSchedule,
+    CurriculumStageSchedule,
 )
 
 
-def load_config(path: str) -> Config:
+def load_config(path: Path) -> Config:
     """Load config from yaml file.
 
     Args:
@@ -33,6 +36,11 @@ def load_config(path: str) -> Config:
         early_stopping=config["TRAINING"]["early_stopping"],
         early_stopping_patience=config["TRAINING"]["early_stopping_patience"],
         save_logs=config["TRAINING"]["save_logs"],
+        is_curriculum=(
+            config["TRAINING"]["is_curriculum"]
+            if "is_curriculum" in config["TRAINING"]
+            else False
+        ),
     )
     testing_config = TestingConfig(
         batch_size=config["TESTING"]["batch_size"],
@@ -42,4 +50,23 @@ def load_config(path: str) -> Config:
         run_on_train_data=config["TESTING"]["run_on_train_data"],
     )
 
-    return Config(data=data_conf, training=training_conf, testing=testing_config)
+    return Config(
+        data=data_conf, training=training_conf, testing=testing_config
+    )
+
+
+def load_curriculum_schedule(path: Path) -> CurriculumSchedule:
+    print(path)
+    with open(path) as file:
+        config = yaml.safe_load(file)
+
+    curr_config = load_stages_config(config["STAGES"])
+    return curr_config
+
+
+def load_stages_config(stages_params: dict) -> CurriculumSchedule:
+    stages_config = dict()
+    for stage in stages_params:
+        stage_conf = CurriculumStageSchedule(**stages_params[stage])
+        stages_config[int(stage)] = stage_conf
+    return CurriculumSchedule(stages=stages_config)
