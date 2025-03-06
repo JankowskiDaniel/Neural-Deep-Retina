@@ -168,11 +168,14 @@ def test_model(
             pearson_corr = outputs_df.corrwith(
                 targets_df, method="pearson", axis=0
             )
-            # Handle nans in the correlation
             # If all values are the same, the correlation is nan
-            pearson_corr = pearson_corr.fillna(42)
+            # Fill nan values with 0
+            pearson_corr = pearson_corr.fillna(0)
             # Add Pearson correlation by each target channel to metrics_dict
             for i, corr in enumerate(pearson_corr):
                 metrics_dict[f"pcorr_{corr_data_mode}_ch_{i}"] = corr
+            # Calculate mean Pearson correlation
+            mean_pcorr = pearson_corr.mean()
+            metrics_dict[f"pcorr_mean_{corr_data_mode}"] = mean_pcorr
 
     return test_loss, metrics_dict
