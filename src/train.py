@@ -216,6 +216,15 @@ if __name__ == "__main__":
             {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
         ]
     )
+    # Learning rate scheduler
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",
+        factor=0.8,
+        patience=3,
+        cooldown=2,
+        threshold=0.01,
+    )
 
     if if_wandb:
         wandb.config.update({"optimizer": optimizer.__class__.__name__})
@@ -281,6 +290,11 @@ if __name__ == "__main__":
 
         logger.info(
             f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
+        )
+        scheduler.step(valid_loss)
+        logger.info(
+            f"Learing rates: Encoder {optimizer.param_groups[0]['lr']} | " +
+            f"Predictor {optimizer.param_groups[1]['lr']}"
         )
 
         if if_wandb:
