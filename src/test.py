@@ -1,9 +1,10 @@
 import torch
-import torch.nn as nn
+# import torch.nn as nn
 from torch.utils.data import DataLoader
 from time import time
 import pandas as pd
 import wandb.plot
+from utils.loss_functions import TverskyLoss
 from utils.training_utils import test_model
 from utils.logger import get_logger
 from utils import (
@@ -13,7 +14,10 @@ from utils import (
     get_metric_tracker,
     load_data_handler,
 )
-from utils.classification_metrics import save_classification_report
+from utils.classification_metrics import (
+    save_classification_report,
+    save_roc_auc_scores
+)
 from visualize.visualize_dataset import visualize_outputs_and_targets
 import wandb
 
@@ -94,7 +98,7 @@ if __name__ == "__main__":
     )
 
     # Define loss function
-    loss_fn = nn.BCEWithLogitsLoss()
+    loss_fn = TverskyLoss()
 
     # Create metric tracker
     metrics_tracker = get_metric_tracker(config.testing.metrics)
@@ -181,6 +185,14 @@ if __name__ == "__main__":
             is_train=False,
             file_name="classification_report",
         )
+        save_roc_auc_scores(
+                targets=targets,
+                outputs=outputs,
+                plots_dir=plots_dir,
+                is_train=False,
+                file_name="roc_auc_scores",
+            )
+
     if if_wandb:
         wandb.log({"Plots/Test_Scaled": fig})
     logger.info(
@@ -286,6 +298,13 @@ if __name__ == "__main__":
                 plots_dir=plots_dir,
                 is_train=True,
                 file_name="classification_report",
+            )
+            save_roc_auc_scores(
+                targets=targets,
+                outputs=outputs,
+                plots_dir=plots_dir,
+                is_train=True,
+                file_name="roc_auc_scores",
             )
 
         if if_wandb:

@@ -1,9 +1,9 @@
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
-import torch.nn as nn
 from time import time
 from sklearn.preprocessing import MinMaxScaler
+from utils.loss_functions import TverskyLoss
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
@@ -241,7 +241,8 @@ if __name__ == "__main__":
     # # Convert to PyTorch tensor
     # pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
     # print(f"POS WEIGHT: {pos_weight_tensor}")
-    loss_fn = nn.MSELoss()
+    # loss_fn = nn.MSELoss()
+    loss_fn = TverskyLoss(alpha=0.5, beta=0.5, smooth=1)
     # loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
     if if_wandb:
         wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
