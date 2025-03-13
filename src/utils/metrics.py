@@ -3,6 +3,7 @@ from torchmetrics import MetricCollection
 from torchmetrics.regression import MeanSquaredError, MeanAbsoluteError
 from scipy.stats import wasserstein_distance
 import numpy as np
+import pandas as pd
 
 
 # Mapping from metric names to torchmetric objects
@@ -40,6 +41,39 @@ def get_metric_tracker(metrics: list[str]) -> MetricTracker:
     # Create a metric tracker from the metric collection
     tracker = MetricTracker(metric_collection, maximize=False)
     return tracker
+
+
+def compute_pearson_correlations(
+    outputs: pd.DataFrame, targets: pd.DataFrame, prefix: str = "corr_"
+) -> dict:
+    """
+    Compute the Pearson correlation between the outputs and targets.
+
+    Parameters:
+        outputs (pd.DataFrame): The DataFrame containing the model outputs.
+        targets (pd.DataFrame): The DataFrame containing the target values.
+        suffix (str): The prefix to add to the metric names.
+
+    Returns:
+        dict: The computed Pearson correlations for each channel
+               and the mean for all channels.
+
+    Example:
+        pearson_correlations = compute_pearson_correlation(outputs, targets)
+    """
+    pearson_correlations = {}
+    pearson_corr = outputs.corrwith(targets, method="pearson", axis=0)
+    # If all values are the same, the correlation is nan
+    # Fill nan values with 0
+    pearson_corr = pearson_corr.fillna(0)
+    # Add Pearson correlation by each target channel to metrics_dict
+    for i, corr in enumerate(pearson_corr):
+        pearson_correlations[f"{prefix}_ch_{i}"] = corr
+    # Compute the mean Pearson correlation
+    pearson_correlations[f"{prefix}mean"] = np.mean(
+        list(pearson_correlations.values())
+    )
+    return pearson_correlations
 
 
 def compute_wasserstein_distances(
