@@ -176,7 +176,9 @@ def test_model(
             metrics_dict.update(pearson_correlations)
             # Calculate Wasserstein distance between outputs and targets
             wasserstein_distances = compute_wasserstein_distances(
-                outputs_df.values, targets_df.values, "emd_" + corr_data_mode + "_"
+                outputs_df.values,
+                targets_df.values,
+                "emd_" + corr_data_mode + "_",
             )
             # Add Wasserstein distances to metrics_dict
             metrics_dict.update(wasserstein_distances)
