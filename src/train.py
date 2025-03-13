@@ -293,8 +293,8 @@ if __name__ == "__main__":
         )
         scheduler.step(valid_loss)
         logger.info(
-            f"Learing rates: Encoder {optimizer.param_groups[0]['lr']} | " +
-            f"Predictor {optimizer.param_groups[1]['lr']}"
+            f"Learing rates: Encoder {optimizer.param_groups[0]['lr']} | "
+            + f"Predictor {optimizer.param_groups[1]['lr']}"
         )
 
         if if_wandb:

@@ -10,6 +10,10 @@ from tqdm import tqdm
 from typing import Literal, Tuple, Any
 
 from models import DeepRetinaModel
+from utils.metrics import (
+    compute_pearson_correlations,
+    compute_wasserstein_distances,
+)
 
 
 def train_epoch(
@@ -165,17 +169,18 @@ def test_model(
                 mae = np.mean(np.abs(outputs_df.values - targets_df.values))
                 metrics_dict["MAE_unscaled"] = mae
             # Calculate Pearson correlation between outputs and targets
-            pearson_corr = outputs_df.corrwith(
-                targets_df, method="pearson", axis=0
+            pearson_correlations = compute_pearson_correlations(
+                outputs_df, targets_df, prefix="pcorr_" + corr_data_mode + "_"
             )
-            # If all values are the same, the correlation is nan
-            # Fill nan values with 0
-            pearson_corr = pearson_corr.fillna(0)
-            # Add Pearson correlation by each target channel to metrics_dict
-            for i, corr in enumerate(pearson_corr):
-                metrics_dict[f"pcorr_{corr_data_mode}_ch_{i}"] = corr
-            # Calculate mean Pearson correlation
-            mean_pcorr = pearson_corr.mean()
-            metrics_dict[f"pcorr_mean_{corr_data_mode}"] = mean_pcorr
+            # Add Pearson correlations to metrics_dict
+            metrics_dict.update(pearson_correlations)
+            # Calculate Wasserstein distance between outputs and targets
+            wasserstein_distances = compute_wasserstein_distances(
+                outputs_df.values,
+                targets_df.values,
+                "emd_" + corr_data_mode + "_",
+            )
+            # Add Wasserstein distances to metrics_dict
+            metrics_dict.update(wasserstein_distances)
 
     return test_loss, metrics_dict
