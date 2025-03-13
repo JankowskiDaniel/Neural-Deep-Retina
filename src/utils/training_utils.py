@@ -10,6 +10,7 @@ from tqdm import tqdm
 from typing import Literal, Tuple, Any
 
 from models import DeepRetinaModel
+from utils.metrics import compute_wasserstein_distances
 
 
 def train_epoch(
@@ -177,5 +178,11 @@ def test_model(
             # Calculate mean Pearson correlation
             mean_pcorr = pearson_corr.mean()
             metrics_dict[f"pcorr_mean_{corr_data_mode}"] = mean_pcorr
+            # Calculate Wasserstein distance between outputs and targets
+            wasserstein_distances = compute_wasserstein_distances(
+                outputs_df.values, targets_df.values, "emd_" + corr_data_mode
+            )
+            # Add Wasserstein distances to metrics_dict
+            metrics_dict.update(wasserstein_distances)
 
     return test_loss, metrics_dict

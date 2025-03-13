@@ -1,6 +1,8 @@
 from torchmetrics.wrappers import MetricTracker
 from torchmetrics import MetricCollection
 from torchmetrics.regression import MeanSquaredError, MeanAbsoluteError
+from scipy.stats import wasserstein_distance
+import numpy as np
 
 
 # Mapping from metric names to torchmetric objects
@@ -38,3 +40,35 @@ def get_metric_tracker(metrics: list[str]) -> MetricTracker:
     # Create a metric tracker from the metric collection
     tracker = MetricTracker(metric_collection, maximize=False)
     return tracker
+
+
+def compute_wasserstein_distances(
+    outputs: np.ndarray, targets: np.ndarray, prefix: str = "emd_"
+) -> dict:
+    """
+    Compute the Wasserstein distance between the outputs and targets.
+
+    Parameters:
+        outputs (pd.DataFrame): The DataFrame containing the model outputs.
+        targets (pd.DataFrame): The DataFrame containing the target values.
+        suffix (str): The prefix to add to the metric names.
+
+    Returns:
+        dict: The computed Wasserstein distances for each channel
+               and the mean for all channels.
+
+    Example:
+        wasserstein_distances = compute_wasserstein_distance(outputs, targets)
+    """
+    wasserstein_distances = {}
+    distances_sum = 0.0
+    n_channels = outputs.shape[1]
+    for channel in range(n_channels):
+        distance = wasserstein_distance(
+            outputs[:, channel], targets[:, channel]
+        )
+        wasserstein_distances[f"{prefix}ch_{channel}"] = distance
+        distances_sum += distance
+    # Compute the mean Wasserstein distance
+    wasserstein_distances[f"{prefix}mean"] = distances_sum / n_channels
+    return wasserstein_distances
