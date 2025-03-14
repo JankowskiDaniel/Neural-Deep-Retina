@@ -98,7 +98,6 @@ if __name__ == "__main__":
 
     # Create metric tracker
     metrics_tracker = get_metric_tracker(config.testing.metrics)
-    metrics_tracker.to(DEVICE)
 
     # Set the path for saving predictions
     predictions_dir = results_dir_path / "testset_predictions"

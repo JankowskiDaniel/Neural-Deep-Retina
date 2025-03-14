@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from time import time
 from sklearn.preprocessing import MinMaxScaler
+from torchmetrics.regression import PearsonCorrCoef
 from utils.training_utils import train_epoch, valid_epoch
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
@@ -14,6 +15,7 @@ from data_handlers import (
 )
 from utils import (
     get_training_arguments,
+    get_metric_tracker,
     load_config,
     load_curriculum_schedule,
     load_model,
@@ -251,12 +253,20 @@ if __name__ == "__main__":
         PATIENCE = config.training.early_stopping_patience
         early_stopping = EarlyStopping(patience=PATIENCE)
 
+    val_metric_tracker = get_metric_tracker(
+        ["mae", "mse", "pcorr"],
+        initialized_metrics=[
+            PearsonCorrCoef(num_outputs=config.training.num_units).to(DEVICE)
+        ],
+        DEVICE=DEVICE,
+    )
+
     # ########### START TRAINING ###########
     logger.info(f"Training on {DEVICE} using device: {DEVICE_NAME}")
     model.to(DEVICE)
     start_training_time = time()
 
-    best_val_loss = float("inf")
+    best_pcorr = 0.0
     for epoch in tqdm(range(N_EPOCHS)):
         start_epoch_time = time()
         train_loader, val_loader = curriculum_handler.get_dataloaders(epoch)
@@ -271,44 +281,52 @@ if __name__ == "__main__":
         )
         train_history["train_loss"].append(train_loss)
 
-        logger.info(
-            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}"
-        )
-        (f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss}")
-
         if if_wandb:
             wandb.log({"training/train_loss": train_loss, "epoch": epoch})
 
         # validation
-        valid_loss = valid_epoch(
+        valid_loss, val_metrics = valid_epoch(
             model=model,
             valid_loader=val_loader,
             loss_fn=loss_fn,
             device=DEVICE,
+            metric_tracker=val_metric_tracker,
         )
         train_history["valid_loss"].append(valid_loss)
 
         logger.info(
-            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Validation Loss: {valid_loss}"
+            f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss} | "
+            + f"Validation Loss: {valid_loss}"
         )
         scheduler.step(valid_loss)
         logger.info(
             f"Learing rates: Encoder {optimizer.param_groups[0]['lr']} | "
             + f"Predictor {optimizer.param_groups[1]['lr']}"
         )
+        # Calculate mean Pearson correlation
+        val_mean_pcorr = (
+            torch.nan_to_num(val_metrics["PearsonCorrCoef"], nan=0.0)
+            .mean()
+            .item()
+        )
+        print(val_metrics["PearsonCorrCoef"])
+        val_metrics["PearsonCorrCoef"] = val_mean_pcorr
+
+        logger.info(f"Validation metrics: {val_metrics}")
 
         if if_wandb:
             wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
 
-        if valid_loss < best_val_loss:
-            best_val_loss = valid_loss
+        if val_mean_pcorr > best_pcorr:
+            best_pcorr = val_mean_pcorr
             torch.save(
                 model.state_dict(), results_dir_path / "models" / "best.pth"
             )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:
-            if early_stopping(valid_loss):
+            # We use -val_mean_pcorr to maximize the Pearson correlation
+            if early_stopping(-val_mean_pcorr):
                 logger.info(f"Early stopping at epoch {epoch + 1}")
                 break
 

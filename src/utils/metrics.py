@@ -1,9 +1,11 @@
 from torchmetrics.wrappers import MetricTracker
 from torchmetrics import MetricCollection
 from torchmetrics.regression import MeanSquaredError, MeanAbsoluteError
+from torchmetrics.metric import Metric
 from scipy.stats import wasserstein_distance
 import numpy as np
 import pandas as pd
+from typing import List
 
 
 # Mapping from metric names to torchmetric objects
@@ -13,12 +15,17 @@ metrics_dict = {
 }
 
 
-def get_metric_tracker(metrics: list[str]) -> MetricTracker:
+def get_metric_tracker(
+    metric_names: List[str],
+    initialized_metrics: List[Metric] = [],
+    DEVICE: str = "cpu",
+) -> MetricTracker:
     """
     Creates a metric tracker based on the given list of metrics.
 
     Parameters:
-        metrics (list[str]): A list of metric names.
+        metric_names (List[str]): A list of metric names.
+        initialized_metrics (List[Metric]): A list of initialized metrics.
 
     Returns:
         MetricTracker: The created metric tracker.
@@ -32,14 +39,18 @@ def get_metric_tracker(metrics: list[str]) -> MetricTracker:
     """
     metric_objects: list = []
     # Add metric objects to the list
-    for m in metrics:
+    for m in metric_names:
         try:
-            metric_objects.append(metrics_dict[m])
+            metric = metrics_dict[m].to(DEVICE)
+            metric_objects.append(metric)
         except KeyError:
             print(f"Metric {m} not supported.")
+    # Add initialized metrics to the list
+    metric_objects.extend(initialized_metrics)
     metric_collection = MetricCollection(metric_objects)
     # Create a metric tracker from the metric collection
     tracker = MetricTracker(metric_collection, maximize=False)
+    tracker = tracker.to(DEVICE)
     return tracker
 
 

@@ -59,7 +59,8 @@ def valid_epoch(
     valid_loader: DataLoader,
     loss_fn: nn.Module,
     device: Literal["cuda", "cpu"],
-) -> float:
+    metric_tracker: MetricTracker,
+) -> Tuple[float, dict]:
     """
     Calculates the average validation loss for a given model.
     Args:
@@ -67,21 +68,26 @@ def valid_epoch(
         valid_loader (DataLoader): The data loader for the validation dataset.
         loss_fn (nn.Module): The loss function used to calculate the loss.
         device (Literal["cuda", "cpu"]): The device on which the model and data are located.
+        metric_tracker (MetricTracker): The metric tracker to track the evaluation metrics.
     Returns:
-        float: The average validation loss.
+        Tuple[float, dict]: The average validation loss and a dictionary of evaluation metrics.
     """  # noqa: E501
     model.eval()
     valid_batch_losses = []
+    metric_tracker.increment()
     with torch.no_grad():
         for data, labels in valid_loader:
             images = data.to(device)
             targets = labels.to(device)
             outputs = model(images)
 
+            metric_tracker.update(outputs, targets)
+
             loss = loss_fn(outputs, targets)
             valid_batch_losses.append(loss.item())
         valid_loss = np.sum(valid_batch_losses) / len(valid_batch_losses)
-    return valid_loss
+    metric_dict = metric_tracker.compute()
+    return valid_loss, metric_dict
 
 
 def test_model(
@@ -112,7 +118,7 @@ def test_model(
     outputs_df = pd.DataFrame()  # Create an empty dataframe for outputs
     targets_df = pd.DataFrame()  # Create an empty dataframe for targets
     with torch.no_grad():
-        tracker.increment()
+        # tracker.increment()
         for data, labels in (pbar := tqdm(test_loader, unit="batch")):
             images = data.to(device)
             targets = labels.to(device)
