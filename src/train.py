@@ -309,13 +309,13 @@ if __name__ == "__main__":
             .mean()
             .item()
         )
-        print(val_metrics["PearsonCorrCoef"])
         val_metrics["PearsonCorrCoef"] = val_mean_pcorr
 
         logger.info(f"Validation metrics: {val_metrics}")
 
         if if_wandb:
             wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
+            wandb.log({"training/valid_metrics": val_metrics, "epoch": epoch})
 
         if val_mean_pcorr > best_pcorr:
             best_pcorr = val_mean_pcorr
