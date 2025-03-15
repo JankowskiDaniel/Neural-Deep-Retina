@@ -40,6 +40,7 @@ class TrainingConfig:
     early_stopping_patience: int
     save_logs: bool
     is_curriculum: bool
+    debug_mode: bool
 
 
 @dataclass

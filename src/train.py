@@ -5,7 +5,7 @@ import torch.nn as nn
 from time import time
 from sklearn.preprocessing import MinMaxScaler
 from torchmetrics.regression import PearsonCorrCoef
-from utils.training_utils import train_epoch, valid_epoch
+from utils.training_utils import train_epoch, valid_epoch, check_gradients
 from utils.logger import get_logger
 from utils.file_manager import organize_folders, copy_config
 from data_handlers import (
@@ -282,6 +282,9 @@ if __name__ == "__main__":
 
         if if_wandb:
             wandb.log({"training/train_loss": train_loss, "epoch": epoch})
+
+        if config.training.debug_mode:
+            check_gradients(model, logger)
 
         # validation
         valid_loss, val_metrics = valid_epoch(

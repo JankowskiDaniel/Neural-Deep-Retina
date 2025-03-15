@@ -8,6 +8,7 @@ import pandas as pd
 from pathlib import Path
 from tqdm import tqdm
 from typing import Literal, Tuple, Any
+from logging import Logger
 
 from models import DeepRetinaModel
 from utils.metrics import (
@@ -190,3 +191,25 @@ def test_model(
             metrics_dict.update(wasserstein_distances)
 
     return test_loss, metrics_dict
+
+
+def check_gradients(model: DeepRetinaModel, logger: Logger) -> None:
+    """
+    Check if there are exploding or vanishing gradients in the model.
+    Args:
+        model (DeepRetinaModel): The model to check the gradients for.
+        logger (Logger): The logger to log the possible gradient warnings.
+    Returns:
+        None
+    """  # noqa: E501
+    for name, param in model.named_parameters():
+        if param.grad is not None:
+            grad_norm = param.grad.norm()
+            if torch.isnan(grad_norm) or torch.isinf(grad_norm):
+                logger.info(
+                    f"Exploding gradient detected in parameter: {name} with norm: {grad_norm}"
+                )
+            if grad_norm < 1e-6:  # Threshold for vanishing gradients
+                logger.info(
+                    f"Vanishing gradient detected in parameter: {name} with norm: {grad_norm}"
+                )

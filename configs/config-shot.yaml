@@ -12,7 +12,8 @@ DATA:
   is_classification: False
   class_epsilon: 1.0
 TRAINING:
-  is_curriculum: True
+  is_curriculum: False
+  debug_mode: True
   ENCODER:
     name: ShotSeqEncoder
     weights: null
@@ -22,7 +23,7 @@ TRAINING:
     name: SimpleCFC
     learning_rate: 0.001
   batch_size: 128
-  epochs: 10
+  epochs: 50
   num_units: 9
   early_stopping: False
   early_stopping_patience: 5
