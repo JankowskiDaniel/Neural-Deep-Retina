@@ -207,9 +207,11 @@ def check_gradients(model: DeepRetinaModel, logger: Logger) -> None:
             grad_norm = param.grad.norm()
             if torch.isnan(grad_norm) or torch.isinf(grad_norm):
                 logger.info(
-                    f"Exploding gradient detected in parameter: {name} with norm: {grad_norm}"
+                    "Exploding gradient detected in "
+                    + f"parameter: {name} with norm: {grad_norm}"
                 )
             if grad_norm < 1e-6:  # Threshold for vanishing gradients
                 logger.info(
-                    f"Vanishing gradient detected in parameter: {name} with norm: {grad_norm}"
+                    "Vanishing gradient detected in "
+                    + f"parameter: {name} with norm: {grad_norm}"
                 )
