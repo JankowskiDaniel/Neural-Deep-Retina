@@ -118,7 +118,7 @@ def test_model(
     outputs_df = pd.DataFrame()  # Create an empty dataframe for outputs
     targets_df = pd.DataFrame()  # Create an empty dataframe for targets
     with torch.no_grad():
-        # tracker.increment()
+        tracker.increment()
         for data, labels in (pbar := tqdm(test_loader, unit="batch")):
             images = data.to(device)
             targets = labels.to(device)
