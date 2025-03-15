@@ -39,7 +39,6 @@ if __name__ == "__main__":
     curr_schedule = None
     if config.training.is_curriculum:
         curr_schedule = load_curriculum_schedule(curriculum_schedule_path)
-        print(curr_schedule)
 
     # Organize folders
     organize_folders(results_dir)

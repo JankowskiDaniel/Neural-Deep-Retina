@@ -56,7 +56,6 @@ def load_config(path: Path) -> Config:
 
 
 def load_curriculum_schedule(path: Path) -> CurriculumSchedule:
-    print(path)
     with open(path) as file:
         config = yaml.safe_load(file)
 
