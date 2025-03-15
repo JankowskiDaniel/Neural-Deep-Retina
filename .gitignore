@@ -174,3 +174,6 @@ notebooks/plots/
 notebooks/*.csv
 notebooks/*.gif
 notebooks/*.png
+
+# ignore slurm config files
+configs/*slurm.yaml

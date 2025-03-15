@@ -41,6 +41,11 @@ def load_config(path: Path) -> Config:
             if "is_curriculum" in config["TRAINING"]
             else False
         ),
+        debug_mode=(
+            config["TRAINING"]["debug_mode"]
+            if "debug_mode" in config["TRAINING"]
+            else False
+        ),
     )
     testing_config = TestingConfig(
         batch_size=config["TESTING"]["batch_size"],
