@@ -27,6 +27,16 @@ class EncodingBlock(nn.Module):
             nn.BatchNorm2d(num_features=out_channels),
             pooling,
         )
+        self._initialize_weights()
+
+    def _initialize_weights(self):
+        """Initialize Conv2D layers using Xavier initialization."""
+        print("Initializing weights in the EncoderBlock with Xavier initialization")
+        for layer in self.block:
+            if isinstance(layer, nn.Conv2d):
+                nn.init.xavier_uniform_(layer.weight)
+                if layer.bias is not None:
+                    nn.init.zeros_(layer.bias)
 
     def forward(self, x):
         x = self.block(x)
