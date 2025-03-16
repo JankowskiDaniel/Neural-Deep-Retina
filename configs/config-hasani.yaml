@@ -1,0 +1,37 @@
+DATA:
+  data_handler: BaselineSeqRGBDataset
+  img_shape: [1, 50, 50]
+  path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
+  response_type: firing_rate_10ms
+  is_rgb: False
+  seq_len: 4
+  subseq_len: 1
+  prediction_step: 0
+  subset_size: 2000
+  pred_channels: [0,1,2,3,4,5,6,7,8]
+  is_classification: False
+  class_epsilon: 1.0
+TRAINING:
+  is_curriculum: False
+  debug_mode: True
+  ENCODER:
+    name: ShotSeqEncoder
+    weights: null
+    freeze: False
+    learning_rate: 0.001
+  PREDICTOR:
+    name: HasaniCFC
+    learning_rate: 0.001
+  batch_size: 128
+  epochs: 50
+  num_units: 9
+  early_stopping: False
+  early_stopping_patience: 5
+  save_logs: True
+TESTING:
+  batch_size: 128
+  weights: "best.pth"
+  metrics: ["mae", "mse"]
+  save_logs: True
+  run_on_test_data: True
+  run_on_train_data: True

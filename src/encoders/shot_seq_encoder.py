@@ -46,7 +46,12 @@ class ShotSeqEncoder(Encoder):
 
         # The input shape is (batch_size, channels, height, width)
         # Channels is equal to the number of frames in the sequence
-        in_channels = input_shape[1]
+        if seq_len > 1:
+            in_channels = input_shape[2]
+        else:
+            in_channels = input_shape[1]
+
+        self.seq_len = seq_len
 
         self.conv = nn.Sequential(
             EncodingBlock(in_channels, out_channels),
@@ -63,13 +68,26 @@ class ShotSeqEncoder(Encoder):
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
-        x = self.conv(x)
-        x = self.flatten(x)
-        x = self.linear(x)
-        x = self.activation(x)
-        x = self.bn1d(x)
-        # Add a dummy dimension for the sequence length
-        x = x.unsqueeze(1)
+        if self.seq_len > 1:
+            latent_seq = []
+            # batch
+            for t in range(self.seq_len):
+                x_t = x[:, t]
+                x_t = self.conv(x_t)
+                x_t = self.flatten(x_t)
+                x_t = self.linear(x_t)
+                x_t = self.activation(x_t)
+                x_t = self.bn1d(x_t)
+                latent_seq.append(x_t)
+            x = torch.stack(latent_seq, dim=1)
+        else:
+            x = self.conv(x)
+            x = self.flatten(x)
+            x = self.linear(x)
+            x = self.activation(x)
+            x = self.bn1d(x)
+            # Add a dummy dimension for the sequence length
+            x = x.unsqueeze(1)
         return x
 
     def get_output_shape(self):

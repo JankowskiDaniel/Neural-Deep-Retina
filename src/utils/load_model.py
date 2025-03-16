@@ -2,7 +2,7 @@ from pathlib import Path
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.linears import SingleLinear, MultiLinear, OgLinear
-from predictors.rnns import SingleLSTM, SimpleCFC
+from predictors.rnns import SingleLSTM, SimpleCFC, HasaniCfC
 from encoders import (
     VGG16Encoder,
     MC3VideoEncoder,
@@ -18,6 +18,7 @@ PREDICTORS: dict[str, Predictor] = {
     "SingleLSTM": SingleLSTM,
     "OgLinear": OgLinear,
     "SimpleCFC": SimpleCFC,
+    "HasaniCFC": HasaniCfC,
 }
 
 ENCODERS: dict[str, Encoder] = {
