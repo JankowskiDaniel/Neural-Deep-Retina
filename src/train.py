@@ -1,7 +1,6 @@
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
-import torch.nn as nn
 from time import time
 from sklearn.preprocessing import MinMaxScaler
 from torchmetrics.regression import PearsonCorrCoef
@@ -21,6 +20,8 @@ from utils import (
     load_model,
     EarlyStopping,
     load_data_handler,
+    BinaryPDFWeightedBCEWithLogitsLoss,
+    compute_pos_weights,
 )
 from visualize.visualize_loss import visualize_loss
 import wandb
@@ -232,18 +233,12 @@ if __name__ == "__main__":
 
     # get Y to compute pos_weight for BCEWithLogitsLoss
     Y = train_dataset.get_target()
+    threshold = 0.1
+    pos_weights = compute_pos_weights(Y, DEVICE=DEVICE, threshold=threshold)
+    loss_fn = BinaryPDFWeightedBCEWithLogitsLoss(
+        weights=pos_weights, threshold=threshold
+    )
 
-    # pos_counts = np.sum(Y, axis=1)  # Count of positive (1s) per class
-    # neg_counts = Y.shape[1] - pos_counts  # Count of negative (0s) per class
-
-    # # Compute pos_weight (negatives / positives), ensuring no division by zero
-    # pos_weight = np.where(pos_counts > 0, neg_counts / pos_counts, 1.0)
-
-    # # Convert to PyTorch tensor
-    # pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
-    # print(f"POS WEIGHT: {pos_weight_tensor}")
-    loss_fn = nn.MSELoss()
-    # loss_fn = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
     if if_wandb:
         wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
