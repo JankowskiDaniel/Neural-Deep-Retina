@@ -33,27 +33,28 @@ class BinaryPDFWeightedBCEWithLogitsLoss(nn.Module):
 
         if not (target.size() == input.size()):
             raise ValueError(
-                f"Target size ({target.size()}) must " +
-                f"be the same as input size ({input.size()})"
+                f"Target size ({target.size()}) must "
+                + f"be the same as input size ({input.size()})"
             )
 
         # Targets > threshold are treated as positive class
         mask = target > self.threshold
         weights = mask * self.weights
 
-        loss = (
+        pos_loss = (
             target[mask]
             * torch.log(torch.sigmoid(input[mask]))
             * weights[mask]
         ).sum()
 
         # Targets <= threshold are treated as negative class
-
-        loss += (
+        neg_loss = (
             (1 - target[~mask]) * torch.log(1 - torch.sigmoid(input[~mask]))
         ).sum()
 
-        return -loss / target.size(0)
+        loss = pos_loss + neg_loss
+
+        return -loss / target.numel()
 
 
 def compute_pos_weights(
