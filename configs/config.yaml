@@ -1,5 +1,5 @@
 DATA:
-  data_handler: BaselineRGBDataset # "H5Dataset", "H5SeqDataset", "BaselineRGBDataset", "BaselineSeqRGBDataset"
+  data_handler: CurriculumBaselineRGBDataset # "H5Dataset", "H5SeqDataset", "BaselineRGBDataset", "BaselineSeqRGBDataset"
   img_shape: [40, 50, 50]
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
   response_type: firing_rate_10ms
@@ -8,6 +8,8 @@ DATA:
   subseq_len: 40
   prediction_step: 1
   subset_size: 2000
+  is_classification: False
+  class_epsilon: 0.001
   pred_channels: [0,1]
 TRAINING:
   ENCODER:
@@ -19,11 +21,12 @@ TRAINING:
     name: OgLinear
     learning_rate: 0.001
   batch_size: 16
-  epochs: 10
+  epochs: 1
   num_units: 2
   early_stopping: False
   early_stopping_patience: 5
   save_logs: True
+  is_curriculum: True
 TESTING:
   batch_size: 16
   weights: "best.pth"

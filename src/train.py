@@ -36,13 +36,14 @@ if __name__ == "__main__":
     print(if_wandb)
     config = load_config(config_path)
 
-    curr_schedule = None
-    if config.training.is_curriculum:
-        curr_schedule = load_curriculum_schedule(curriculum_schedule_path)
-
     # Organize folders
     organize_folders(results_dir)
     copy_config(results_dir, config_path)
+
+    curr_schedule = None
+    if config.training.is_curriculum:
+        curr_schedule = load_curriculum_schedule(curriculum_schedule_path)
+        copy_config(results_dir, curriculum_schedule_path, is_curr_config=True)
 
     # Create path object to results directory
     results_dir_path = "results" / results_dir
@@ -110,6 +111,8 @@ if __name__ == "__main__":
     with open(results_dir_path / "id.txt", "w") as f:
         f.write(_id)
 
+    mapped_curriculum_schedule = curr_schedule.__dict__ if curr_schedule else {}
+
     if if_wandb:
         wandb.init(
             entity="jankowskidaniel06-put",
@@ -146,6 +149,7 @@ if __name__ == "__main__":
                 "epochs": N_EPOCHS,
                 "batch_size": BATCH_SIZE,
                 "num_units": config.training.num_units,
+                "curriculum_schedule": {**mapped_curriculum_schedule},
             },
             resume="allow",
         )
