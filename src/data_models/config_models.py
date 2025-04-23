@@ -42,6 +42,7 @@ class TrainingConfig:
     save_logs: bool
     is_curriculum: bool
     debug_mode: bool
+    loss_function: str
 
 
 @dataclass

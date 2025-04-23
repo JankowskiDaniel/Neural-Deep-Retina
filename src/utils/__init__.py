@@ -1,5 +1,6 @@
 from .load_config import load_config, load_curriculum_schedule
 from .parser import get_training_arguments, get_testing_arguments
+from .load_loss_fn import load_loss_function
 from .load_model import load_model
 from .metrics import get_metric_tracker
 from .early_stopping import EarlyStopping
@@ -18,6 +19,7 @@ __all__ = [
     "load_curriculum_schedule",
     "get_training_arguments",
     "get_testing_arguments",
+    "load_loss_function",
     "load_model",
     "get_metric_tracker",
     "EarlyStopping",

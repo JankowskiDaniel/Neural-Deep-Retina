@@ -12,6 +12,7 @@ from utils import (
     load_model,
     get_metric_tracker,
     load_data_handler,
+    load_loss_function
 )
 from utils.classification_metrics import save_classification_report
 from visualize.visualize_dataset import visualize_outputs_and_targets
@@ -94,7 +95,8 @@ if __name__ == "__main__":
     )
 
     # Define loss function
-    loss_fn = nn.BCEWithLogitsLoss()
+    loss_fn_name = config.training.loss_function
+    loss_fn = load_loss_function(loss_fn_name=loss_fn_name)
 
     # Create metric tracker
     metrics_tracker = get_metric_tracker(config.testing.metrics, DEVICE=DEVICE)

@@ -28,6 +28,7 @@ TRAINING:
   early_stopping_patience: 5
   save_logs: True
   is_curriculum: True
+  loss_function: "bce_weighted"  # "mse", "mae", "bce", "bce_weighted"
 TESTING:
   batch_size: 16
   weights: "best.pth"
