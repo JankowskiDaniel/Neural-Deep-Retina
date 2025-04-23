@@ -47,30 +47,41 @@ def load_model(config: Config) -> DeepRetinaModel:
 
     # Resolve encoder weights
     if config.training.encoder.weights is not None:
-        weights_path = (
-            Path("pretrained_weights") / config.training.encoder.weights
-        )
+        weights_path_encoder = Path(config.training.encoder.weights)
         # Check if encoder weights exist
-        if not weights_path.exists():
+        if not weights_path_encoder.exists():
             raise FileNotFoundError(
-                f"Could not find weights at {weights_path}"
+                f"Could not find encoder weights at {weights_path_encoder}"
             )
     else:
-        weights_path = None
+        weights_path_encoder = None
     freeze = config.training.encoder.freeze
 
     # initialize encoder
     encoder: Encoder = ENCODERS[enc_name](
         input_shape=input_shape,
-        weights_path=weights_path,
+        weights_path=weights_path_encoder,
         freeze=freeze,
         seq_len=seq_len,
     )
     encoder_output_shape = encoder.get_output_shape()
 
+    # Resolve encoder weights
+    if config.training.predictor.weights is not None:
+        weights_path_predictor = Path(config.training.predictor.weights)
+        # Check if encoder weights exist
+        if not weights_path_predictor.exists():
+            raise FileNotFoundError(
+                f"Could not find predictor weights at {weights_path_predictor}"
+            )
+    else:
+        weights_path_predictor = None
+
     # initialize predictor
     predictor: Predictor = PREDICTORS[pred_name](
-        input_size=encoder_output_shape, num_classes=config.training.num_units
+        input_size=encoder_output_shape,
+        weights_path=weights_path_predictor,
+        num_classes=config.training.num_units
     )
 
     model = DeepRetinaModel(

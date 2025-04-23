@@ -44,13 +44,8 @@ class OgEncoder(nn.Module):
     ) -> None:
         super(OgEncoder, self).__init__()
         self.seq_len = seq_len
-        # Freeze the encoder
-        if freeze:
-            for param in self.features.parameters():
-                param.requires_grad = False
 
         # Dummy input to determine the output shape
-
         if self.seq_len >= 1:
             self.in_channels = input_shape[2]
             self.width = input_shape[3]
@@ -109,6 +104,10 @@ class OgEncoder(nn.Module):
 
         if weights_path is not None:
             self.load_state_dict(torch.load(weights_path))
+
+        if freeze:
+            for param in self.parameters():
+                param.requires_grad = False
 
         self._dummy_input = torch.zeros(input_shape)
         self._output_shape = self._compute_output_shape()

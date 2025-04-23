@@ -14,11 +14,12 @@ DATA:
 TRAINING:
   ENCODER:
     name: OgEncoder
-    weights: null # set to null if you want to train from scratch
-    freeze: False
+    weights: /home/Neural-Deep-Retina/results/test_c_log/models/final_encoder.pth # set to null if you want to train from scratch
+    freeze: True
     learning_rate: 0.0001
   PREDICTOR:
     name: OgLinear
+    weights: /home/Neural-Deep-Retina/results/test_c_log/models/final_predictor.pth
     learning_rate: 0.001
   batch_size: 16
   epochs: 1

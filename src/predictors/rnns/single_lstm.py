@@ -1,11 +1,17 @@
+from pathlib import Path
 from torch import nn
+import torch
 import torch.nn.init as init
 from interfaces import Predictor
 
 
 class SingleLSTM(Predictor):
     def __init__(
-        self, input_size: int, num_classes: int, hidden_size: int = 16
+        self,
+        input_size: int,
+        num_classes: int,
+        weights_path: Path | None = None,
+        hidden_size: int = 16
     ):
         super(SingleLSTM, self).__init__()
         self.flattened_size = input_size
@@ -24,6 +30,9 @@ class SingleLSTM(Predictor):
                 init.orthogonal_(param.data)
             elif "weight_hh" in name:  # Hidden-hidden weights
                 init.orthogonal_(param.data)
+
+        if weights_path is not None:
+            self.load_state_dict(torch.load(weights_path))
 
     def forward(self, x):
         out, _ = self.lstm(x)

@@ -59,6 +59,13 @@ class ShotSeqEncoder(Encoder):
         self.activation = nn.Tanh()
         self.bn1d = nn.BatchNorm1d(num_features=32)
 
+        if weights_path is not None:
+            self.load_state_dict(torch.load(weights_path))
+
+        if freeze:
+            for param in self.parameters():
+                param.requires_grad = False
+
         self._dummy_input = torch.zeros(input_shape)
         self._output_shape = self._compute_output_shape()
 
