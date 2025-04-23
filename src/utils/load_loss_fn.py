@@ -22,5 +22,5 @@ def load_loss_function(loss_fn_name: str, **kwargs) -> nn.Module:
     """
     if loss_fn_name not in LOSS_FUNCTIONS:
         raise ValueError(f"Loss function '{loss_fn_name}' is not supported.")
-    
+
     return LOSS_FUNCTIONS[loss_fn_name](**kwargs)

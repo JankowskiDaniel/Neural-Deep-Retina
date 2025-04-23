@@ -2,7 +2,6 @@ import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
-import torch.nn as nn
 from time import time
 from sklearn.preprocessing import MinMaxScaler
 from torchmetrics.regression import PearsonCorrCoef
