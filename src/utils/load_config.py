@@ -46,6 +46,7 @@ def load_config(path: Path) -> Config:
             if "debug_mode" in config["TRAINING"]
             else False
         ),
+        loss_function=config["TRAINING"]["loss_function"],
     )
     testing_config = TestingConfig(
         batch_size=config["TESTING"]["batch_size"],
