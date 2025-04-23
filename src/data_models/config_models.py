@@ -27,6 +27,7 @@ class EncoderConfig:
 class PredictorConfig:
     name: str
     learning_rate: float
+    weights: str | None
 
 
 @dataclass

@@ -7,7 +7,7 @@ class Encoder(nn.Module, ABC):
     Abstract class for encoders. All encoders should inherit from this class.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         super(Encoder, self).__init__()
 
     @abstractmethod

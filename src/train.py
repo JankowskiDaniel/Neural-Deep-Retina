@@ -57,6 +57,15 @@ if __name__ == "__main__":
     if not if_wandb:
         logger.warning("Logging to wandb is disabled.")
     logger.info("Loading model...")
+
+    if config.training.encoder.weights is not None:
+        logger.info(
+            f"Loading encoder weights from {config.training.encoder.weights}"
+        )
+    if config.training.predictor.weights is not None:
+        logger.info(
+            f"Loading predictor weights from {config.training.predictor.weights}"
+        )
     model = load_model(config)
 
     y_scaler = MinMaxScaler()  # StandardScaler(with_mean=False)
@@ -328,6 +337,15 @@ if __name__ == "__main__":
             torch.save(
                 model.state_dict(), results_dir_path / "models" / "best.pth"
             )
+            # save separately the encoder and predictor
+            torch.save(
+                model.encoder.state_dict(),
+                results_dir_path / "models" / "best_encoder.pth",
+            )
+            torch.save(
+                model.predictor.state_dict(),
+                results_dir_path / "models" / "best_predictor.pth",
+            )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
         if config.training.early_stopping:
@@ -346,6 +364,15 @@ if __name__ == "__main__":
         wandb.log({"training/total_time": total_time})
 
     torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
+    # save separately the encoder and predictor
+    torch.save(
+        model.encoder.state_dict(),
+        results_dir_path / "models" / "final_encoder.pth",
+    )
+    torch.save(
+        model.predictor.state_dict(),
+        results_dir_path / "models" / "final_predictor.pth",
+    )
     visualize_loss(train_history, results_dir_path)
 
     if if_wandb:

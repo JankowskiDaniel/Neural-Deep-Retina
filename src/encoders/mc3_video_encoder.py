@@ -34,6 +34,9 @@ class MC3VideoEncoder(Encoder):
             for param in self.features.parameters():
                 param.requires_grad = False
 
+        if weights_path is not None:
+            self.load_state_dict(torch.load(weights_path))
+
         # Dummy input to determine the output shape
         self._dummy_input = torch.zeros(input_shape)
         self._output_shape = self._compute_output_shape()
