@@ -1,4 +1,12 @@
-DATA:
+hydra:
+  run:
+    dir: results/test_hydra
+defaults:
+  - curriculum/curriculum-schedule
+  - override hydra/job_logging: disabled # disable hydra logging
+results_dir : test_hydra
+curriculum_schedule_path: configs/curriculum/curriculum-schedule.yaml
+data:
   data_handler: CurriculumBaselineRGBDataset
   img_shape: [40, 50, 50]
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
@@ -11,24 +19,26 @@ DATA:
   pred_channels: [0,1,2,3,4,5,6,7,8]
   is_classification: False
   class_epsilon: 1.0
-TRAINING:
+training:
   is_curriculum: False
   debug_mode: True
-  ENCODER:
+  loss_function: mse
+  encoder:
     name: ShotSeqEncoder
     weights: null
     freeze: False
     learning_rate: 0.0005
-  PREDICTOR:
+  predictor:
     name: SimpleCFC
     learning_rate: 0.001
+    weights: null
   batch_size: 128
   epochs: 50
   num_units: 9
   early_stopping: False
   early_stopping_patience: 5
   save_logs: True
-TESTING:
+testing:
   batch_size: 128
   weights: "best.pth"
   metrics: ["mae", "mse"]

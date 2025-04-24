@@ -6,10 +6,10 @@ from interfaces import Predictor
 
 class SingleLinear(Predictor):
     def __init__(
-            self,
-            input_size: int,
-            num_classes: int,
-            weights_path: Path | None = None,
+        self,
+        input_size: int,
+        num_classes: int,
+        weights_path: Path | None = None,
     ) -> None:
         super(SingleLinear, self).__init__()
         self.flattened_size = input_size

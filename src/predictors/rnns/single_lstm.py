@@ -11,7 +11,7 @@ class SingleLSTM(Predictor):
         input_size: int,
         num_classes: int,
         weights_path: Path | None = None,
-        hidden_size: int = 16
+        hidden_size: int = 16,
     ):
         super(SingleLSTM, self).__init__()
         self.flattened_size = input_size

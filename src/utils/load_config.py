@@ -24,36 +24,36 @@ def load_config(path: Path) -> Config:
     with open(path) as file:
         config = yaml.safe_load(file)
 
-    data_conf = DataConfig(**config["DATA"])
-    encoder_conf = EncoderConfig(**config["TRAINING"]["ENCODER"])
-    predictor_conf = PredictorConfig(**config["TRAINING"]["PREDICTOR"])
+    data_conf = DataConfig(**config["data"])
+    encoder_conf = EncoderConfig(**config["training"]["encoder"])
+    predictor_conf = PredictorConfig(**config["training"]["predictor"])
     training_conf = TrainingConfig(
         encoder=encoder_conf,
         predictor=predictor_conf,
-        batch_size=config["TRAINING"]["batch_size"],
-        epochs=config["TRAINING"]["epochs"],
-        num_units=config["TRAINING"]["num_units"],
-        early_stopping=config["TRAINING"]["early_stopping"],
-        early_stopping_patience=config["TRAINING"]["early_stopping_patience"],
-        save_logs=config["TRAINING"]["save_logs"],
+        batch_size=config["training"]["batch_size"],
+        epochs=config["training"]["epochs"],
+        num_units=config["training"]["num_units"],
+        early_stopping=config["training"]["early_stopping"],
+        early_stopping_patience=config["training"]["early_stopping_patience"],
+        save_logs=config["training"]["save_logs"],
         is_curriculum=(
-            config["TRAINING"]["is_curriculum"]
-            if "is_curriculum" in config["TRAINING"]
+            config["training"]["is_curriculum"]
+            if "is_curriculum" in config["training"]
             else False
         ),
         debug_mode=(
-            config["TRAINING"]["debug_mode"]
-            if "debug_mode" in config["TRAINING"]
+            config["training"]["debug_mode"]
+            if "debug_mode" in config["training"]
             else False
         ),
-        loss_function=config["TRAINING"]["loss_function"],
+        loss_function=config["training"]["loss_function"],
     )
     testing_config = TestingConfig(
-        batch_size=config["TESTING"]["batch_size"],
-        weights=config["TESTING"]["weights"],
-        metrics=config["TESTING"]["metrics"],
-        save_logs=config["TESTING"]["save_logs"],
-        run_on_train_data=config["TESTING"]["run_on_train_data"],
+        batch_size=config["testing"]["batch_size"],
+        weights=config["testing"]["weights"],
+        metrics=config["testing"]["metrics"],
+        save_logs=config["testing"]["save_logs"],
+        run_on_train_data=config["testing"]["run_on_train_data"],
     )
 
     return Config(

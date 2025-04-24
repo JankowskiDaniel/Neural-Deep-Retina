@@ -10,7 +10,7 @@ from encoders import (
     OgEncoder,
     ShotSeqEncoder,
 )
-from models import DeepRetinaModel
+from models.neural_retina import DeepRetinaModel
 
 PREDICTORS: dict[str, Predictor] = {
     "SingleLinear": SingleLinear,
@@ -81,7 +81,7 @@ def load_model(config: Config) -> DeepRetinaModel:
     predictor: Predictor = PREDICTORS[pred_name](
         input_size=encoder_output_shape,
         weights_path=weights_path_predictor,
-        num_classes=config.training.num_units
+        num_classes=config.training.num_units,
     )
 
     model = DeepRetinaModel(

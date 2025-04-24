@@ -3,6 +3,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
 from time import time
+from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
 from torchmetrics.regression import PearsonCorrCoef
 from utils.training_utils import train_epoch, valid_epoch, check_gradients
@@ -13,33 +14,41 @@ from data_handlers import (
     CurriculumDatasets,
     CurriculumDataloaders,
 )
+from data_models.config_models import Config
 from utils import (
-    get_training_arguments,
     get_metric_tracker,
-    load_config,
     load_curriculum_schedule,
     load_model,
     EarlyStopping,
     load_data_handler,
-    load_loss_function
+    load_loss_function,
 )
 from visualize.visualize_loss import visualize_loss
 import wandb
 from uuid import uuid4
 from torchinfo import summary
+import hydra
+from omegaconf import OmegaConf
 
 
-if __name__ == "__main__":
+@hydra.main(
+    config_path="../configs", config_name="config-shot", version_base=None
+)
+def train(config: Config) -> None:
 
-    config_path, curriculum_schedule_path, results_dir, if_wandb = (
-        get_training_arguments()
+    if_wandb = False
+    results_dir = Path(
+        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     )
+    print("Results dir:", results_dir)
+    curriculum_schedule_path = config.curriculum_schedule_path
+
     print(if_wandb)
-    config = load_config(config_path)
+    # config = load_config(config_path)
 
     # Organize folders
     organize_folders(results_dir)
-    copy_config(results_dir, config_path)
+    OmegaConf.save(config=config, f=results_dir / "config.yaml")
 
     curr_schedule = None
     if config.training.is_curriculum:
@@ -97,8 +106,7 @@ if __name__ == "__main__":
         f"Predictions will be made for channels: {train_dataset.pred_channels}"
     )
     TORCH_SEED = 12
-    TRAIN_SIZE = 0.8
-    # Split train dataset into train and validation
+
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
     torch.manual_seed(TORCH_SEED)
 
@@ -121,7 +129,9 @@ if __name__ == "__main__":
     with open(results_dir_path / "id.txt", "w") as f:
         f.write(_id)
 
-    mapped_curriculum_schedule = curr_schedule.__dict__ if curr_schedule else {}
+    mapped_curriculum_schedule = (
+        curr_schedule.__dict__ if curr_schedule else {}
+    )
 
     if if_wandb:
         wandb.init(
@@ -190,7 +200,7 @@ if __name__ == "__main__":
         model_summary_artifact = wandb.Artifact(
             "model_summary", "model_details"
         )
-        model_summary_artifact.add_file(model_summary_filename)
+        model_summary_artifact.add_file(str(model_summary_filename))
         wandb.log_artifact(model_summary_artifact)
 
     # Define data loaders
@@ -250,17 +260,18 @@ if __name__ == "__main__":
         # get Y to compute pos_weight for BCEWithLogitsLoss
         Y = train_dataset.get_target()
         pos_counts = np.sum(Y, axis=1)  # Count of positive (1s) per class
-        neg_counts = Y.shape[1] - pos_counts  # Count of negative (0s) per class
+        neg_counts = (
+            Y.shape[1] - pos_counts
+        )  # Count of negative (0s) per class
 
         # Compute pos_weight (negatives / positives), ensuring no division by zero
         pos_weight = np.where(pos_counts > 0, neg_counts / pos_counts, 1.0)
-        pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(DEVICE)
-        logger.info(
-            f"Pos weight for BCEWithLogitsLoss: {pos_weight_tensor}"
+        pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(
+            DEVICE
         )
+        logger.info(f"Pos weight for BCEWithLogitsLoss: {pos_weight_tensor}")
         loss_fn = load_loss_function(
-            loss_fn_name=loss_fn_name,
-            pos_weight=pos_weight_tensor
+            loss_fn_name=loss_fn_name, pos_weight=pos_weight_tensor
         )
     else:
         loss_fn = load_loss_function(loss_fn_name=loss_fn_name)
@@ -385,3 +396,8 @@ if __name__ == "__main__":
 
     if if_wandb:
         wandb.finish()
+
+
+if __name__ == "__main__":
+
+    train()
