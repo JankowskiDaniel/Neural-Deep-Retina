@@ -36,15 +36,11 @@ from omegaconf import OmegaConf
 )
 def train(config: Config) -> None:
 
-    if_wandb = False
     results_dir = Path(
         hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     )
     print("Results dir:", results_dir)
     curriculum_schedule_path = config.curriculum_schedule_path
-
-    print(if_wandb)
-    # config = load_config(config_path)
 
     # Organize folders
     organize_folders(results_dir)
@@ -64,8 +60,6 @@ def train(config: Config) -> None:
     )
 
     # load the model
-    if not if_wandb:
-        logger.warning("Logging to wandb is disabled.")
     logger.info("Loading model...")
 
     if config.training.encoder.weights is not None:
@@ -133,59 +127,57 @@ def train(config: Config) -> None:
         curr_schedule.__dict__ if curr_schedule else {}
     )
 
-    if if_wandb:
-        wandb.init(
-            entity="jankowskidaniel06-put",
-            project="Neural Deep Retina",
-            name=str(results_dir_path),
-            id=_id,
-            config={
-                "data": {
-                    "data_handler": config.data.data_handler,
-                    "img_shape": config.data.img_shape,
-                    "is_rgb": config.data.is_rgb,
-                    "seq_len": config.data.seq_len,
-                    "prediction_step": config.data.prediction_step,
-                    "scaler": y_scaler.__class__.__name__,
-                    "prediction_channels": config.data.pred_channels,
-                    "is_classification": config.data.is_classification,
-                    "class_epsilon": config.data.class_epsilon,
-                    "is_curriculum": config.training.is_curriculum,
-                },
-                "model": {
-                    "encoder": {
-                        "name": config.training.encoder.name,
-                        "freeze": config.training.encoder.freeze,
-                        "learning_rate": config.training.encoder.learning_rate,
-                        "n_trainable_params": model.encoder_n_trainable_params,
-                    },
-                    "predictor": {
-                        "name": config.training.predictor.name,
-                        "learning_rate": config.training.predictor.learning_rate,
-                        "n_trainable_params": model.predictor_n_trainable_params,
-                    },
-                    "total_trainable_params": model.total_n_trainable_params,
-                },
-                "epochs": N_EPOCHS,
-                "batch_size": BATCH_SIZE,
-                "num_units": config.training.num_units,
-                "curriculum_schedule": {**mapped_curriculum_schedule},
+    wandb.init(
+        entity="jankowskidaniel06-put",
+        project="Neural Deep Retina",
+        name=str(results_dir_path),
+        id=_id,
+        config={
+            "data": {
+                "data_handler": config.data.data_handler,
+                "img_shape": config.data.img_shape,
+                "is_rgb": config.data.is_rgb,
+                "seq_len": config.data.seq_len,
+                "prediction_step": config.data.prediction_step,
+                "scaler": y_scaler.__class__.__name__,
+                "prediction_channels": config.data.pred_channels,
+                "is_classification": config.data.is_classification,
+                "class_epsilon": config.data.class_epsilon,
+                "is_curriculum": config.training.is_curriculum,
             },
-            resume="allow",
-        )
+            "model": {
+                "encoder": {
+                    "name": config.training.encoder.name,
+                    "freeze": config.training.encoder.freeze,
+                    "learning_rate": config.training.encoder.learning_rate,
+                    "n_trainable_params": model.encoder_n_trainable_params,
+                },
+                "predictor": {
+                    "name": config.training.predictor.name,
+                    "learning_rate": config.training.predictor.learning_rate,
+                    "n_trainable_params": model.predictor_n_trainable_params,
+                },
+                "total_trainable_params": model.total_n_trainable_params,
+            },
+            "epochs": N_EPOCHS,
+            "batch_size": BATCH_SIZE,
+            "num_units": config.training.num_units,
+            "curriculum_schedule": {**mapped_curriculum_schedule},
+        },
+        resume="allow",
+    )
 
     # log this additionaly to easily filter classification runs in the main
     # table in wandb
-    if if_wandb:
-        wandb.log({"is_classification": config.data.is_classification})
+    wandb.log({"is_classification": config.data.is_classification})
 
-        # Log the data length
-        wandb.log(
-            {
-                "train_data_length": len(train_dataset),
-                "val_data_length": len(val_dataset),
-            }
-        )
+    # Log the data length
+    wandb.log(
+        {
+            "train_data_length": len(train_dataset),
+            "val_data_length": len(val_dataset),
+        }
+    )
 
     # Get model summary
     model_summary_str = str(
@@ -196,12 +188,9 @@ def train(config: Config) -> None:
     with open(model_summary_filename, "w", encoding="utf-8") as f:
         f.write(model_summary_str)
     # Log model summary txt to wandb
-    if if_wandb:
-        model_summary_artifact = wandb.Artifact(
-            "model_summary", "model_details"
-        )
-        model_summary_artifact.add_file(str(model_summary_filename))
-        wandb.log_artifact(model_summary_artifact)
+    model_summary_artifact = wandb.Artifact("model_summary", "model_details")
+    model_summary_artifact.add_file(str(model_summary_filename))
+    wandb.log_artifact(model_summary_artifact)
 
     # Define data loaders
     train_loader = DataLoader(
@@ -251,8 +240,7 @@ def train(config: Config) -> None:
         threshold=0.01,
     )
 
-    if if_wandb:
-        wandb.config.update({"optimizer": optimizer.__class__.__name__})
+    wandb.config.update({"optimizer": optimizer.__class__.__name__})
 
     loss_fn_name = config.training.loss_function
     logger.info(f"Loss function: {loss_fn_name}")
@@ -276,8 +264,7 @@ def train(config: Config) -> None:
     else:
         loss_fn = load_loss_function(loss_fn_name=loss_fn_name)
 
-    if if_wandb:
-        wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
+    wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
 
     if config.training.early_stopping:
@@ -312,8 +299,7 @@ def train(config: Config) -> None:
         )
         train_history["train_loss"].append(train_loss)
 
-        if if_wandb:
-            wandb.log({"training/train_loss": train_loss, "epoch": epoch})
+        wandb.log({"training/train_loss": train_loss, "epoch": epoch})
 
         if config.training.debug_mode:
             check_gradients(model, logger)
@@ -347,9 +333,8 @@ def train(config: Config) -> None:
 
         logger.info(f"Validation metrics: {val_metrics}")
 
-        if if_wandb:
-            wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
-            wandb.log({"training/valid_metrics": val_metrics, "epoch": epoch})
+        wandb.log({"training/valid_loss": valid_loss, "epoch": epoch})
+        wandb.log({"training/valid_metrics": val_metrics, "epoch": epoch})
 
         if val_mean_pcorr > best_pcorr:
             best_pcorr = val_mean_pcorr
@@ -379,8 +364,7 @@ def train(config: Config) -> None:
     total_time = time() - start_training_time
     logger.info(f"Total training time: {total_time:.2f} seconds")
 
-    if if_wandb:
-        wandb.log({"training/total_time": total_time})
+    wandb.log({"training/total_time": total_time})
 
     torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
     # save separately the encoder and predictor
@@ -394,8 +378,7 @@ def train(config: Config) -> None:
     )
     visualize_loss(train_history, results_dir_path)
 
-    if if_wandb:
-        wandb.finish()
+    wandb.finish()
 
 
 if __name__ == "__main__":
