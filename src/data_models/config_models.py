@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class DataConfig(BaseModel, extra="allow"):  # type: ignore
     data_handler: str
-    img_shape: list[int]
+    img_dim: int
     path: str
     response_type: Literal["firing_rate_10ms", "binned"]
     prediction_step: int

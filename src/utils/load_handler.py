@@ -45,7 +45,7 @@ def load_data_handler(
     # Initialize the handler class with remaining parameters
     keys_to_exclude = [
         "data_handler",
-        "img_shape",
+        "img_dim",
         "prediction_step",
         "subset_size",
         "pred_channels",

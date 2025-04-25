@@ -8,7 +8,7 @@ defaults:
 results_dir : test_hydra
 data:
   data_handler: CurriculumBaselineRGBDataset
-  img_shape: [40, 50, 50]
+  img_dim: 50 # Spatial dimension of the input image
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
   response_type: firing_rate_10ms
   is_rgb: False

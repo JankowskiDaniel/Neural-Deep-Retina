@@ -124,7 +124,7 @@ def train(config: Config) -> None:
         config={
             "data": {
                 "data_handler": config.data.data_handler,
-                "img_shape": config.data.img_shape,
+                "img_shape": config.data.img_dim,
                 "is_rgb": config.data.is_rgb,
                 "seq_len": config.data.seq_len,
                 "prediction_step": config.data.prediction_step,
