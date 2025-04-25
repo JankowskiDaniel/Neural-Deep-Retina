@@ -5,7 +5,6 @@ defaults:
   - curriculum/curriculum-schedule
   - override hydra/job_logging: disabled # disable hydra logging
 results_dir : test_hydra
-curriculum_schedule_path: configs/curriculum/curriculum-schedule.yaml
 data:
   data_handler: CurriculumBaselineRGBDataset
   img_shape: [40, 50, 50]
@@ -20,7 +19,7 @@ data:
   is_classification: False
   class_epsilon: 1.0
 training:
-  is_curriculum: False
+  is_curriculum: True
   debug_mode: True
   loss_function: mse
   encoder:

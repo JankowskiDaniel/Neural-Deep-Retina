@@ -126,9 +126,7 @@ def test(config: Config) -> None:
 
     # Log raw values as a W&B Table
     for channel in range(outputs.shape[1]):
-        data = list(
-            zip(outputs.iloc[:, channel], targets.iloc[:, channel])
-        )
+        data = list(zip(outputs.iloc[:, channel], targets.iloc[:, channel]))
         table = wandb.Table(data=data, columns=["model_output", "target"])
         wandb.log({f"test_predictions/channel_{channel}": table})
 
@@ -228,9 +226,7 @@ def test(config: Config) -> None:
             data = list(
                 zip(outputs.iloc[:, channel], targets.iloc[:, channel])
             )
-            table = wandb.Table(
-                data=data, columns=["model_output", "target"]
-            )
+            table = wandb.Table(data=data, columns=["model_output", "target"])
             wandb.log({f"train_predictions/channel_{channel}": table})
 
         wandb.log({"TRAIN_DATA_METRICS": metrics_dict})
@@ -277,7 +273,6 @@ def test(config: Config) -> None:
                 is_train=True,
                 file_name="classification_report",
             )
-
 
         wandb.log({"Plots/Train_Scaled": fig})
         wandb.finish()

@@ -8,7 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from torchmetrics.regression import PearsonCorrCoef
 from utils.training_utils import train_epoch, valid_epoch, check_gradients
 from utils.logger import get_logger
-from utils.file_manager import organize_folders, copy_config
+from utils.file_manager import organize_folders
 from data_handlers import (
     CurriculumHandler,
     CurriculumDatasets,
@@ -17,7 +17,6 @@ from data_handlers import (
 from data_models.config_models import Config
 from utils import (
     get_metric_tracker,
-    load_curriculum_schedule,
     load_model,
     EarlyStopping,
     load_data_handler,
@@ -40,7 +39,6 @@ def train(config: Config) -> None:
         hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     )
     print("Results dir:", results_dir)
-    curriculum_schedule_path = config.curriculum_schedule_path
 
     # Organize folders
     organize_folders(results_dir)
@@ -48,8 +46,7 @@ def train(config: Config) -> None:
 
     curr_schedule = None
     if config.training.is_curriculum:
-        curr_schedule = load_curriculum_schedule(curriculum_schedule_path)
-        copy_config(results_dir, curriculum_schedule_path, is_curr_config=True)
+        curr_schedule = config.curriculum
 
     # Create path object to results directory
     results_dir_path = "results" / results_dir
@@ -123,10 +120,6 @@ def train(config: Config) -> None:
     with open(results_dir_path / "id.txt", "w") as f:
         f.write(_id)
 
-    mapped_curriculum_schedule = (
-        curr_schedule.__dict__ if curr_schedule else {}
-    )
-
     wandb.init(
         entity="jankowskidaniel06-put",
         project="Neural Deep Retina",
@@ -162,7 +155,7 @@ def train(config: Config) -> None:
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
             "num_units": config.training.num_units,
-            "curriculum_schedule": {**mapped_curriculum_schedule},
+            "curriculum_schedule": curr_schedule if curr_schedule else None,
         },
         resume="allow",
     )
