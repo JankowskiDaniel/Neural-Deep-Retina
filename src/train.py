@@ -150,7 +150,7 @@ def train(config: Config) -> None:
             },
             "epochs": N_EPOCHS,
             "batch_size": BATCH_SIZE,
-            "num_units": config.training.num_units,
+            "num_units": config.data.num_units,
             "curriculum_schedule": curr_schedule if curr_schedule else None,
         },
         resume="allow",
@@ -263,7 +263,7 @@ def train(config: Config) -> None:
     val_metric_tracker = get_metric_tracker(
         ["mae", "mse", "pcorr"],
         initialized_metrics=[
-            PearsonCorrCoef(num_outputs=config.training.num_units).to(DEVICE)
+            PearsonCorrCoef(num_outputs=config.data.num_units).to(DEVICE)
         ],
         DEVICE=DEVICE,
     )

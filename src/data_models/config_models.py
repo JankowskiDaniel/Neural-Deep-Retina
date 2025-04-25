@@ -10,7 +10,8 @@ class DataConfig(BaseModel, extra="allow"):  # type: ignore
     response_type: Literal["firing_rate_10ms", "binned"]
     prediction_step: int
     subset_size: int
-    pred_channels: list[int]
+    num_units: int
+    pred_channels: str | list[int]  # all or list of indices
     is_classification: bool
     class_epsilon: float
 

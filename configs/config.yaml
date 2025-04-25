@@ -2,6 +2,7 @@ hydra:
   run:
     dir: results/test_hydra
 defaults:
+  - _self_
   - curriculum/curriculum-schedule
   - override hydra/job_logging: disabled # disable hydra logging
 results_dir : test_hydra
@@ -15,7 +16,8 @@ data:
   subseq_len: 40
   prediction_step: 0
   subset_size: 2000
-  pred_channels: [0,1,2,3,4,5,6,7,8]
+  num_units: 9
+  pred_channels: all
   is_classification: False
   class_epsilon: 1.0
 training:
@@ -33,7 +35,6 @@ training:
     weights: null
   batch_size: 128
   epochs: 50
-  num_units: 9
   early_stopping: False
   early_stopping_patience: 5
   save_logs: True
