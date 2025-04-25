@@ -22,13 +22,13 @@ import hydra
 def test(config: Config) -> None:
 
     results_dir = Path("results") / config.results_dir
-    print("Results dir:", results_dir)
 
     logger = get_logger(
         log_to_file=config.testing.save_logs,
         log_file=results_dir / "test_logs.log",
     )
 
+    logger.info("Results dir:", results_dir)
     logger.info("Preparing to test model...")
     weights_path = results_dir / "models" / config.testing.weights
     logger.info(f"Using model: {weights_path}")
