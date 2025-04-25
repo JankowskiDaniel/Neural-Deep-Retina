@@ -10,7 +10,7 @@ from tqdm import tqdm
 from typing import Literal, Tuple, Any
 from logging import Logger
 
-from models import DeepRetinaModel
+from models.neural_retina import DeepRetinaModel
 from utils.metrics import (
     compute_pearson_correlations,
     compute_wasserstein_distances,

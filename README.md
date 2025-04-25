@@ -40,17 +40,16 @@ This will create a new file named `naturalscene_with_val.h5`, where the first 80
 
 For running model training, use the `src/train.py` script. It is assumed that the script is run at the root level of the repository (follow this convention to avoid directory conflicts).
 
-The script accepts two parameters:
-
-- `--results_dir` - a directory inside the `results` folder, where the saved models, config, and optionally logs are stored.
-- `--config` (optional) - a config file name. Defaults to `config.yaml`. Assumed to be in the `configs` directory.
+Specify `results_dir` in the config file under `hydra.run.dir`. 
 
 An exemplary command for running the training:
 
 ```sh
-python src/train.py --results_dir my_training
+python src/train.py
 ``` 
-The training results will be saved inside `results/my_training` directory and training will proceed according to `config.yaml` file.
+
+
+The training results will be saved inside `results/[results_dir]` directory and training will proceed according to `config.yaml` file.
 
 ### Running training in the slurm cluster ###
 
@@ -79,21 +78,17 @@ For setting up pre-trained models, please check out the readme in the `pretraine
 
 For testing, use the `src/test.py` script. Again, it is assumed that the script is run at the root level of the repository.
 
-The script accepts one parameter:
+An exemplary command for running the testing (uses hydra):
 
-- `--results_dir` - the same directory you provided for training
+```bash
+python .\src\test.py -cp ../results/test_hydra/ hydra.run.dir=. hydra.output_subdir=null hydra/job_logging=disabled hydra/hydra_logging=disabled
+```
 
 #### *Important* ####
 
 Run testing only after training is finished and the models are saved. By default, the model state dict is loaded from `results/results_dir/models/best.pth`.
 
 Testing parameters are specified in the `config.yaml` file present in the `results_dir` directory. The config file is copied there during training.
-
-An exemplary command for running the testing:
-
-```sh
-python src/test.py --results_dir my_training
-```
 
   
 

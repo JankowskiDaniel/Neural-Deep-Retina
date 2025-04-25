@@ -40,9 +40,7 @@ def organize_folders(results_dir: str) -> None:
 
 
 def copy_config(
-        results_dir: str,
-        config_path: str,
-        is_curr_config: bool = False
+    results_dir: str, config_path: str, is_curr_config: bool = False
 ) -> None:
     """Copies training config file to the directory with results.
 
@@ -52,7 +50,9 @@ def copy_config(
     """
     # The config file is renamed to config.yaml
     if is_curr_config:
-        base_dir = os.path.join("results", results_dir, "curriculum-schedule.yaml")
+        base_dir = os.path.join(
+            "results", results_dir, "curriculum-schedule.yaml"
+        )
     else:
         base_dir = os.path.join("results", results_dir, "config.yaml")
     shutil.copy2(config_path, base_dir)

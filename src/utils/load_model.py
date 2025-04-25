@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Tuple
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.linears import SingleLinear, MultiLinear, OgLinear
@@ -10,7 +11,7 @@ from encoders import (
     OgEncoder,
     ShotSeqEncoder,
 )
-from models import DeepRetinaModel
+from models.neural_retina import DeepRetinaModel
 
 PREDICTORS: dict[str, Predictor] = {
     "SingleLinear": SingleLinear,
@@ -33,17 +34,7 @@ def load_model(config: Config) -> DeepRetinaModel:
     enc_name: str = config.training.encoder.name
     pred_name: str = config.training.predictor.name
 
-    # resolve input size
-    img_shape = config.data.img_shape
-    is_rgb = config.data.is_rgb
-    if is_rgb:
-        img_shape[0] = 3
-    batch_size = config.training.batch_size
-    seq_len = config.data.seq_len
-    if seq_len >= 1:
-        input_shape = (batch_size, seq_len, *img_shape)
-    else:
-        input_shape = (batch_size, *img_shape)
+    input_shape = resolve_input_shape(config)
 
     # Resolve encoder weights
     if config.training.encoder.weights is not None:
@@ -62,7 +53,7 @@ def load_model(config: Config) -> DeepRetinaModel:
         input_shape=input_shape,
         weights_path=weights_path_encoder,
         freeze=freeze,
-        seq_len=seq_len,
+        seq_len=config.data.seq_len,
     )
     encoder_output_shape = encoder.get_output_shape()
 
@@ -81,7 +72,7 @@ def load_model(config: Config) -> DeepRetinaModel:
     predictor: Predictor = PREDICTORS[pred_name](
         input_size=encoder_output_shape,
         weights_path=weights_path_predictor,
-        num_classes=config.training.num_units
+        num_classes=config.data.num_units,
     )
 
     model = DeepRetinaModel(
@@ -89,3 +80,23 @@ def load_model(config: Config) -> DeepRetinaModel:
     )
 
     return model
+
+
+def resolve_input_shape(config: Config) -> Tuple[int, int, int]:
+    # resolve input size
+    img_dim = config.data.img_dim
+    is_rgb = config.data.is_rgb
+    img_shape = [1, img_dim, img_dim]  # (channels, height, width)
+    if is_rgb:
+        img_shape[0] = 3
+    subseq_len = config.data.subseq_len
+    if subseq_len >= 1:
+        # Multiple frames treated as channels
+        img_shape[0] = subseq_len
+    batch_size = config.training.batch_size
+    seq_len = config.data.seq_len
+    if seq_len >= 1:
+        input_shape = (batch_size, seq_len, *img_shape)
+    else:
+        input_shape = (batch_size, *img_shape)
+    return input_shape

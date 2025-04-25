@@ -12,7 +12,7 @@ class SimpleCFC(Predictor):
         input_size: int,
         num_classes: int,
         weights_path: Path | None = None,
-        hidden_size: int = 16
+        hidden_size: int = 16,
     ) -> None:
         super(SimpleCFC, self).__init__()
         wiring = AutoNCP(hidden_size, num_classes)

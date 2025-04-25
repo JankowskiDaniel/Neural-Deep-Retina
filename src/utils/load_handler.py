@@ -39,10 +39,21 @@ def load_data_handler(
 
     prediction_step = data_config.prediction_step
     subset_size = data_config.subset_size
-    # Initialize the handler class with remaining parameters
-    parsed_config = data_config.dict(
-        exclude={"data_handler", "img_shape", "prediction_step", "subset_size"}
+    pred_channels = resolve_pred_channels(
+        data_config.pred_channels, data_config.num_units
     )
+    # Initialize the handler class with remaining parameters
+    keys_to_exclude = [
+        "data_handler",
+        "img_dim",
+        "prediction_step",
+        "subset_size",
+        "pred_channels",
+    ]
+    parsed_config = {
+        k: v for k, v in data_config.items() if k not in keys_to_exclude
+    }
+
     dataset = handler_class(
         results_dir=results_dir,
         is_train=is_train,
@@ -51,6 +62,26 @@ def load_data_handler(
         use_saved_scaler=use_saved_scaler,
         prediction_step=prediction_step,
         subset_size=subset_size,
+        pred_channels=pred_channels,
         **parsed_config,
     )
     return dataset
+
+
+def resolve_pred_channels(
+    pred_channels: str | list[int], n_units: int
+) -> list[int]:
+    """
+    Resolve the prediction channels from a string or a list of integers.
+    If a string "all" is provided, it will return all channels.
+    If a list of integers is provided, it will return the list.
+    """
+    if isinstance(pred_channels, str) and pred_channels.lower() == "all":
+        return list(range(n_units))
+    elif isinstance(pred_channels, list):
+        return pred_channels
+    else:
+        raise ValueError(
+            f"Invalid pred_channels: {pred_channels}."
+            + "It should be 'all' or a list of integers."
+        )

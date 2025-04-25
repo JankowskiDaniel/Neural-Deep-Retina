@@ -2,41 +2,35 @@ import torch
 from torch.utils.data import DataLoader
 from time import time
 import pandas as pd
-import wandb.plot
+from pathlib import Path
+from data_models.config_models import Config
 from utils.training_utils import test_model
 from utils.logger import get_logger
 from utils import (
-    get_testing_arguments,
-    load_config,
     load_model,
     get_metric_tracker,
     load_data_handler,
-    load_loss_function
+    load_loss_function,
 )
 from utils.classification_metrics import save_classification_report
 from visualize.visualize_dataset import visualize_outputs_and_targets
 import wandb
+import hydra
 
 
-if __name__ == "__main__":
+@hydra.main(config_path=".", config_name="config", version_base=None)
+def test(config: Config) -> None:
 
-    results_dir, if_wandb = get_testing_arguments()
-
-    # Create path object to results directory
-    results_dir_path = "results" / results_dir
-    # Load config from the results directory
-    config_path = results_dir_path / "config.yaml"
-
-    config = load_config(config_path)
+    results_dir = Path("results") / config.results_dir
 
     logger = get_logger(
         log_to_file=config.testing.save_logs,
-        log_file=results_dir_path / "test_logs.log",
+        log_file=results_dir / "test_logs.log",
     )
 
+    logger.info("Results dir:", results_dir)
     logger.info("Preparing to test model...")
-    logger.info(f"Using config file: {config_path}")
-    weights_path = results_dir_path / "models" / config.testing.weights
+    weights_path = results_dir / "models" / config.testing.weights
     logger.info(f"Using model: {weights_path}")
 
     # load the model
@@ -46,7 +40,7 @@ if __name__ == "__main__":
 
     test_dataset = load_data_handler(
         config.data,
-        results_dir=results_dir_path,
+        results_dir=results_dir,
         is_train=False,
         subset_type="test",
         use_saved_scaler=True,
@@ -71,18 +65,18 @@ if __name__ == "__main__":
     BATCH_SIZE = config.testing.batch_size
 
     # read _id from .txt file
-    with open(results_dir_path / "id.txt", "r") as f:
+    with open(results_dir / "id.txt", "r") as f:
         uuid = f.readline().strip()
     print(uuid)
-    if if_wandb:
-        wandb.init(
-            entity="jankowskidaniel06-put",
-            project="Neural Deep Retina",
-            id=uuid,
-            resume="allow",
-        )
 
-        wandb.log({"test_data_length": len(test_dataset)})
+    wandb.init(
+        entity="jankowskidaniel06-put",
+        project="Neural Deep Retina",
+        id=uuid,
+        resume="allow",
+    )
+
+    wandb.log({"test_data_length": len(test_dataset)})
 
     # Define data loaders
     test_loader = DataLoader(
@@ -101,9 +95,9 @@ if __name__ == "__main__":
     metrics_tracker = get_metric_tracker(config.testing.metrics, DEVICE=DEVICE)
 
     # Set the path for saving predictions
-    predictions_dir = results_dir_path / "testset_predictions"
+    predictions_dir = results_dir / "testset_predictions"
     # Set the path for saving plots
-    plots_dir = results_dir_path / "plots"
+    plots_dir = results_dir / "plots"
 
     # Test the model
     logger.info(f"Testing on {DEVICE} using device: {DEVICE_NAME}")
@@ -130,22 +124,19 @@ if __name__ == "__main__":
     outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
     targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
 
-    if if_wandb:
-        # Log raw values as a W&B Table
-        for channel in range(outputs.shape[1]):
-            data = list(
-                zip(outputs.iloc[:, channel], targets.iloc[:, channel])
-            )
-            table = wandb.Table(data=data, columns=["model_output", "target"])
-            wandb.log({f"test_predictions/channel_{channel}": table})
+    # Log raw values as a W&B Table
+    for channel in range(outputs.shape[1]):
+        data = list(zip(outputs.iloc[:, channel], targets.iloc[:, channel]))
+        table = wandb.Table(data=data, columns=["model_output", "target"])
+        wandb.log({f"test_predictions/channel_{channel}": table})
 
-        wandb.log({"TEST_DATA_METRICS": metrics_dict})
+    wandb.log({"TEST_DATA_METRICS": metrics_dict})
 
     # Create a DataFrame from the metrics dictionary
     df_results = pd.DataFrame(metrics_dict)
     # Save results to a csv file
-    df_results.to_csv(results_dir_path / "test_results.csv", index=False)
-    logger.info(f"Results saved to {results_dir_path / 'test_results.csv'}")
+    df_results.to_csv(results_dir / "test_results.csv", index=False)
+    logger.info(f"Results saved to {results_dir / 'test_results.csv'}")
 
     # Plot outputs and targets
     fig = visualize_outputs_and_targets(
@@ -157,8 +148,7 @@ if __name__ == "__main__":
         return_fig=True,
     )
 
-    if if_wandb:
-        wandb.log({"Plots/Test_Unscaled": fig})
+    wandb.log({"Plots/Test_Unscaled": fig})
 
     # Plot results for scaled outputs and targets
     outputs = pd.read_csv(predictions_dir / "scaled_outputs.csv")
@@ -181,8 +171,7 @@ if __name__ == "__main__":
             is_train=False,
             file_name="classification_report",
         )
-    if if_wandb:
-        wandb.log({"Plots/Test_Scaled": fig})
+    wandb.log({"Plots/Test_Scaled": fig})
     logger.info(
         f"Outputs and targets visualizations saved to {predictions_dir}"
     )
@@ -192,7 +181,7 @@ if __name__ == "__main__":
 
         train_dataset = load_data_handler(
             config.data,
-            results_dir=results_dir_path,
+            results_dir=results_dir,
             is_train=True,
             use_saved_scaler=True,
         )
@@ -206,7 +195,7 @@ if __name__ == "__main__":
         )
 
         # Set the path for saving predictions
-        predictions_dir = results_dir_path / "trainset_predictions"
+        predictions_dir = results_dir / "trainset_predictions"
         # Create metric tracker
         metrics_tracker = get_metric_tracker(config.testing.metrics)
         metrics_tracker.to(DEVICE)
@@ -232,27 +221,24 @@ if __name__ == "__main__":
         outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
         targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
 
-        if if_wandb:
-            # Log raw values as a W&B Table
-            for channel in range(outputs.shape[1]):
-                data = list(
-                    zip(outputs.iloc[:, channel], targets.iloc[:, channel])
-                )
-                table = wandb.Table(
-                    data=data, columns=["model_output", "target"]
-                )
-                wandb.log({f"train_predictions/channel_{channel}": table})
+        # Log raw values as a W&B Table
+        for channel in range(outputs.shape[1]):
+            data = list(
+                zip(outputs.iloc[:, channel], targets.iloc[:, channel])
+            )
+            table = wandb.Table(data=data, columns=["model_output", "target"])
+            wandb.log({f"train_predictions/channel_{channel}": table})
 
-            wandb.log({"TRAIN_DATA_METRICS": metrics_dict})
+        wandb.log({"TRAIN_DATA_METRICS": metrics_dict})
 
         # Create a DataFrame from the metrics dictionary
         df_results = pd.DataFrame(metrics_dict)
         # Save results to a csv file
         df_results.to_csv(
-            results_dir_path / "test_traindata_results.csv", index=False
+            results_dir / "test_traindata_results.csv", index=False
         )
         logger.info(
-            f"Results saved to {results_dir_path / 'test_traindata_results.csv'}"
+            f"Results saved to {results_dir / 'test_traindata_results.csv'}"
         )
         # Plot unscaled outputs and targets
         fig = visualize_outputs_and_targets(
@@ -263,8 +249,8 @@ if __name__ == "__main__":
             is_train=True,
             return_fig=True,
         )
-        if if_wandb:
-            wandb.log({"Plots/Train_Unscaled": fig})
+
+        wandb.log({"Plots/Train_Unscaled": fig})
 
         # Plot results for scaled outputs and targets
         outputs = pd.read_csv(predictions_dir / "scaled_outputs.csv")
@@ -288,10 +274,14 @@ if __name__ == "__main__":
                 file_name="classification_report",
             )
 
-        if if_wandb:
-            wandb.log({"Plots/Train_Scaled": fig})
-            wandb.finish()
+        wandb.log({"Plots/Train_Scaled": fig})
+        wandb.finish()
 
         logger.info(
             f"Outputs and targets visualizations saved to {predictions_dir}"
         )
+
+
+if __name__ == "__main__":
+
+    test()
