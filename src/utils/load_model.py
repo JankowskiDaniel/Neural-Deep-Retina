@@ -3,7 +3,7 @@ from typing import Tuple
 from interfaces import Encoder, Predictor
 from data_models.config_models import Config
 from predictors.linears import SingleLinear, MultiLinear, OgLinear
-from predictors.rnns import SingleLSTM, SimpleCFC
+from predictors.rnns import SingleLSTM, SimpleCFC, SimpleLTC
 from encoders import (
     VGG16Encoder,
     MC3VideoEncoder,
@@ -19,6 +19,7 @@ PREDICTORS: dict[str, Predictor] = {
     "SingleLSTM": SingleLSTM,
     "OgLinear": OgLinear,
     "SimpleCFC": SimpleCFC,
+    "SimpleLTC": SimpleLTC,
 }
 
 ENCODERS: dict[str, Encoder] = {
