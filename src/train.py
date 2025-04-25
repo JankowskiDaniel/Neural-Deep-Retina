@@ -30,15 +30,12 @@ import hydra
 from omegaconf import OmegaConf
 
 
-@hydra.main(
-    config_path="../configs", config_name="config-shot", version_base=None
-)
+@hydra.main(config_path="../configs", config_name="config", version_base=None)
 def train(config: Config) -> None:
 
     results_dir = Path(
         hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     )
-    print("Results dir:", results_dir)
 
     # Organize folders
     organize_folders(results_dir)
@@ -48,13 +45,12 @@ def train(config: Config) -> None:
     if config.training.is_curriculum:
         curr_schedule = config.curriculum
 
-    # Create path object to results directory
-    results_dir_path = "results" / results_dir
-
     logger = get_logger(
         log_to_file=config.training.save_logs,
-        log_file=results_dir_path / "train_logs.log",
+        log_file=results_dir / "train_logs.log",
     )
+
+    logger.info(f"Results directory: {results_dir}")
 
     # load the model
     logger.info("Loading model...")
@@ -69,19 +65,19 @@ def train(config: Config) -> None:
         )
     model = load_model(config)
 
-    y_scaler = MinMaxScaler()  # StandardScaler(with_mean=False)
+    y_scaler = MinMaxScaler()
 
     # load the data handler
     logger.info("Loading data handler...")
     train_dataset = load_data_handler(
         config.data,
-        results_dir=results_dir_path,
+        results_dir=results_dir,
         is_train=True,
         y_scaler=y_scaler,
     )
     val_dataset = load_data_handler(
         config.data,
-        results_dir=results_dir_path,
+        results_dir=results_dir,
         is_train=False,
         subset_type="val",
         use_saved_scaler=True,
@@ -117,13 +113,13 @@ def train(config: Config) -> None:
     _id = str(uuid4())
 
     # save _id into txt file
-    with open(results_dir_path / "id.txt", "w") as f:
+    with open(results_dir / "id.txt", "w") as f:
         f.write(_id)
 
     wandb.init(
         entity="jankowskidaniel06-put",
         project="Neural Deep Retina",
-        name=str(results_dir_path),
+        name=str(results_dir),
         id=_id,
         config={
             "data": {
@@ -177,7 +173,7 @@ def train(config: Config) -> None:
         summary(model, model.input_shape, device=DEVICE, verbose=0)
     )
     # Save to a txt file
-    model_summary_filename = results_dir_path / "model_summary.txt"
+    model_summary_filename = results_dir / "model_summary.txt"
     with open(model_summary_filename, "w", encoding="utf-8") as f:
         f.write(model_summary_str)
     # Log model summary txt to wandb
@@ -331,17 +327,15 @@ def train(config: Config) -> None:
 
         if val_mean_pcorr > best_pcorr:
             best_pcorr = val_mean_pcorr
-            torch.save(
-                model.state_dict(), results_dir_path / "models" / "best.pth"
-            )
+            torch.save(model.state_dict(), results_dir / "models" / "best.pth")
             # save separately the encoder and predictor
             torch.save(
                 model.encoder.state_dict(),
-                results_dir_path / "models" / "best_encoder.pth",
+                results_dir / "models" / "best_encoder.pth",
             )
             torch.save(
                 model.predictor.state_dict(),
-                results_dir_path / "models" / "best_predictor.pth",
+                results_dir / "models" / "best_predictor.pth",
             )
             logger.info(f"Best model saved at epoch {epoch + 1}")
 
@@ -359,17 +353,17 @@ def train(config: Config) -> None:
 
     wandb.log({"training/total_time": total_time})
 
-    torch.save(model.state_dict(), results_dir_path / "models" / "final.pth")
+    torch.save(model.state_dict(), results_dir / "models" / "final.pth")
     # save separately the encoder and predictor
     torch.save(
         model.encoder.state_dict(),
-        results_dir_path / "models" / "final_encoder.pth",
+        results_dir / "models" / "final_encoder.pth",
     )
     torch.save(
         model.predictor.state_dict(),
-        results_dir_path / "models" / "final_predictor.pth",
+        results_dir / "models" / "final_predictor.pth",
     )
-    visualize_loss(train_history, results_dir_path)
+    visualize_loss(train_history, results_dir)
 
     wandb.finish()
 

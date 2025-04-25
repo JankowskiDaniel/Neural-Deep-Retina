@@ -1,0 +1,38 @@
+DATA:
+  data_handler: CurriculumBaselineRGBDataset # "H5Dataset", "H5SeqDataset", "BaselineRGBDataset", "BaselineSeqRGBDataset"
+  img_shape: [40, 50, 50]
+  path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
+  response_type: firing_rate_10ms
+  is_rgb: False
+  seq_len: 0
+  subseq_len: 40
+  prediction_step: 1
+  subset_size: 2000
+  is_classification: False
+  class_epsilon: 0.001
+  pred_channels: [0,1]
+TRAINING:
+  ENCODER:
+    name: OgEncoder
+    weights: /home/Neural-Deep-Retina/results/test_c_log/models/final_encoder.pth # set to null if you want to train from scratch
+    freeze: True
+    learning_rate: 0.0001
+  PREDICTOR:
+    name: OgLinear
+    weights: /home/Neural-Deep-Retina/results/test_c_log/models/final_predictor.pth
+    learning_rate: 0.001
+  batch_size: 16
+  epochs: 1
+  num_units: 2
+  early_stopping: False
+  early_stopping_patience: 5
+  save_logs: True
+  is_curriculum: True
+  loss_function: "bce_weighted"  # "mse", "mae", "bce", "bce_weighted"
+TESTING:
+  batch_size: 16
+  weights: "best.pth"
+  metrics: ["mae", "mse"]
+  save_logs: True
+  run_on_test_data: True
+  run_on_train_data: True

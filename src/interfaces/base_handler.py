@@ -145,7 +145,6 @@ class BaseHandler(torch.utils.data.Dataset):
             # Save the scaler
             with open(self.results_dir / "y_scaler.pkl", "wb") as f:
                 pickle.dump(self.y_scaler, f)
-                print("Saving scaler", self.y_scaler.data_range_)
         else:
             try:
                 # load the scaler
