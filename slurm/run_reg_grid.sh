@@ -11,7 +11,9 @@
 predictors=("SimpleCfC" "SimpleLTC", "SimpleLSTM")
 subseq_lengths=(40, 20)
 loss_functions=("mse" "mae", "bce") # TODO
-datasets=("data\neural_code_data\ganglion_cell_data\15-10-07\naturalscene_with_val.h5") # TODO
+datasets=("data\neural_code_data\ganglion_cell_data\15-10-07\naturalscene_with_val.h5",
+          "data\neural_code_data\ganglion_cell_data\15-11-21a\naturalscene_with_val.h5",
+          "data\neural_code_data\ganglion_cell_data\15-11-21b\naturalscene_with_val.h5")
 num_units=(9, 14, 26)
 n_runs=5
 
