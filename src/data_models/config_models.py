@@ -14,6 +14,9 @@ class DataConfig(BaseModel, extra="allow"):  # type: ignore
     pred_channels: str | list[int]  # all or list of indices
     is_classification: bool
     class_epsilon: float
+    # seq_len: int
+    # subseq_len: int
+    # window_overlap: int
 
 
 @dataclass

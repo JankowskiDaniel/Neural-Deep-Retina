@@ -20,9 +20,10 @@ class SingleLSTM(Predictor):
             hidden_size=hidden_size,
             num_layers=1,
             batch_first=True,
-            proj_size=num_classes,
+            # proj_size=32,
         )
-        self.act = nn.Sigmoid()
+        self.act0 = nn.Linear(hidden_size, num_classes)
+        self.act1 = nn.Softplus()
 
         # Orthogonal initialization for LSTM weights
         for name, param in self.lstm.named_parameters():
@@ -36,5 +37,6 @@ class SingleLSTM(Predictor):
 
     def forward(self, x):
         out, _ = self.lstm(x)
-        x = self.act(out[:, -1, :])
-        return x
+        out = self.act0(out[:, -1, :])
+        out = self.act1(out)
+        return out

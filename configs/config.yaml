@@ -13,6 +13,7 @@ data:
   is_rgb: False
   seq_len: 0
   subseq_len: 40
+  window_overlap: 0
   prediction_step: 0
   subset_size: 2000
   num_units: 9
