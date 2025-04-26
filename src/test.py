@@ -21,14 +21,19 @@ import hydra
 @hydra.main(config_path=".", config_name="config", version_base=None)
 def test(config: Config) -> None:
 
-    results_dir = Path("results") / config.results_dir
+    # Assumes the config path was overriden in the command line
+    results_dir = Path(
+        hydra.core.hydra_config.HydraConfig.get()
+        .runtime.config_sources[1]
+        .path
+    )
 
     logger = get_logger(
         log_to_file=config.testing.save_logs,
         log_file=results_dir / "test_logs.log",
     )
 
-    logger.info("Results dir:", results_dir)
+    logger.info(f"Results dir:{str(results_dir)}")
     logger.info("Preparing to test model...")
     weights_path = results_dir / "models" / config.testing.weights
     logger.info(f"Using model: {weights_path}")
@@ -37,6 +42,14 @@ def test(config: Config) -> None:
     logger.info("Loading model...")
     model = load_model(config)
     model.load_state_dict(torch.load(weights_path))
+
+    # For calculating pos_weights if necessary
+    train_dataset = load_data_handler(
+        config.data,
+        results_dir=results_dir,
+        is_train=True,
+        use_saved_scaler=True,
+    )
 
     test_dataset = load_data_handler(
         config.data,
@@ -89,7 +102,11 @@ def test(config: Config) -> None:
 
     # Define loss function
     loss_fn_name = config.training.loss_function
-    loss_fn = load_loss_function(loss_fn_name=loss_fn_name)
+    loss_fn = load_loss_function(
+        loss_fn_name=loss_fn_name,
+        target=train_dataset.get_target(),
+        device=DEVICE,
+    )
 
     # Create metric tracker
     metrics_tracker = get_metric_tracker(config.testing.metrics, DEVICE=DEVICE)
@@ -178,13 +195,6 @@ def test(config: Config) -> None:
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
-
-        train_dataset = load_data_handler(
-            config.data,
-            results_dir=results_dir,
-            is_train=True,
-            use_saved_scaler=True,
-        )
 
         train_loader = DataLoader(
             train_dataset,
