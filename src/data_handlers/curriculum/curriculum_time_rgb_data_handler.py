@@ -58,17 +58,18 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         self.seq_len: int = seq_len
         self.window_overlap: int = window_overlap
 
+        self.dataset_len: int = self.dataset_len - self.subseq_len + 1
+
         if self.seq_len >= 1:
             if self.window_overlap < 0 or self.window_overlap >= self.subseq_len:
                 raise ValueError(
-                    f"Window overlap must be between 0 and (subseq_len - 1)."
+                    "Window overlap must be between 0 and (subseq_len - 1)."
                 )
 
             # Calculate needed images for one sample
-            total_images_needed = (self.subseq_len - self.window_overlap) * (self.seq_len - 1) + self.subseq_len
-            self.dataset_len: int = self.dataset_len - total_images_needed + 1
-        else:
-            self.dataset_len: int = self.dataset_len - self.subseq_len + 1
+            total_images_needed = ((self.subseq_len - self.window_overlap) *
+                                   (self.seq_len - 1)) + self.subseq_len
+            self.dataset_len = self.dataset_len - total_images_needed + 1
 
         # List of allowed arguments in the constructor
         allowed_args = {
@@ -149,18 +150,18 @@ class CurriculumBaselineRGBDataset(BaseHandler):
             start_idx = idx
 
             for seq_idx in range(self.seq_len):
-                subseq_start = start_idx + seq_idx * (self.subseq_len - self.window_overlap)
+                subseq_start = start_idx + seq_idx * (
+                    (self.subseq_len - self.window_overlap)
+                )
                 subseq_end = subseq_start + self.subseq_len
-                # print(f"Indices included in subsequence {seq_idx}: {subseq_start} to {subseq_end}")
                 x_subseq = self.curr_X[subseq_start:subseq_end]
-                x_subseq = self.transform_x(x_subseq)  # Apply transform on each subsequence
+                x_subseq = self.transform_x(x_subseq)
                 subsequences.append(x_subseq)
 
-            x = torch.stack(subsequences, dim=0)  # Shape: (seq_len, subseq_len, img_h, img_w)
-            
+            x = torch.stack(subsequences, dim=0)
+
             # Target is based on the last image of the last subsequence
             y = self.curr_Y[:, subseq_end - 1 + self.prediction_step]
-        # print(f"Input shape: {x.shape}")
         return x, y
 
     def __len__(self):
