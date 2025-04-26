@@ -22,8 +22,16 @@ class SingleLSTM(Predictor):
             batch_first=True,
             # proj_size=32,
         )
-        self.act0 = nn.Linear(hidden_size, num_classes)
-        self.act1 = nn.Softplus()
+        self.dropout = nn.Dropout(0.2)  # manual dropout after LSTM
+        self.norm1 = nn.LayerNorm(hidden_size)  # normalize after LSTM
+
+        self.l1 = nn.Linear(hidden_size, hidden_size)
+        self.act0 = nn.ELU()
+
+        self.l2 = nn.Linear(hidden_size, num_classes)
+        self.act1 = nn.Identity()
+
+        self.relu = nn.Sigmoid()
 
         # Orthogonal initialization for LSTM weights
         for name, param in self.lstm.named_parameters():
@@ -36,7 +44,17 @@ class SingleLSTM(Predictor):
             self.load_state_dict(torch.load(weights_path))
 
     def forward(self, x):
-        out, _ = self.lstm(x)
-        out = self.act0(out[:, -1, :])
-        out = self.act1(out)
+        out, _ = self.lstm(x)  # shape: (batch, seq_len, hidden_size)
+        out = out[:, -1, :]
+        out = self.dropout(out)
+        out = self.norm1(out)
+
+        residual = out
+        out = self.l1(out)
+        out = self.act0(out)
+        out = out + residual  # Residual connection
+
+        out = self.l2(out)
+        # out = self.act1(out)
+        out = self.relu(out)
         return out

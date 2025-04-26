@@ -11,8 +11,8 @@ data:
   path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
   response_type: firing_rate_10ms
   is_rgb: False
-  seq_len: 0
-  subseq_len: 40
+  seq_len: 3
+  subseq_len: 15
   window_overlap: 0
   prediction_step: 0
   subset_size: 2000
@@ -28,19 +28,19 @@ training:
     name: ShotSeqEncoder
     weights: null
     freeze: False
-    learning_rate: 0.0005
-  predictor:
-    name: SimpleCFC
     learning_rate: 0.001
+  predictor:
+    name: SingleLSTM
+    learning_rate: 0.0005
     weights: null
-  batch_size: 128
+  batch_size: 32
   epochs: 50
-  early_stopping: False
-  early_stopping_patience: 5
+  early_stopping: True
+  early_stopping_patience: 15
   save_logs: True
 testing:
-  batch_size: 128
-  weights: "best.pth"
+  batch_size: 32
+  weights: "final.pth"
   metrics: ["mae", "mse"]
   save_logs: True
   run_on_test_data: True
