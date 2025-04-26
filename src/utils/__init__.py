@@ -3,7 +3,6 @@ from .load_loss_fn import load_loss_function
 from .load_model import load_model
 from .metrics import get_metric_tracker
 from .early_stopping import EarlyStopping
-from .loss_functions import SingnalWeightedMSELoss, FrequencyWeightedMSELoss
 from .load_handler import load_data_handler
 from .logger import get_logger
 from .torch_model_stats import count_parameters
@@ -23,6 +22,7 @@ __all__ = [
     "EarlyStopping",
     "SingnalWeightedMSELoss",
     "FrequencyWeightedMSELoss",
+    "BinaryPDFWeightedBCEWithLogitsLoss",
     "load_data_handler",
     "get_logger",
     "count_parameters",

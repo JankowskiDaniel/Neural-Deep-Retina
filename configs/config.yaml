@@ -1,11 +1,10 @@
 hydra:
   run:
-    dir: results/test_hydra
+    dir: results/test_hydra_mse
 defaults:
   - _self_
   - curriculum/curriculum-schedule
   - override hydra/job_logging: disabled # disable hydra logging
-results_dir : test_hydra
 data:
   data_handler: CurriculumBaselineRGBDataset
   img_dim: 50 # Spatial dimension of the input image
