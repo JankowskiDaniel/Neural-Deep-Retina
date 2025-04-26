@@ -1,4 +1,3 @@
-import numpy as np
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 import torch
@@ -233,25 +232,12 @@ def train(config: Config) -> None:
 
     loss_fn_name = config.training.loss_function
     logger.info(f"Loss function: {loss_fn_name}")
-    if loss_fn_name == "bce_weighted":
-        # get Y to compute pos_weight for BCEWithLogitsLoss
-        Y = train_dataset.get_target()
-        pos_counts = np.sum(Y, axis=1)  # Count of positive (1s) per class
-        neg_counts = (
-            Y.shape[1] - pos_counts
-        )  # Count of negative (0s) per class
 
-        # Compute pos_weight (negatives / positives), ensuring no division by zero
-        pos_weight = np.where(pos_counts > 0, neg_counts / pos_counts, 1.0)
-        pos_weight_tensor = torch.tensor(pos_weight, dtype=torch.float32).to(
-            DEVICE
-        )
-        logger.info(f"Pos weight for BCEWithLogitsLoss: {pos_weight_tensor}")
-        loss_fn = load_loss_function(
-            loss_fn_name=loss_fn_name, pos_weight=pos_weight_tensor
-        )
-    else:
-        loss_fn = load_loss_function(loss_fn_name=loss_fn_name)
+    loss_fn = load_loss_function(
+        loss_fn_name=loss_fn_name,
+        target=train_dataset.get_target(),
+        device=DEVICE,
+    )
 
     wandb.config.update({"loss_fn": loss_fn.__class__.__name__})
     train_history: dict = {"train_loss": [], "valid_loss": []}
