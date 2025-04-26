@@ -4,7 +4,7 @@ import numpy as np
 from utils.loss_functions import (
     BinaryPDFWeightedBCEWithLogitsLoss,
     FrequencyWeightedMSELoss,
-    SingnalWeightedMSELoss,
+    SignalWeightedMSELoss,
 )
 
 
@@ -14,7 +14,7 @@ LOSS_FUNCTIONS = {
     "bce": nn.BCEWithLogitsLoss,
     "bce_weighted": nn.BCEWithLogitsLoss,
     "bce_pdf_weighted": BinaryPDFWeightedBCEWithLogitsLoss,
-    "swmse": SingnalWeightedMSELoss,
+    "swmse": SignalWeightedMSELoss,
     "fweighted_mse": FrequencyWeightedMSELoss,
 }
 

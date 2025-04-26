@@ -3,9 +3,9 @@ from torch import nn, mean, ones_like
 import numpy as np
 
 
-class SingnalWeightedMSELoss(nn.Module):
+class SignalWeightedMSELoss(nn.Module):
     def __init__(self, epsilon: float = 0.001):
-        super(SingnalWeightedMSELoss, self).__init__()
+        super(SignalWeightedMSELoss, self).__init__()
         self.epsilon = epsilon
 
     def forward(self, input, target):
