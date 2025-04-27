@@ -22,6 +22,8 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         pred_channels: list[int] = [],
         is_classification: bool = False,
         class_epsilon: float = 1.0,
+        seq_len: int = 0,
+        window_overlap: int = 0,
         **kwargs: Any,
     ) -> None:
         # Initialize the parent class
@@ -39,6 +41,8 @@ class CurriculumBaselineRGBDataset(BaseHandler):
             pred_channels=pred_channels,
             is_classification=is_classification,
             class_epsilon=class_epsilon,
+            seq_len=seq_len,
+            window_overlap=window_overlap,
         )
 
         # Transform input to torch Tensor
@@ -51,7 +55,21 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         self.curr_Y = torch.from_numpy(curr_Y).to(torch.float32)
 
         self.subseq_len: int = subseq_len
-        self.dataset_len: int = self.dataset_len - self.subseq_len
+        self.seq_len: int = seq_len
+        self.window_overlap: int = window_overlap
+
+        self.dataset_len: int = self.dataset_len - self.subseq_len + 1
+
+        if self.seq_len >= 1:
+            if self.window_overlap < 0 or self.window_overlap >= self.subseq_len:
+                raise ValueError(
+                    "Window overlap must be between 0 and (subseq_len - 1)."
+                )
+
+            # Calculate needed images for one sample
+            total_images_needed = ((self.subseq_len - self.window_overlap) *
+                                   (self.seq_len - 1)) + self.subseq_len
+            self.dataset_len = self.dataset_len - total_images_needed + 1
 
         # List of allowed arguments in the constructor
         allowed_args = {
@@ -63,6 +81,8 @@ class CurriculumBaselineRGBDataset(BaseHandler):
             "subset_type",
             "y_scaler",
             "use_saved_scaler",
+            "seq_len",
+            "window_overlap",
         }
 
         # Check for unused kwargs
@@ -117,12 +137,31 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         self.curr_Y = torch.from_numpy(curr_Y).to(torch.float32)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        x = self.curr_X[idx : idx + self.subseq_len]
-        # Apply any transformations for input data
-        x = self.transform_x(x)
-        # Get the target
-        y = self.curr_Y[:, idx + self.subseq_len - 1 + self.prediction_step]
+        if self.seq_len < 1:
+            x = self.curr_X[idx : idx + self.subseq_len]
+            # Apply any transformations for input data
+            x = self.transform_x(x)
+            # Get the target
+            y = self.curr_Y[:, idx + self.subseq_len - 1 + self.prediction_step]
 
+        else:
+            # Complex case: multiple subsequences with overlap
+            subsequences = []
+            start_idx = idx
+
+            for seq_idx in range(self.seq_len):
+                subseq_start = start_idx + seq_idx * (
+                    (self.subseq_len - self.window_overlap)
+                )
+                subseq_end = subseq_start + self.subseq_len
+                x_subseq = self.curr_X[subseq_start:subseq_end]
+                x_subseq = self.transform_x(x_subseq)
+                subsequences.append(x_subseq)
+
+            x = torch.stack(subsequences, dim=0)
+
+            # Target is based on the last image of the last subsequence
+            y = self.curr_Y[:, subseq_end - 1 + self.prediction_step]
         return x, y
 
     def __len__(self):
