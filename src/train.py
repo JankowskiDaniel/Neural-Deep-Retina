@@ -144,6 +144,7 @@ def train(config: Config) -> None:
                     "name": config.training.predictor.name,
                     "learning_rate": config.training.predictor.learning_rate,
                     "n_trainable_params": model.predictor_n_trainable_params,
+                    "hidden_size": config.training.predictor.hidden_size,
                 },
                 "total_trainable_params": model.total_n_trainable_params,
             },
@@ -259,7 +260,7 @@ def train(config: Config) -> None:
     model.to(DEVICE)
     start_training_time = time()
 
-    best_pcorr = float('-inf')
+    best_pcorr = float("-inf")
     for epoch in tqdm(range(N_EPOCHS)):
         start_epoch_time = time()
         train_loader, val_loader = curriculum_handler.get_dataloaders(epoch)

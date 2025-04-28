@@ -231,14 +231,6 @@ def test(config: Config) -> None:
         outputs = pd.read_csv(predictions_dir / "unscaled_outputs.csv")
         targets = pd.read_csv(predictions_dir / "unscaled_targets.csv")
 
-        # Log raw values as a W&B Table
-        for channel in range(outputs.shape[1]):
-            data = list(
-                zip(outputs.iloc[:, channel], targets.iloc[:, channel])
-            )
-            table = wandb.Table(data=data, columns=["model_output", "target"])
-            wandb.log({f"train_predictions/channel_{channel}": table})
-
         wandb.log({"TRAIN_DATA_METRICS": metrics_dict})
 
         # Create a DataFrame from the metrics dictionary
@@ -259,8 +251,6 @@ def test(config: Config) -> None:
             is_train=True,
             return_fig=True,
         )
-
-        wandb.log({"Plots/Train_Unscaled": fig})
 
         # Plot results for scaled outputs and targets
         outputs = pd.read_csv(predictions_dir / "scaled_outputs.csv")
@@ -284,7 +274,6 @@ def test(config: Config) -> None:
                 file_name="classification_report",
             )
 
-        wandb.log({"Plots/Train_Scaled": fig})
         wandb.finish()
 
         logger.info(
