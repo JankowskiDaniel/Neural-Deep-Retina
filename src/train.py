@@ -118,7 +118,7 @@ def train(config: Config) -> None:
     wandb.init(
         entity="jankowskidaniel06-put",
         project="Neural Deep Retina",
-        name=str(results_dir),
+        name=str(results_dir.stem),
         id=_id,
         config={
             "data": {

@@ -177,3 +177,5 @@ notebooks/*.png
 
 # ignore slurm config files
 configs/*slurm.yaml
+
+slurm_logs/

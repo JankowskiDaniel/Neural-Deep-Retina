@@ -1,20 +1,23 @@
 #!/bin/bash
-#SBATCH -w hgx2
 #SBATCH -p hgx
 #SBATCH --gres=gpu:1 # Request 1 GPU
 #SBATCH --job-name=retina_training
-#SBATCH --output=logs/%A_%a.out
-#SBATCH --error=logs/%A_%a.err
-#SBATCH --array=0-3  # TODO Change based on number of configurations
+#SBATCH --output=slurm_logs/%A_%a.out
+#SBATCH --error=slurm_logs/%A_%a.err
+#SBATCH --mem-per-gpu=16G
+#SBATCH --ntasks=1
+#SBATCH --gpus-per-task=1
+#SBATCH --time=02:00:00
+#SBATCH --array=0-179 # Change based on number of configurations
 
 # Define grid search parameters
-predictors=("SimpleCfC" "SimpleLTC", "SimpleLSTM")
-subseq_lengths=(40, 20)
-loss_functions=("mse" "mae", "bce") # TODO
-datasets=("data\neural_code_data\ganglion_cell_data\15-10-07\naturalscene_with_val.h5",
-          "data\neural_code_data\ganglion_cell_data\15-11-21a\naturalscene_with_val.h5",
-          "data\neural_code_data\ganglion_cell_data\15-11-21b\naturalscene_with_val.h5")
-num_units=(9, 14, 26)
+predictors=("SimpleCfC" "SimpleLTC", "SingleLSTM")
+subseq_lengths=(40 20)
+loss_functions=("mse" "mae")
+datasets=("data/neural_code_data/retina/9_units.h5"
+          "data/neural_code_data/retina/14_units.h5"
+          "data/neural_code_data/retina/27_units.h5")
+num_units=(9 14 27)
 n_runs=5
 
 # Generate configurations dynamically
@@ -34,6 +37,7 @@ for predictor in "${predictors[@]}"; do
             experiment_names+=("$experiment_name")
             # Add the configuration to the array
             configurations+=("$predictor $subseq_len $loss $dataset $num_unit")
+          done
         done
       done
   done
@@ -43,26 +47,35 @@ done
 CONFIG=(${configurations[$SLURM_ARRAY_TASK_ID]})
 EXP_NAME=${experiment_names[$SLURM_ARRAY_TASK_ID]}
 
+# Create folder for slurm logs (specified at the top)
+LOG_DIR="slurm_logs"
+mkdir -p "$LOG_DIR"
+
 echo "Running configuration: ${CONFIG[@]}"
 
 # Activate the conda environment
 export PATH="/home/inf148247/anaconda3/bin:$PATH"
 source activate neural_env
 
+wandb online
+
 # Execute Python training script with selected configuration
-python .\src\train.py \
+python ./src/train.py \
         hydra.run.dir="results/${EXP_NAME}/" \
-        training.predictor="${CONFIG[0]}" \
+        training.predictor.name="${CONFIG[0]}" \
         training.subseq_len="${CONFIG[1]}" \
         training.loss_function="${CONFIG[2]}" \
         data.path="${CONFIG[3]}" \
         data.num_units="${CONFIG[4]}" \
+        data.subset_size=-1 \
+        training.batch_size=4096 \
+        testing.batch_size=4096 
 
-python .\src\test.py \
+python ./src/test.py \
         -cp "../results/${EXP_NAME}/" \
         hydra.run.dir=. \
         hydra.output_subdir=null \
         hydra/job_logging=disabled \
-        hydra/hydra_logging=disabled \
+        hydra/hydra_logging=disabled
 
 
