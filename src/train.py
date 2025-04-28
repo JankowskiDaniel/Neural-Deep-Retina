@@ -118,7 +118,7 @@ def train(config: Config) -> None:
     wandb.init(
         entity="jankowskidaniel06-put",
         project="Neural Deep Retina",
-        name=str(results_dir),
+        name=str(results_dir.stem),
         id=_id,
         config={
             "data": {
@@ -259,7 +259,7 @@ def train(config: Config) -> None:
     model.to(DEVICE)
     start_training_time = time()
 
-    best_pcorr = 0.0
+    best_pcorr = float('-inf')
     for epoch in tqdm(range(N_EPOCHS)):
         start_epoch_time = time()
         train_loader, val_loader = curriculum_handler.get_dataloaders(epoch)

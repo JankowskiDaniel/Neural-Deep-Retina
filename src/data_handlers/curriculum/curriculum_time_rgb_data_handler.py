@@ -61,14 +61,18 @@ class CurriculumBaselineRGBDataset(BaseHandler):
         self.dataset_len: int = self.dataset_len - self.subseq_len + 1
 
         if self.seq_len >= 1:
-            if self.window_overlap < 0 or self.window_overlap >= self.subseq_len:
+            if (
+                self.window_overlap < 0
+                or self.window_overlap >= self.subseq_len
+            ):
                 raise ValueError(
                     "Window overlap must be between 0 and (subseq_len - 1)."
                 )
 
             # Calculate needed images for one sample
-            total_images_needed = ((self.subseq_len - self.window_overlap) *
-                                   (self.seq_len - 1)) + self.subseq_len
+            total_images_needed = (
+                (self.subseq_len - self.window_overlap) * (self.seq_len - 1)
+            ) + self.subseq_len
             self.dataset_len = self.dataset_len - total_images_needed + 1
 
         # List of allowed arguments in the constructor
@@ -142,7 +146,9 @@ class CurriculumBaselineRGBDataset(BaseHandler):
             # Apply any transformations for input data
             x = self.transform_x(x)
             # Get the target
-            y = self.curr_Y[:, idx + self.subseq_len - 1 + self.prediction_step]
+            y = self.curr_Y[
+                :, idx + self.subseq_len - 1 + self.prediction_step
+            ]
 
         else:
             # Complex case: multiple subsequences with overlap
