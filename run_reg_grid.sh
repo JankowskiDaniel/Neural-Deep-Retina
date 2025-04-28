@@ -11,7 +11,8 @@
 #SBATCH --array=0-179 # Change based on number of configurations
 
 # Define grid search parameters
-predictors=("SimpleCfC" "SimpleLTC", "SingleLSTM")
+predictors=("SimpleCFC" "SimpleLTC", "SingleLSTM")
+lrs=(0.002 0.002 0.0005)
 subseq_lengths=(40 20)
 loss_functions=("mse" "mae")
 datasets=("data/neural_code_data/retina/9_units.h5"
@@ -24,7 +25,7 @@ n_runs=5
 configurations=()
 # Store experiment names
 experiment_names=()
-for predictor in "${predictors[@]}"; do
+for p in $(seq 0 $((${#predictors[@]} - 1))); do
   for subseq_len in "${subseq_lengths[@]}"; do
     for loss in "${loss_functions[@]}"; do
       for i in $(seq 0 $((${#datasets[@]} - 1))); do
@@ -32,11 +33,13 @@ for predictor in "${predictors[@]}"; do
             dataset=${datasets[$i]}
             # Dataset will be referenced by num_units
             num_unit=${num_units[$i]}
+            predictor=${predictors[$p]}
+            lr=${lrs[$p]}
             # Create a unique name for each run
             experiment_name="EXP_REG_${predictor}_${subseq_len}_${loss}_${num_unit}_RUN_${run}"
             experiment_names+=("$experiment_name")
             # Add the configuration to the array
-            configurations+=("$predictor $subseq_len $loss $dataset $num_unit")
+            configurations+=("$predictor $lr $subseq_len $loss $dataset $num_unit")
           done
         done
       done
@@ -63,10 +66,11 @@ wandb online
 python ./src/train.py \
         hydra.run.dir="results/${EXP_NAME}/" \
         training.predictor.name="${CONFIG[0]}" \
-        training.subseq_len="${CONFIG[1]}" \
-        training.loss_function="${CONFIG[2]}" \
-        data.path="${CONFIG[3]}" \
-        data.num_units="${CONFIG[4]}" \
+        training.predictor.learning_rate="${CONFIG[1]}" \
+        data.subseq_len="${CONFIG[2]}" \
+        training.loss_function="${CONFIG[3]}" \
+        data.path="${CONFIG[4]}" \
+        data.num_units="${CONFIG[5]}" \
         data.subset_size=-1 \
         training.batch_size=4096 \
         testing.batch_size=4096 

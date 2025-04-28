@@ -40,7 +40,7 @@ training:
   save_logs: True
 testing:
   batch_size: 32
-  weights: "final.pth"
+  weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
   run_on_test_data: True
