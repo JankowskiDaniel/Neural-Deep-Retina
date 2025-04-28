@@ -13,6 +13,7 @@
 # Define grid search parameters
 predictors=("SimpleCFC" "SimpleLTC", "SingleLSTM")
 lrs=(0.002 0.002 0.0005)
+hidden_sizes=(16 24 32)
 subseq_lengths=(40 20)
 loss_functions=("mse" "mae")
 datasets=("data/neural_code_data/retina/9_units.h5"
@@ -35,11 +36,13 @@ for p in $(seq 0 $((${#predictors[@]} - 1))); do
             num_unit=${num_units[$i]}
             predictor=${predictors[$p]}
             lr=${lrs[$p]}
+            # Select hidden size based on dataset
+            hidden_size=${hidden_sizes[$i]}
             # Create a unique name for each run
             experiment_name="EXP_REG_${predictor}_${subseq_len}_${loss}_${num_unit}_RUN_${run}"
             experiment_names+=("$experiment_name")
             # Add the configuration to the array
-            configurations+=("$predictor $lr $subseq_len $loss $dataset $num_unit")
+            configurations+=("$predictor $lr $subseq_len $loss $dataset $num_unit $hidden_size")
           done
         done
       done
@@ -71,6 +74,7 @@ python ./src/train.py \
         training.loss_function="${CONFIG[3]}" \
         data.path="${CONFIG[4]}" \
         data.num_units="${CONFIG[5]}" \
+        training.predictor.hidden_size="${CONFIG[6]}" \
         data.subset_size=-1 \
         training.batch_size=4096 \
         testing.batch_size=4096 

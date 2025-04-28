@@ -144,6 +144,7 @@ def train(config: Config) -> None:
                     "name": config.training.predictor.name,
                     "learning_rate": config.training.predictor.learning_rate,
                     "n_trainable_params": model.predictor_n_trainable_params,
+                    "hidden_size": config.training.predictor.hidden_size,
                 },
                 "total_trainable_params": model.total_n_trainable_params,
             },
