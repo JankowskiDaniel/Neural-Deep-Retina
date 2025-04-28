@@ -259,7 +259,7 @@ def train(config: Config) -> None:
     model.to(DEVICE)
     start_training_time = time()
 
-    best_pcorr = float('-inf')
+    best_pcorr = float("-inf")
     for epoch in tqdm(range(N_EPOCHS)):
         start_epoch_time = time()
         train_loader, val_loader = curriculum_handler.get_dataloaders(epoch)
