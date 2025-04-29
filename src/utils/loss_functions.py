@@ -57,6 +57,33 @@ class BinaryPDFWeightedBCEWithLogitsLoss(nn.Module):
         return -loss / target.numel()
 
 
+class TverskyLossMultiLabel(nn.Module):
+    def __init__(self, alpha: float = 0.5, beta: float = 0.5, eps: float = 1e-8):
+        super().__init__()
+        self.alpha = alpha
+        self.beta = beta
+        self.eps = eps
+
+    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            input: [B, C] logits
+            target: [B, C] binary labels (0 or 1)
+        """
+        input_prob = torch.sigmoid(input)
+        input_prob = input_prob.view(-1, input.shape[1])
+        target = target.view(-1, target.shape[1])
+
+        # Calculate Tversky components
+        TP = (input_prob * target).sum(dim=0)
+        FP = (input_prob * (1 - target)).sum(dim=0)
+        FN = ((1 - input_prob) * target).sum(dim=0)
+
+        tversky_index = TP / (TP + self.alpha * FP + self.beta * FN + self.eps)
+
+        return 1.0 - tversky_index.mean()
+
+
 def compute_pos_weights(
     y: np.ndarray, DEVICE: str, threshold: float
 ) -> torch.Tensor:
