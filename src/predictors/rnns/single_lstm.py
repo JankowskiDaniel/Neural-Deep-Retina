@@ -57,12 +57,11 @@ class SingleLSTM(Predictor):
         out = out + residual  # Residual connection
 
         out = self.l2(out)
-        # out = self.act1(out)
         if self.activation is not None:
             if self.activation == "relu":
-                x = self.relu(x)
+                out = self.relu(out)
             elif self.activation == "sigmoid":
-                x = self.sigmoid(x)
+                out = self.sigmoid(out)
             else:
                 raise ValueError(f"Unknown activation function: {self.activation}")
         return out
