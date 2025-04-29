@@ -12,6 +12,7 @@ class SingleLSTM(Predictor):
         num_classes: int,
         weights_path: Path | None = None,
         hidden_size: int = 16,
+        activation: str | None = None,
     ):
         super(SingleLSTM, self).__init__()
         self.flattened_size = input_size
@@ -30,8 +31,9 @@ class SingleLSTM(Predictor):
 
         self.l2 = nn.Linear(hidden_size, num_classes)
         self.act1 = nn.Identity()
-
-        self.relu = nn.Sigmoid()
+        self.activation = activation
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
 
         # Orthogonal initialization for LSTM weights
         for name, param in self.lstm.named_parameters():
@@ -56,5 +58,11 @@ class SingleLSTM(Predictor):
 
         out = self.l2(out)
         # out = self.act1(out)
-        out = self.relu(out)
+        if self.activation is not None:
+            if self.activation == "relu":
+                x = self.relu(x)
+            elif self.activation == "sigmoid":
+                x = self.sigmoid(x)
+            else:
+                raise ValueError(f"Unknown activation function: {self.activation}")
         return out

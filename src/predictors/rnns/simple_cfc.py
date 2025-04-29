@@ -13,6 +13,7 @@ class SimpleCFC(Predictor):
         num_classes: int,
         weights_path: Path | None = None,
         hidden_size: int = 16,
+        activation: str | None = None,
     ) -> None:
         super(SimpleCFC, self).__init__()
         wiring = AutoNCP(hidden_size, num_classes)
@@ -23,12 +24,20 @@ class SimpleCFC(Predictor):
             mixed_memory=True,
             return_sequences=False,
         )
-        self.activation = nn.ReLU()
+        self.activation = activation
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
 
         if weights_path is not None:
             self.load_state_dict(torch.load(weights_path))
 
     def forward(self, x):
         x, _ = self.cfc(x)
-        x = self.activation(x)
+        if self.activation is not None:
+            if self.activation == "relu":
+                x = self.relu(x)
+            elif self.activation == "sigmoid":
+                x = self.sigmoid(x)
+            else:
+                raise ValueError(f"Unknown activation function: {self.activation}")
         return x

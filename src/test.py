@@ -122,7 +122,7 @@ def test(config: Config) -> None:
 
     # Get the y_scaler for the test dataset
     y_scaler = test_dataset.get_y_scaler()
-
+    print("CLASSIFICATION:", config.data.is_classification)
     start_testing_time = time()
     test_loss, metrics_dict = test_model(
         model=model,
@@ -133,6 +133,7 @@ def test(config: Config) -> None:
         save_outputs_and_targets=True,
         save_dir=predictions_dir,
         y_scaler=y_scaler,
+        is_classification=config.data.is_classification,
     )
     total_time = time() - start_testing_time
     logger.info(f"Test loss: {test_loss:.4f}")
@@ -223,6 +224,7 @@ def test(config: Config) -> None:
             save_outputs_and_targets=True,
             save_dir=predictions_dir,
             y_scaler=y_scaler,
+            is_classification=config.data.is_classification,
         )
         total_time = time() - start_testing_time
         logger.info(f"Test loss: {test_loss:.4f}")
