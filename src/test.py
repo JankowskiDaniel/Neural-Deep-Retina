@@ -122,7 +122,7 @@ def test(config: Config) -> None:
 
     # Get the y_scaler for the test dataset
     y_scaler = test_dataset.get_y_scaler()
-    print("CLASSIFICATION:", config.data.is_classification)
+
     start_testing_time = time()
     test_loss, metrics_dict = test_model(
         model=model,
