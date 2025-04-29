@@ -8,14 +8,14 @@
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-task=1
 #SBATCH --time=02:00:00
-#SBATCH --array=0-179 # Change based on number of configurations
+#SBATCH --array=0-29 # Change based on number of configurations
 
 # Define grid search parameters
-predictors=("SimpleCFC" "SimpleLTC" "SingleLSTM")
-lrs=(0.002 0.002 0.0005)
+predictors=("SimpleCFC" "SimpleLTC")
+lrs=(0.002 0.002)
 hidden_sizes=(16 24 32)
-subseq_lengths=(40 20)
-loss_functions=("mse" "mae")
+subseq_lengths=(40)
+loss_functions=("bce_weighted")
 datasets=("data/neural_code_data/retina/9_units.h5"
           "data/neural_code_data/retina/14_units.h5"
           "data/neural_code_data/retina/27_units.h5")
@@ -39,7 +39,7 @@ for p in $(seq 0 $((${#predictors[@]} - 1))); do
             # Select hidden size based on dataset
             hidden_size=${hidden_sizes[$i]}
             # Create a unique name for each run
-            experiment_name="EXP_REG_${predictor}_${subseq_len}_${loss}_${num_unit}_RUN_${run}"
+            experiment_name="EXP_CLF_${predictor}_${subseq_len}_${loss}_${num_unit}_RUN_${run}"
             experiment_names+=("$experiment_name")
             # Add the configuration to the array
             configurations+=("$predictor $lr $subseq_len $loss $dataset $num_unit $hidden_size")
@@ -75,6 +75,7 @@ python ./src/train.py \
         data.path="${CONFIG[4]}" \
         data.num_units="${CONFIG[5]}" \
         training.predictor.hidden_size="${CONFIG[6]}" \
+        data.is_classification=True \
         data.subset_size=-1 \
         training.batch_size=4096 \
         testing.batch_size=4096 
