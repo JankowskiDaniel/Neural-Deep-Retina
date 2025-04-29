@@ -1,11 +1,8 @@
-import argparse
 import h5py
+import sys
 from pathlib import Path
 from logging import Logger
-import sys
-
-sys.path.append("src")
-from src.utils.logger import get_logger  # noqa: E402
+import numpy as np
 
 
 class NeuralCodeData:
@@ -73,20 +70,37 @@ class NeuralCodeData:
                 f.create_dataset(f"train/response/{key}", data=train_data)
                 f.create_dataset(f"val/response/{key}", data=val_data)
                 f.create_dataset(f"test/response/{key}", data=test_data)
-        # Close the file
+
+    def add_gaussian_noise(self, key:str="test", sigma:float=0.3):
+        """
+        Adds Gaussian noise to stimulus.
+        Parameters:         
+        -----------
+        noise_level : float
+            The standard deviation of the Gaussian noise to be added.
+        """
+
+        # Create a new path for the file with noised data
+        new_path = self.path.parent / f"{self.path.stem}_{key}_noised.h5"
+
+        images = self.data[key]["stimulus"]
+        noised = images + np.random.normal(0, sigma, images.shape)
+
+        with h5py.File(new_path, "w") as f:
+            f.create_dataset(
+                f"{key}/stimulus", data=noised
+            )
+            # Save response data
+            data_keys = list(self.data[key]["response"].keys())
+            for k in data_keys:
+                # Get the response data
+                response_data = self.data[key]["response"][k]
+                # Save the response data
+                f.create_dataset(f"{key}/response/{k}", data=response_data)
+
+    def close(self):
+        """
+        Closes the data file.
+        """
         self.data.close()
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("path", type=Path)
-    parser.add_argument("-r", "--train_ratio", type=float, default=0.8)
-    args = parser.parse_args()
-
-    logger = get_logger()
-
-    data = NeuralCodeData(args.path, logger)
-    logger.info(f"Reading data from {args.path}")
-    data.read_data()
-    logger.info(f"Creating a validation split with ratio {args.train_ratio}")
-    data.make_validation_split(args.train_ratio)
+        self.logger.info(f"Closed data file {self.path}")
