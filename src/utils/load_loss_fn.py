@@ -5,7 +5,7 @@ from utils.loss_functions import (
     BinaryPDFWeightedBCEWithLogitsLoss,
     FrequencyWeightedMSELoss,
     SignalWeightedMSELoss,
-    TverskyLossMultiLabel
+    TverskyLossMultiLabel,
 )
 
 
@@ -45,9 +45,7 @@ def load_loss_function(
         pos_weights = pos_weights.to(device)
         loss_fn = BinaryPDFWeightedBCEWithLogitsLoss(pos_weights)
     elif loss_fn_name == "tversky":
-        loss_fn = TverskyLossMultiLabel(
-            alpha=0.3, beta=0.7, eps=1e-8
-        )
+        loss_fn = TverskyLossMultiLabel(alpha=0.3, beta=0.7, eps=1e-8)
     elif loss_fn_name not in LOSS_FUNCTIONS:
         raise ValueError(f"Loss function '{loss_fn_name}' is not supported.")
     else:

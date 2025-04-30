@@ -39,5 +39,7 @@ class SimpleCFC(Predictor):
             elif self.activation == "sigmoid":
                 x = self.sigmoid(x)
             else:
-                raise ValueError(f"Unknown activation function: {self.activation}")
+                raise ValueError(
+                    f"Unknown activation function: {self.activation}"
+                )
         return x

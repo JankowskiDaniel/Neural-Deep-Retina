@@ -138,7 +138,10 @@ def test_model(
             if save_outputs_and_targets:
                 if is_classification:
                     outputs_df = pd.concat(
-                        [outputs_df, pd.DataFrame(binary_outputs.cpu().numpy())]
+                        [
+                            outputs_df,
+                            pd.DataFrame(binary_outputs.cpu().numpy()),
+                        ]
                     )
                 else:
                     outputs_df = pd.concat(

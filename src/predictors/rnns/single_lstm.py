@@ -63,5 +63,7 @@ class SingleLSTM(Predictor):
             elif self.activation == "sigmoid":
                 out = self.sigmoid(out)
             else:
-                raise ValueError(f"Unknown activation function: {self.activation}")
+                raise ValueError(
+                    f"Unknown activation function: {self.activation}"
+                )
         return out

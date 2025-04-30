@@ -12,7 +12,10 @@ from utils import (
     load_data_handler,
     load_loss_function,
 )
-from utils.classification_metrics import save_classification_report
+from utils.classification_metrics import (
+    create_classification_report,
+    save_classification_report,
+)
 from visualize.visualize_dataset import visualize_outputs_and_targets
 import wandb
 import hydra
@@ -181,18 +184,23 @@ def test(config: Config) -> None:
         return_fig=True,
     )
 
-    if config.data.is_classification:
-        save_classification_report(
-            targets=targets,
-            outputs=outputs,
-            plots_dir=plots_dir,
-            is_train=False,
-            file_name="classification_report",
-        )
     wandb.log({"Plots/Test_Scaled": fig})
     logger.info(
         f"Outputs and targets visualizations saved to {predictions_dir}"
     )
+
+    if config.data.is_classification:
+        clf_report = create_classification_report(
+            targets=targets,
+            outputs=outputs,
+        )
+        save_classification_report(
+            clf_report=clf_report,
+            save_dir=plots_dir,
+            file_name="classification_report",
+            is_train=False,
+        )
+        wandb.log({"TEST_CLF_REPORT": clf_report})
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
@@ -268,12 +276,15 @@ def test(config: Config) -> None:
         )
 
         if config.data.is_classification:
-            save_classification_report(
+            clf_report = create_classification_report(
                 targets=targets,
                 outputs=outputs,
-                plots_dir=plots_dir,
-                is_train=True,
+            )
+            save_classification_report(
+                clf_report=clf_report,
+                save_dir=plots_dir,
                 file_name="classification_report",
+                is_train=True,
             )
 
         wandb.finish()
