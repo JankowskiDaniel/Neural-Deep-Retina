@@ -238,6 +238,8 @@ def train(config: Config) -> None:
         loss_fn_name=loss_fn_name,
         target=train_dataset.get_target(),
         device=DEVICE,
+        results_dir=results_dir,
+        is_train=True,
     )
 
     wandb.config.update({"loss_fn": loss_fn.__class__.__name__})

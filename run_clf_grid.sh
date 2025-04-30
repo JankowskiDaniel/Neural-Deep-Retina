@@ -8,14 +8,14 @@
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-task=1
 #SBATCH --time=02:00:00
-#SBATCH --array=0-29 # Change based on number of configurations
+#SBATCH --array=0-59 # Change based on number of configurations
 
 # Define grid search parameters
 predictors=("SimpleCFC" "SimpleLTC")
 lrs=(0.002 0.002)
 hidden_sizes=(16 24 32)
 subseq_lengths=(40)
-loss_functions=("bce_weighted")
+loss_functions=("bce_weighted", "tversky")
 datasets=("data/neural_code_data/retina/9_units.h5"
           "data/neural_code_data/retina/14_units.h5"
           "data/neural_code_data/retina/27_units.h5")
@@ -76,9 +76,12 @@ python ./src/train.py \
         data.num_units="${CONFIG[5]}" \
         training.predictor.hidden_size="${CONFIG[6]}" \
         data.is_classification=True \
+        data.class_epsilon=0.001 \
         data.subset_size=-1 \
         training.batch_size=4096 \
         testing.batch_size=4096 
+
+# Test classification
 
 python ./src/test.py \
         -cp "../results/${EXP_NAME}/" \
@@ -87,4 +90,4 @@ python ./src/test.py \
         hydra/job_logging=disabled \
         hydra/hydra_logging=disabled
 
-
+# Test regression

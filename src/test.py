@@ -46,14 +46,6 @@ def test(config: Config) -> None:
     model = load_model(config)
     model.load_state_dict(torch.load(weights_path))
 
-    # For calculating pos_weights if necessary
-    train_dataset = load_data_handler(
-        config.data,
-        results_dir=results_dir,
-        is_train=True,
-        use_saved_scaler=True,
-    )
-
     test_dataset = load_data_handler(
         config.data,
         results_dir=results_dir,
@@ -107,8 +99,10 @@ def test(config: Config) -> None:
     loss_fn_name = config.training.loss_function
     loss_fn = load_loss_function(
         loss_fn_name=loss_fn_name,
-        target=train_dataset.get_target(),
         device=DEVICE,
+        results_dir=results_dir,
+        is_train=False,
+        target=None
     )
 
     # Create metric tracker
@@ -204,6 +198,13 @@ def test(config: Config) -> None:
 
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
+
+        train_dataset = load_data_handler(
+            config.data,
+            results_dir=results_dir,
+            is_train=True,
+            use_saved_scaler=True,
+        )
 
         train_loader = DataLoader(
             train_dataset,
