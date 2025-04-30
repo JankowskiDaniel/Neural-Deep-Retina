@@ -18,22 +18,23 @@ data:
   subset_size: 2000
   num_units: 9
   pred_channels: all
-  is_classification: False
-  class_epsilon: 1.0
+  is_classification: True
+  class_epsilon: 0.001
 training:
   is_curriculum: False
   debug_mode: True
-  loss_function: mse
+  loss_function: bce_weighted
   encoder:
     name: ShotSeqEncoder
     weights: null
     freeze: False
     learning_rate: 0.001
   predictor:
-    name: SingleLSTM
+    name: SimpleLTC
     learning_rate: 0.0005
     weights: null
     hidden_size: 16
+    activation: null
   batch_size: 32
   epochs: 50
   early_stopping: True

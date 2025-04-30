@@ -33,6 +33,7 @@ class PredictorConfig:
     learning_rate: float
     weights: str | None
     hidden_size: int
+    activation: str | None
 
 
 @dataclass

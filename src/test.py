@@ -133,6 +133,7 @@ def test(config: Config) -> None:
         save_outputs_and_targets=True,
         save_dir=predictions_dir,
         y_scaler=y_scaler,
+        is_classification=config.data.is_classification,
     )
     total_time = time() - start_testing_time
     logger.info(f"Test loss: {test_loss:.4f}")
@@ -223,6 +224,7 @@ def test(config: Config) -> None:
             save_outputs_and_targets=True,
             save_dir=predictions_dir,
             y_scaler=y_scaler,
+            is_classification=config.data.is_classification,
         )
         total_time = time() - start_testing_time
         logger.info(f"Test loss: {test_loss:.4f}")
