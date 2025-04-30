@@ -1,7 +1,7 @@
 import pytest
 import h5py
 from unittest.mock import MagicMock
-from data.make_validation_split import NeuralCodeData
+from data.neural_code_data_manipulator import NeuralCodeData
 
 
 @pytest.fixture

@@ -28,13 +28,19 @@ Code tests can be executed using `pytest`.
 
 The data set used in this project can be found [here](https://purl.stanford.edu/rk663dm5577). Please download and unzip in the `data` directory.
 
-We manually create a validation split for the evaluation. This can be done using `make_validation_split.py`. For example, open the terminal in the root directory an run:
+We manually create a validation split for the evaluation. This can be done using `manipulate_data.py`. For example, open the terminal in the root directory an run:
 
 ```bash
-python -m data.make_validation_split data\neural_code_data\ganglion_cell_data\15-10-07\naturalscene.h5 --train_ratio 0.8
+python -m data.manipulate_data data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5 --man_type make_val_split --train_ratio 0.8
 ```
 
 This will create a new file named `naturalscene_with_val.h5`, where the first 80% of the original data will constitue the new train set, and the rest will become the validation set. The test set is copied to the new file without modifications.
+
+You can also add Gaussian noise to the selected subset of stimulus (default is test):
+
+```bash
+python -m data.manipulate_data data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene.h5 --man_type add_noise --sigma 0.3
+```
 
 ## Training ##
 
