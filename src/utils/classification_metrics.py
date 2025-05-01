@@ -4,13 +4,10 @@ from pathlib import Path
 import json
 
 
-def save_classification_report(
+def create_classification_report(
     targets: pd.DataFrame,
     outputs: pd.DataFrame,
-    plots_dir: Path,
-    is_train: bool,
-    file_name: str,
-) -> None:
+) -> dict:
     y_pred = outputs.values  # Model predictions
     y_true = targets.values
 
@@ -18,15 +15,26 @@ def save_classification_report(
     y_pred = y_pred.round().astype(int)
     y_true = y_true.round().astype(int)
 
-    report = classification_report(
+    clf_report = classification_report(
         y_true,
         y_pred,
-        target_names=[
-            f"Channel {i}" for i in range(y_true.shape[1])
-        ],  # noqa: E501
+        target_names=[f"Channel {i}" for i in range(y_true.shape[1])],
         output_dict=True,
         zero_division=0,
     )
+    return clf_report
+
+
+def save_classification_report(
+    clf_report: dict, save_dir: Path, file_name: str, is_train: bool
+) -> None:
+    """
+    Save the classification report to a JSON file.
+    Args:
+        clf_report (dict): The classification report.
+        file_name (str): The name of the file to save the report to.
+        is_train (bool): Whether the report is for training or testing data.
+    """
     file_name = file_name + "_train" if is_train else file_name + "_test"
-    with open(plots_dir / f"{file_name}.json", "w") as f:
-        json.dump(report, f, indent=4)
+    with open(save_dir / f"{file_name}.json", "w") as f:
+        json.dump(clf_report, f, indent=4)

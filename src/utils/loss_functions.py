@@ -58,13 +58,17 @@ class BinaryPDFWeightedBCEWithLogitsLoss(nn.Module):
 
 
 class TverskyLossMultiLabel(nn.Module):
-    def __init__(self, alpha: float = 0.5, beta: float = 0.5, eps: float = 1e-8):
+    def __init__(
+        self, alpha: float = 0.5, beta: float = 0.5, eps: float = 1e-8
+    ):
         super().__init__()
         self.alpha = alpha
         self.beta = beta
         self.eps = eps
 
-    def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, input: torch.Tensor, target: torch.Tensor
+    ) -> torch.Tensor:
         """
         Args:
             input: [B, C] logits

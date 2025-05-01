@@ -12,7 +12,10 @@ from utils import (
     load_data_handler,
     load_loss_function,
 )
-from utils.classification_metrics import save_classification_report
+from utils.classification_metrics import (
+    create_classification_report,
+    save_classification_report,
+)
 from visualize.visualize_dataset import visualize_outputs_and_targets
 import wandb
 import hydra
@@ -42,14 +45,6 @@ def test(config: Config) -> None:
     logger.info("Loading model...")
     model = load_model(config)
     model.load_state_dict(torch.load(weights_path))
-
-    # For calculating pos_weights if necessary
-    train_dataset = load_data_handler(
-        config.data,
-        results_dir=results_dir,
-        is_train=True,
-        use_saved_scaler=True,
-    )
 
     test_dataset = load_data_handler(
         config.data,
@@ -104,8 +99,10 @@ def test(config: Config) -> None:
     loss_fn_name = config.training.loss_function
     loss_fn = load_loss_function(
         loss_fn_name=loss_fn_name,
-        target=train_dataset.get_target(),
         device=DEVICE,
+        results_dir=results_dir,
+        is_train=False,
+        target=None,
     )
 
     # Create metric tracker
@@ -181,21 +178,33 @@ def test(config: Config) -> None:
         return_fig=True,
     )
 
-    if config.data.is_classification:
-        save_classification_report(
-            targets=targets,
-            outputs=outputs,
-            plots_dir=plots_dir,
-            is_train=False,
-            file_name="classification_report",
-        )
     wandb.log({"Plots/Test_Scaled": fig})
     logger.info(
         f"Outputs and targets visualizations saved to {predictions_dir}"
     )
 
+    if config.data.is_classification:
+        clf_report = create_classification_report(
+            targets=targets,
+            outputs=outputs,
+        )
+        save_classification_report(
+            clf_report=clf_report,
+            save_dir=plots_dir,
+            file_name="classification_report",
+            is_train=False,
+        )
+        wandb.log({"TEST_CLF_REPORT": clf_report})
+
     if config.testing.run_on_train_data:
         logger.info("Testing on the training data...")
+
+        train_dataset = load_data_handler(
+            config.data,
+            results_dir=results_dir,
+            is_train=True,
+            use_saved_scaler=True,
+        )
 
         train_loader = DataLoader(
             train_dataset,
@@ -268,12 +277,15 @@ def test(config: Config) -> None:
         )
 
         if config.data.is_classification:
-            save_classification_report(
+            clf_report = create_classification_report(
                 targets=targets,
                 outputs=outputs,
-                plots_dir=plots_dir,
-                is_train=True,
+            )
+            save_classification_report(
+                clf_report=clf_report,
+                save_dir=plots_dir,
                 file_name="classification_report",
+                is_train=True,
             )
 
         wandb.finish()
