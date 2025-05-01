@@ -102,7 +102,7 @@ def test(config: Config) -> None:
         device=DEVICE,
         results_dir=results_dir,
         is_train=False,
-        target=None
+        target=None,
     )
 
     # Create metric tracker
