@@ -1,0 +1,49 @@
+hydra:
+  run:
+    dir: results/test_hydra_mse
+defaults:
+  - _self_
+  - curriculum/curriculum-schedule
+  - override hydra/job_logging: disabled # disable hydra logging
+data:
+  data_handler: CurriculumBaselineRGBDataset
+  img_dim: 50 # Spatial dimension of the input image
+  path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
+  response_type: firing_rate_10ms
+  is_rgb: False
+  seq_len: 0
+  subseq_len: 40
+  window_overlap: 0
+  prediction_step: 0
+  subset_size: 2000
+  num_units: 9
+  pred_channels: all
+  is_classification: False
+  class_epsilon: 0.001
+training:
+  is_curriculum: False
+  debug_mode: True
+  loss_function: bce_weighted
+  encoder:
+    name: ShotSeqEncoder
+    weights: /home/Neural-Deep-Retina/pretrained_weights/best_encoder.pth
+    freeze: False
+    learning_rate: 0.001
+  predictor:
+    name: SimpleCFC
+    learning_rate: 0.0005
+    weights: /home/Neural-Deep-Retina/pretrained_weights/best_predictor.pth
+    hidden_size: 16
+    activation: null
+  batch_size: 32
+  epochs: 50
+  early_stopping: True
+  early_stopping_patience: 7
+  save_logs: True
+testing:
+  batch_size: 32
+  weights: "best.pth"
+  metrics: ["mae", "mse"]
+  save_logs: True
+  run_on_test_data: True
+  run_on_train_data: True
