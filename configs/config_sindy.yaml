@@ -1,6 +1,6 @@
 hydra:
   run:
-    dir: results/test_hydra_mse
+    dir: sindy/compare_models
 defaults:
   - _self_
   - curriculum/curriculum-schedule
@@ -26,22 +26,22 @@ training:
   loss_function: bce_weighted
   encoder:
     name: ShotSeqEncoder
-    weights: /home/Neural-Deep-Retina/pretrained_weights/best_encoder.pth
+    weights: pretrained_weights/best_encoder.pth
     freeze: False
     learning_rate: 0.001
   predictor:
     name: SimpleCFC
     learning_rate: 0.0005
-    weights: /home/Neural-Deep-Retina/pretrained_weights/best_predictor.pth
+    weights: pretrained_weights/best_predictor.pth
     hidden_size: 16
     activation: null
-  batch_size: 32
+  batch_size: 128
   epochs: 50
   early_stopping: True
   early_stopping_patience: 7
   save_logs: True
 testing:
-  batch_size: 32
+  batch_size: 128
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True

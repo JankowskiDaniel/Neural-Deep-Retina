@@ -2,6 +2,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from torch.utils.data import DataLoader
 import torch
+from tqdm import tqdm
+import pandas as pd
 from pathlib import Path
 from sklearn.preprocessing import MinMaxScaler
 from utils.logger import get_logger
@@ -13,6 +15,7 @@ from utils import (
 import pysindy as ps
 import hydra
 from scipy.integrate import solve_ivp
+import sys
 
 
 def rhs(t, h, model: ps.SINDy):
@@ -75,7 +78,15 @@ def simulate_sindy_from_input(
 
 
 def evaluate_sindy_on_dataset(
-    model, sindy, data_loader, dt=0.01, T=1.0, num_steps=1000, max_batches=1
+    model,
+    sindy,
+    data_loader,
+    results_dir: Path,
+    logger,
+    dt=0.01,
+    T=1.0,
+    num_steps=1000,
+    max_batches=1,
 ):
     """
     Evaluate SINDy model by predicting final hidden state from the initial one,
@@ -85,6 +96,8 @@ def evaluate_sindy_on_dataset(
         model: your full PyTorch model (should contain encoder and predictor.cfc)
         sindy: trained PySINDy model
         data_loader: DataLoader for dataset
+        results_dir: directory to save results
+        logger: logger for logging information
         dt: time step for ODE solver
         T: total simulation time
         num_steps: resolution of ODE solver
@@ -93,7 +106,7 @@ def evaluate_sindy_on_dataset(
     model.eval()
     device = next(model.parameters()).device
 
-    for batch_idx, (images, outputs) in enumerate(data_loader):
+    for batch_idx, (images, targets) in enumerate(data_loader):
         if batch_idx >= max_batches:
             break
 
@@ -107,53 +120,116 @@ def evaluate_sindy_on_dataset(
             h_seq, _ = model.predictor.cfc(latents)  # shape: (B, T, H)
             h_seq = h_seq.cpu().numpy()
 
-        for b in range(h_seq.shape[0]):
+        cfc_preds = h_seq[:, -1]  # final hidden state from CFC
+        sindy_preds = []  # predicted hidden states from SINDy
+        targets = targets.cpu().numpy()  # shape: (B, T, C)
+
+        for b in tqdm(range(h_seq.shape[0]), desc="Processing samples"):
             h0 = h_seq[b, 0]  # initial hidden state
-            h_target = h_seq[b, -1]  # target final hidden state
 
             # Simulate ODE with SINDy
             t_eval = np.linspace(0, T, num_steps)
             sol = solve_ivp(
-                rhs, t_span=(0, T), y0=h0, t_eval=t_eval, args=(sindy,), method="RK45"
+                rhs,
+                t_span=(0, T),
+                y0=h0,
+                t_eval=t_eval,
+                args=(sindy,),
+                method="RK45",
             )
 
-            h_pred = sol.y[:, -1]  # final hidden state from simulation
+            h_sindy = sol.y[:, -1]  # final hidden state from simulation
 
-            print(f"\nSample {b} in batch {batch_idx}")
-            print(f"Predicted final hidden state: {h_pred}")
-            print(f"True final hidden state:      {h_target}")
-            print(f"MSE(pred_h, target_h): {np.mean((h_target - h_pred) ** 2):.4f}")
+            sindy_preds.append(h_sindy)
 
-            # calculate relu activation
-            h_pred_relu = np.maximum(h_pred, 0)
-            h_target_relu = np.maximum(h_target, 0)
-            print(f"True target retinal responses (scaled): {outputs[b].cpu().numpy()}")
-            print(f"Predicted hidden state (relu): {h_pred_relu}")
-            print(f"True hidden state (relu): {h_target_relu}")
-            print(f"MSE(pred_h, target): {np.mean((h_target_relu - h_pred) ** 2):.4f}")
+    sindy_preds_array = np.array(sindy_preds)
+
+    # Calculate RELU on predictions
+    sindy_preds_array = np.maximum(sindy_preds_array, 0)
+    cfc_preds = np.maximum(cfc_preds, 0)
+    targets = targets.cpu().numpy()
+
+    # Calculate metrics
+    calculate_metrics(sindy_preds_array, cfc_preds, targets, logger)
+
+    # Save predictions
+    pd.DataFrame(sindy_preds).to_csv(
+        results_dir / "sindy_preds.csv", index=False
+    )
+    pd.DataFrame(cfc_preds).to_csv(results_dir / "cfc_preds.csv", index=False)
+    pd.DataFrame(targets).to_csv(results_dir / "targets.csv", index=False)
 
 
-@hydra.main(config_path="../configs", config_name="config", version_base=None)
+def calculate_metrics(sindy_preds, cfc_preds, targets, logger):
+    """
+    Calculate metrics for SINDy predictions.
+
+    Args:
+        sindy_preds: predicted hidden states from SINDy
+        cfc_preds: predicted hidden states from CFC
+        targets: true hidden states
+        logger: logger for logging information
+    """
+    # Calculate mse
+    mse_sindy = np.mean((sindy_preds - targets) ** 2)
+    mse_cfc = np.mean((cfc_preds - targets) ** 2)
+    logger.info(f"MSE (SINDy): {mse_sindy:.4f}")
+    logger.info(f"MSE (CFC): {mse_cfc:.4f}")
+
+    # Calculate Pearson correlation
+    corr_sindy = np.corrcoef(sindy_preds.flatten(), targets.flatten())[0, 1]
+    corr_cfc = np.corrcoef(cfc_preds.flatten(), targets.flatten())[0, 1]
+
+    logger.info(f"Pearson correlation (SINDy): {corr_sindy:.4f}")
+    logger.info(f"Pearson correlation (CFC): {corr_cfc:.4f}")
+
+
+def plot_sindy_results(t, h_sim, results_dir: Path) -> None:
+    """
+    Plot the results of the SINDy simulation.
+
+    Args:
+        t: time points
+        h_sim: simulated hidden states
+        sindy: trained SINDy model
+    """
+    plt.figure(figsize=(10, 6))
+    for i in range(h_sim.shape[1]):
+        plt.plot(t, h_sim[:, i], label=f"h{i}")
+    plt.title("Simulated Hidden State Dynamics (SINDy)")
+    plt.xlabel("Time")
+    plt.ylabel("Hidden States")
+    plt.legend()
+    plt.savefig(results_dir / "sindy_simulation.png")
+    plt.close()
+
+
+@hydra.main(
+    config_path="../configs", config_name="config_sindy", version_base=None
+)
 def train(config: Config) -> None:
 
-    results_dir = Path(hydra.core.hydra_config.HydraConfig.get().runtime.output_dir)
+    results_dir = Path(
+        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
+    )
 
-    # curr_schedule = None
-    # if config.training.is_curriculum:
-    #     curr_schedule = config.curriculum
+    # Create results directory if it doesn't exist
+    results_dir.mkdir(parents=True, exist_ok=True)
 
     logger = get_logger(
         log_to_file=config.training.save_logs,
         log_file=results_dir / "train_logs.log",
     )
 
-    # logger.info(f"Results directory: {results_dir}")
+    logger.info(f"Results directory: {results_dir}")
 
     # load the model
     logger.info("Loading model...")
 
     if config.training.encoder.weights is not None:
-        logger.info(f"Loading encoder weights from {config.training.encoder.weights}")
+        logger.info(
+            f"Loading encoder weights from {config.training.encoder.weights}"
+        )
     if config.training.predictor.weights is not None:
         logger.info(
             f"Loading predictor weights from {config.training.predictor.weights}"
@@ -184,7 +260,9 @@ def train(config: Config) -> None:
     logger.info(f"Input data point shape: {X.shape}")
     logger.info(f"Target data point shape: {y.shape}")
 
-    logger.info(f"Predictions will be made for channels: {train_dataset.pred_channels}")
+    logger.info(
+        f"Predictions will be made for channels: {train_dataset.pred_channels}"
+    )
     TORCH_SEED = 12
 
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
@@ -207,13 +285,13 @@ def train(config: Config) -> None:
         pin_memory=PIN_MEMORY,
         num_workers=NUM_WORKERS,
     )
-    # val_loader = DataLoader(
-    #     val_dataset,
-    #     batch_size=BATCH_SIZE,
-    #     shuffle=False,
-    #     pin_memory=PIN_MEMORY,
-    #     num_workers=NUM_WORKERS,
-    # )
+    val_loader = DataLoader(
+        val_dataset,
+        num_workers=NUM_WORKERS,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        pin_memory=PIN_MEMORY,
+    )
 
     model.predictor.cfc.return_sequences = True
 
@@ -264,7 +342,10 @@ def train(config: Config) -> None:
     )
 
     sindy.fit(all_h_seq, t=dt, x_dot=all_h_dot)
-    sindy.print()
+    with open(results_dir / "sindy_equations.txt", "w") as f:
+        sys.stdout = f  # Redirect standard output to the file
+        sindy.print(lhs=None, precision=3)
+        sys.stdout = sys.__stdout__  # Restore standard output
     score = sindy.score(all_h_seq, t=dt, x_dot=all_h_dot)
     print(f"R² on training data: {score:.3f}")
 
@@ -272,24 +353,25 @@ def train(config: Config) -> None:
     images = images[:1]  # take just one sample for simulation
 
     # Simulate
+    logger.info("Simulating hidden dynamics from input...")
     t, h_sim = simulate_sindy_from_input(
         model, sindy, images, dt=0.01, T=100, num_steps=10000
     )
 
-    # Plot results
-    plt.figure(figsize=(10, 6))
-    for i in range(h_sim.shape[1]):
-        plt.plot(t, h_sim[:, i], label=f"h{i}")
-    plt.xlabel("Time (s)")
-    plt.ylabel("Hidden state")
-    plt.title("Simulated Hidden State Dynamics (SINDy)")
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+    plot_sindy_results(t, h_sim, results_dir)
 
     # Evaluate SINDy on dataset
+    logger.info("Evaluating SINDy on dataset...")
     evaluate_sindy_on_dataset(
-        model, sindy, train_loader, dt=0.01, T=100, num_steps=10000, max_batches=1
+        model,
+        sindy,
+        val_loader,
+        results_dir=results_dir,
+        logger=logger,
+        dt=0.01,
+        T=100,
+        num_steps=10000,
+        max_batches=1,
     )
 
 

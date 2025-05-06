@@ -180,3 +180,5 @@ notebooks/*.png
 configs/*slurm.yaml
 
 slurm_logs/
+
+sindy/compare_models/.hydra
