@@ -59,7 +59,7 @@ def load_model(config: Config) -> DeepRetinaModel:
             latent_dim=config.training.encoder.latent_dim,
         )
     else:
-        encoder: Encoder = ENCODERS[enc_name](
+        encoder = ENCODERS[enc_name](
             input_shape=input_shape,
             weights_path=weights_path_encoder,
             freeze=freeze,

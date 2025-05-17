@@ -288,10 +288,6 @@ def train(config: Config) -> None:
             f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss} | "
             + f"Validation Loss: {valid_loss}"
         )
-        logger.info(
-            f"Learing rates: Encoder {optimizer.param_groups[0]['lr']} | "
-            + f"Predictor {optimizer.param_groups[1]['lr']}"
-        )
         # Calculate mean Pearson correlation
         val_mean_pcorr = (
             torch.nan_to_num(val_metrics["PearsonCorrCoef"], nan=0.0)
