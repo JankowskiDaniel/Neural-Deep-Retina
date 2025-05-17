@@ -153,6 +153,7 @@ def train(config: Config) -> None:
             "num_units": config.data.num_units,
             "curriculum_schedule": curr_schedule if curr_schedule else None,
         },
+        settings=wandb.Settings(start_method="thread"),
         resume="allow",
     )
 
@@ -218,15 +219,6 @@ def train(config: Config) -> None:
             {"params": model.encoder.parameters(), "lr": ENCODER_LR},
             {"params": model.predictor.parameters(), "lr": PREDICTOR_LR},
         ]
-    )
-    # Learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer,
-        mode="min",
-        factor=0.8,
-        patience=3,
-        cooldown=2,
-        threshold=0.01,
     )
 
     wandb.config.update({"optimizer": optimizer.__class__.__name__})
@@ -296,7 +288,6 @@ def train(config: Config) -> None:
             f"Epoch: {epoch + 1}/{N_EPOCHS} \t Train Loss: {train_loss} | "
             + f"Validation Loss: {valid_loss}"
         )
-        scheduler.step(valid_loss)
         logger.info(
             f"Learing rates: Encoder {optimizer.param_groups[0]['lr']} | "
             + f"Predictor {optimizer.param_groups[1]['lr']}"
