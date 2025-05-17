@@ -14,7 +14,7 @@ data:
   seq_len: 0
   subseq_len: 40
   window_overlap: 0
-  prediction_step: 0
+  prediction_step: 1
   subset_size: 2000
   num_units: 9
   pred_channels: all
@@ -29,6 +29,7 @@ training:
     weights: null
     freeze: False
     learning_rate: 0.001
+    latent_dim: 32
   predictor:
     name: SimpleLTC
     learning_rate: 0.0005
