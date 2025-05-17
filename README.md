@@ -96,5 +96,22 @@ Run testing only after training is finished and the models are saved. By default
 
 Testing parameters are specified in the `config.yaml` file present in the `results_dir` directory. The config file is copied there during training.
 
-  
+## Hyper-parameter optimization ##
+
+For HPO, we use WandB Sweeps. The configuration can be found in `sweep.yaml`. To create a sweep, run:
+
+```bash
+wandb sweep sweep.yaml
+```
+
+And then, to run the sweep, execute:
+
+```bash
+wandb agent jankowskidaniel06-put/Neural-Deep-Retina-src/gkz5lk6b
+```
+
+Resources:
+
+https://docs.wandb.ai/guides/sweeps/add-w-and-b-to-your-code/
+https://docs.wandb.ai/guides/integrations/hydra/#optimize-hyperparameters
 

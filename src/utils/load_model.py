@@ -50,12 +50,21 @@ def load_model(config: Config) -> DeepRetinaModel:
     freeze = config.training.encoder.freeze
 
     # initialize encoder
-    encoder: Encoder = ENCODERS[enc_name](
-        input_shape=input_shape,
-        weights_path=weights_path_encoder,
-        freeze=freeze,
-        seq_len=config.data.seq_len,
-    )
+    if enc_name == "ShotSeqEncoder":
+        encoder: Encoder = ENCODERS[enc_name](
+            input_shape=input_shape,
+            weights_path=weights_path_encoder,
+            freeze=freeze,
+            seq_len=config.data.seq_len,
+            latent_dim=config.training.encoder.latent_dim,
+        )
+    else:
+        encoder: Encoder = ENCODERS[enc_name](
+            input_shape=input_shape,
+            weights_path=weights_path_encoder,
+            freeze=freeze,
+            seq_len=config.data.seq_len,
+        )
     encoder_output_shape = encoder.get_output_shape()
 
     # Resolve encoder weights

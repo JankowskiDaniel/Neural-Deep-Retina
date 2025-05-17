@@ -10,17 +10,21 @@ parameters:
     distribution: uniform
     min: 0.00001
     max: 0.1
+  "training.encoder.latent_dim":
+    values: [16, 32, 64]
+  "training.predictor.name":
+    values: ["SimpleLTC", "SimpleCFC"]
   "training.predictor.learning_rate":
     distribution: uniform
     min: 0.0001
     max: 0.3
   "training.predictor.hidden_size":
-    values: [10, 14, 16, 20]
+    values: [12, 14, 16, 20]
   "training.loss_function":
     values: ["mse", "bce_weighted"]
 early_terminate:
   type: hyperband
-  min_iter: 1
+  min_iter: 3
 
 command:
   - ${env}
