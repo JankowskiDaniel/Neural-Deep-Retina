@@ -46,17 +46,24 @@ class SingleLSTM(Predictor):
             self.load_state_dict(torch.load(weights_path))
 
     def forward(self, x):
+        print(f"SingleLSTM input shape: {x.shape}")
         out, _ = self.lstm(x)  # shape: (batch, seq_len, hidden_size)
         out = out[:, -1, :]
+        print(f"SingleLSTM output shape after LSTM: {out.shape}")
         out = self.dropout(out)
+        print(f"SingleLSTM output shape after dropout: {out.shape}")
         out = self.norm1(out)
+        print(f"SingleLSTM output shape after norm1: {out.shape}")
 
         residual = out
         out = self.l1(out)
+        print(f"SingleLSTM output shape after l1: {out.shape}")
         out = self.act0(out)
+        print(f"SingleLSTM output shape after act0: {out.shape}")
         out = out + residual  # Residual connection
-
+        print(f"SingleLSTM output shape after residual: {out.shape}")
         out = self.l2(out)
+        print(f"SingleLSTM output shape after l2: {out.shape}")
         if self.activation is not None:
             if self.activation == "relu":
                 out = self.relu(out)

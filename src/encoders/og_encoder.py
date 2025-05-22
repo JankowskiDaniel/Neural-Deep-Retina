@@ -60,45 +60,35 @@ class OgEncoder(nn.Module):
         self.conv1 = nn.Conv2d(
             in_channels=self.in_channels,
             out_channels=self.out_channels,
-            kernel_size=3,
+            kernel_size=15,
             stride=1,
-            padding=1,
+            padding=0,
         )
         self.flat1 = Flatten()
         self.bn1d1 = nn.BatchNorm1d(
-            self.out_channels * self.width * self.height,
+            self.out_channels * 36 * 36,
             momentum=0.01,
             eps=1e-3,
         )
         self.reshape1 = Reshape(
-            (-1, self.out_channels, self.width, self.height)
+            (-1, self.out_channels, 36, 36)
         )
-        self.relu1 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(
             in_channels=self.out_channels,
             out_channels=self.out_channels * 2,
-            kernel_size=3,
+            kernel_size=11,
             stride=1,
-            padding=1,
+            padding=0,
         )
         self.flat2 = Flatten()
         self.bn1d2 = nn.BatchNorm1d(
-            self.out_channels * 2 * self.width * self.height,
+            self.out_channels * 2 * 26 * 26,
             momentum=0.01,
             eps=1e-3,
         )
         self.reshape2 = Reshape(
-            (-1, self.out_channels * 2, self.width, self.height)
-        )
-        self.relu2 = nn.ReLU()
-
-        self.conv3 = nn.Conv2d(
-            in_channels=self.out_channels * 2,
-            out_channels=self.out_channels * 4,
-            kernel_size=3,
-            stride=1,
-            padding=1,
+            (-1, self.out_channels * 2, 26, 26)
         )
         self.flat3 = Flatten()
 
@@ -122,18 +112,15 @@ class OgEncoder(nn.Module):
                 x_t = self.flat1(x_t)
                 x_t = self.bn1d1(x_t)
                 x_t = self.reshape1(x_t)
-                x_t = self.relu1(x_t)
 
                 x_t = self.conv2(x_t)
                 x_t = self.flat2(x_t)
                 x_t = self.bn1d2(x_t)
                 x_t = self.reshape2(x_t)
-                x_t = self.relu2(x_t)
-
-                x_t = self.conv3(x_t)
                 x_t = self.flat3(x_t)
 
                 x_t = x_t.view(x_t.size(0), -1)  # (batch_size, 512)
+
                 latent_seq.append(x_t)
 
             x = torch.stack(latent_seq, dim=1)  # (batch_size, seq_len, 512)
@@ -143,17 +130,16 @@ class OgEncoder(nn.Module):
             x = self.flat1(x)
             x = self.bn1d1(x)
             x = self.reshape1(x)
-            x = self.relu1(x)
+            x = nn.ReLU()(x)
 
             x = self.conv2(x)
             x = self.flat2(x)
             x = self.bn1d2(x)
             x = self.reshape2(x)
-            x = self.relu2(x)
-
-            x = self.conv3(x)
+            x = nn.ReLU()(x)
             x = self.flat3(x)
 
+        # print(x.shape)
         return x
 
     def get_output_shape(self):

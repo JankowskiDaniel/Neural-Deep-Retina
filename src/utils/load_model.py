@@ -11,6 +11,7 @@ from encoders import (
     OgEncoder,
     ShotSeqEncoder,
 )
+from predictors.decoders import ShotSeqDecoder, OgDecoder
 from models.neural_retina import DeepRetinaModel
 
 PREDICTORS: dict[str, Predictor] = {
@@ -20,6 +21,8 @@ PREDICTORS: dict[str, Predictor] = {
     "OgLinear": OgLinear,
     "SimpleCFC": SimpleCFC,
     "SimpleLTC": SimpleLTC,
+    "ShotSeqDecoder": ShotSeqDecoder,
+    "OgDecoder": OgDecoder,
 }
 
 ENCODERS: dict[str, Encoder] = {

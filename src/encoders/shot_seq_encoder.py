@@ -12,6 +12,7 @@ class EncodingBlock(nn.Module):
         out_channels: int,
         pooling=nn.MaxPool2d(kernel_size=2, stride=2),
         activation=nn.ELU(),
+        kernel_size: int = 3,
     ) -> None:
         super(EncodingBlock, self).__init__()
 
@@ -19,7 +20,7 @@ class EncodingBlock(nn.Module):
             nn.Conv2d(
                 in_channels=in_channels,
                 out_channels=out_channels,
-                kernel_size=3,
+                kernel_size=kernel_size,
                 padding=1,
                 stride=1,
             ),
@@ -59,9 +60,9 @@ class ShotSeqEncoder(Encoder):
             EncodingBlock(4 * out_channels, out_channels),
         )
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(out_channels * 3 * 3, 32)
+        self.linear = nn.Linear(out_channels * 3 * 3, 256)
         self.activation = nn.Tanh()
-        self.bn1d = nn.BatchNorm1d(num_features=32)
+        self.bn1d = nn.BatchNorm1d(num_features=256)
 
         if weights_path is not None:
             self.load_state_dict(torch.load(weights_path))
@@ -95,7 +96,7 @@ class ShotSeqEncoder(Encoder):
             x = self.activation(x)
             x = self.bn1d(x)
             # Add a dummy dimension for the sequence length
-            x = x.unsqueeze(1)
+            # x = x.unsqueeze(1)
         return x
 
     def get_output_shape(self):

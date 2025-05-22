@@ -12,13 +12,14 @@ class SimpleCFC(Predictor):
         input_size: int,
         num_classes: int,
         weights_path: Path | None = None,
-        hidden_size: int = 16,
+        hidden_size: int = 32,
         activation: str | None = None,
     ) -> None:
         super(SimpleCFC, self).__init__()
+        self.l1 = nn.Linear(input_size, 64)
         wiring = AutoNCP(hidden_size, num_classes)
         self.cfc = CfC(
-            input_size,
+            64,
             wiring,
             batch_first=True,
             mixed_memory=True,
@@ -32,6 +33,9 @@ class SimpleCFC(Predictor):
             self.load_state_dict(torch.load(weights_path))
 
     def forward(self, x):
+        # print(x.shape)
+        x = self.l1(x)
+        x = x.unsqueeze(1)
         x, _ = self.cfc(x)
         if self.activation is not None:
             if self.activation == "relu":

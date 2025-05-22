@@ -9,6 +9,7 @@ from pathlib import Path
 from tqdm import tqdm
 from typing import Literal, Tuple, Any
 from logging import Logger
+import matplotlib.pyplot as plt
 
 from models.neural_retina import DeepRetinaModel
 from utils.metrics import (
@@ -129,6 +130,8 @@ def test_model(
             if is_classification:
                 sigmoid_outputs = torch.sigmoid(outputs)
                 binary_outputs = (sigmoid_outputs > 0.5).float()
+            else:
+                outputs = torch.relu(outputs)
 
             loss = loss_fn(outputs, targets)
             pbar.set_description(f"Test loss: {str(loss.item())}")
@@ -228,3 +231,109 @@ def check_gradients(model: DeepRetinaModel, logger: Logger) -> None:
                     "Vanishing gradient detected in "
                     + f"parameter: {name} with norm: {grad_norm}"
                 )
+
+
+def train_epoch_decoder(
+    model: DeepRetinaModel,
+    train_loader: DataLoader,
+    optimizer: Optimizer,
+    loss_fn: nn.Module,
+    device: Literal["cuda", "cpu"],
+    epoch: int,
+) -> float:
+    """
+    Trains the model for one epoch using the given data loader and optimizer.
+    Args:
+        model (DeepRetinaModel): The neural network model to train.
+        train_loader (DataLoader): The data loader containing the training data.
+        optimizer (Optimizer): The optimizer used to update the model's parameters.
+        loss_fn (nn.Module): The loss function used to compute the training loss.
+        device (Literal["cuda", "cpu"]): The device to use for training (e.g., "cuda" for GPU or "cpu" for CPU).
+        epoch (int): The current epoch number.
+    Returns:
+        float: The average training loss for the epoch.
+    """  # noqa: E501
+    model.train()
+    train_batch_losses = []
+    for data, _ in train_loader:
+        model.zero_grad()
+        images = data.to(device)
+        # targets = labels.to(device)
+        outputs = model(images)
+
+        # loss = loss_fn(outputs, targets)
+        loss = loss_fn(outputs, images)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        train_batch_losses.append(loss.item())
+    train_loss = np.sum(train_batch_losses) / len(train_batch_losses)
+    return train_loss
+
+
+def plot_reconstruction(
+    images: torch.Tensor,  # (batch_size, channels, height, width)
+    outputs: torch.Tensor,  # (batch_size, channels, height, width)
+) -> None:
+    """
+    Plot the first sample from the batch. The input and reconstructed images
+    are visualized as 40 grayscale images in two rows.
+
+    Row 1: Original input frames
+    Row 2: Reconstructed frames
+    """
+    # Take the first sample from batch
+    input_sample = images[0].detach().cpu()     # (40, 50, 50)
+    output_sample = outputs[0].detach().cpu()   # (40, 50, 50)
+
+    n_frames = input_sample.shape[0]  # 40
+    fig, axes = plt.subplots(2, n_frames, figsize=(n_frames * 1.2, 3))
+
+    for i in range(n_frames):
+        # Top row: input
+        axes[0, i].imshow(input_sample[i], cmap="gray", vmin=0, vmax=1)
+        axes[0, i].axis("off")
+        if i == 0:
+            axes[0, i].set_ylabel("Input", fontsize=12)
+
+        # Bottom row: reconstruction
+        axes[1, i].imshow(output_sample[i], cmap="gray", vmin=0, vmax=1)
+        axes[1, i].axis("off")
+        if i == 0:
+            axes[1, i].set_ylabel("Output", fontsize=12)
+    plt.tight_layout()
+    # save the figure
+    plt.savefig("reconstruction.png")
+
+
+def valid_epoch_decoder(
+    model: DeepRetinaModel,
+    valid_loader: DataLoader,
+    loss_fn: nn.Module,
+    device: Literal["cuda", "cpu"],
+) -> Tuple[float, dict]:
+    """
+    Calculates the average validation loss for a given model.
+    Args:
+        model (DeepRetinaModel): The model to be evaluated.
+        valid_loader (DataLoader): The data loader for the validation dataset.
+        loss_fn (nn.Module): The loss function used to calculate the loss.
+        device (Literal["cuda", "cpu"]): The device on which the model and data are located.
+        metric_tracker (MetricTracker): The metric tracker to track the evaluation metrics.
+    Returns:
+        Tuple[float, dict]: The average validation loss and a dictionary of evaluation metrics.
+    """  # noqa: E501
+    model.eval()
+    valid_batch_losses = []
+    with torch.no_grad():
+        for data, _ in valid_loader:
+            images = data.to(device)
+            # targets = labels.to(device)
+            outputs = model(images)
+
+            plot_reconstruction(images, outputs)
+            loss = loss_fn(outputs, images)
+            valid_batch_losses.append(loss.item())
+        valid_loss = np.sum(valid_batch_losses) / len(valid_batch_losses)
+    return valid_loss
