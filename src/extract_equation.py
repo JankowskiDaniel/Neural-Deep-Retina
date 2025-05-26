@@ -143,10 +143,10 @@ def evaluate_sindy_on_dataset(
     calculate_metrics(sindy_preds_array, cfc_preds, targets, logger)
 
     # Save predictions
-    pd.DataFrame(sindy_preds).to_csv(
-        results_dir / "sindy_preds.csv", index=False
+    pd.DataFrame(sindy_preds_array).to_csv(
+        results_dir / "sindy_pruned_preds.csv", index=False
     )
-    pd.DataFrame(cfc_preds).to_csv(results_dir / "cfc_preds.csv", index=False)
+    pd.DataFrame(cfc_preds).to_csv(results_dir / "cfc_pruned_preds.csv", index=False)
     pd.DataFrame(targets).to_csv(results_dir / "targets.csv", index=False)
 
 
@@ -273,7 +273,7 @@ def train(config: Config) -> None:
     num_params = sum(p.numel() for p in model.predictor.parameters() if p.requires_grad)
     logger.info(f"Number of trainable parameters in predictor: {num_params}")
     # Prune the model
-    # prune_model(model.predictor)
+    prune_model(model.predictor)
 
     y_scaler = MinMaxScaler()
 
@@ -365,13 +365,10 @@ def train(config: Config) -> None:
     all_h_dot = np.gradient(all_h_seq, dt, axis=0)
 
     poly_lib = ps.PolynomialLibrary(degree=3, include_interaction=True)
-    fourier_lib = ps.FourierLibrary(n_frequencies=5)
-    library = poly_lib + fourier_lib
+    #fourier_lib = ps.FourierLibrary(n_frequencies=2)
+    library = poly_lib # + fourier_lib
 
-    optimizer = ps.STLSQ(
-        threshold=0.2,
-        alpha=0.0,
-    )
+    optimizer = ps.SSR(alpha=0.05)
 
     sindy = ps.SINDy(
         feature_library=library,
