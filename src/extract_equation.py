@@ -15,6 +15,9 @@ from utils import (
 import pysindy as ps
 import hydra
 from scipy.integrate import solve_ivp
+import sympy as sp
+from joblib import Parallel, delayed
+import torch.nn.utils.prune as prune
 import sys
 
 
@@ -29,9 +32,7 @@ def rhs(t, h, model: ps.SINDy):
     return h_dot.flatten()
 
 
-def simulate_sindy_from_input(
-    model, sindy, input_sequence, dt=0.01, T=1.0, num_steps=100
-):
+def simulate_sindy_from_input(model, sindy, input_sequence, T=1.0, num_steps=100):
     """
     Simulate hidden dynamics from the initial latent using a SINDy model.
 
@@ -39,7 +40,6 @@ def simulate_sindy_from_input(
         model: your full PyTorch model with an encoder
         sindy: trained PySINDy model
         input_sequence: a single input (B=1, T, C, H, W) or batched sequence
-        dt: time step (s)
         T: total time to simulate (s)
         num_steps: number of time points (affects resolution)
 
@@ -83,10 +83,10 @@ def evaluate_sindy_on_dataset(
     data_loader,
     results_dir: Path,
     logger,
-    dt=0.01,
     T=1.0,
     num_steps=1000,
     max_batches=1,
+    n_cores=4,
 ):
     """
     Evaluate SINDy model by predicting final hidden state from the initial one,
@@ -105,6 +105,7 @@ def evaluate_sindy_on_dataset(
     """
     model.eval()
     device = next(model.parameters()).device
+    sindy_preds = []  # to store SINDy predictions
 
     for batch_idx, (images, targets) in enumerate(data_loader):
         if batch_idx >= max_batches:
@@ -124,25 +125,14 @@ def evaluate_sindy_on_dataset(
         sindy_preds = []  # predicted hidden states from SINDy
         targets = targets.cpu().numpy()  # shape: (B, T, C)
 
-        for b in tqdm(range(h_seq.shape[0]), desc="Processing samples"):
-            h0 = h_seq[b, 0]  # initial hidden state
-
-            # Simulate ODE with SINDy
-            t_eval = np.linspace(0, T, num_steps)
-            sol = solve_ivp(
-                rhs,
-                t_span=(0, T),
-                y0=h0,
-                t_eval=t_eval,
-                args=(sindy,),
-                method="RK45",
+        sindy_preds.extend(
+            Parallel(n_jobs=n_cores)(
+                delayed(process_sample)(b, h_seq, sindy, T, num_steps)
+                for b in tqdm(range(h_seq.shape[0]), desc="Processing samples")
             )
+        )
 
-            h_sindy = sol.y[:, -1]  # final hidden state from simulation
-
-            sindy_preds.append(h_sindy)
-
-    sindy_preds_array = np.array(sindy_preds)
+    sindy_preds_array = np.array(sindy_preds)  # shape: (B, H)
 
     # Calculate RELU on predictions
     sindy_preds_array = np.maximum(sindy_preds_array, 0)
@@ -184,6 +174,34 @@ def calculate_metrics(sindy_preds, cfc_preds, targets, logger):
     logger.info(f"Pearson correlation (CFC): {corr_cfc:.4f}")
 
 
+def process_sample(b, h_seq, sindy, T, num_steps):
+    """
+    Process a single sample for SINDy evaluation.
+    Args:
+        b: batch index
+        h_seq: hidden state sequence
+        sindy: trained SINDy model
+        T: total simulation time
+        num_steps: resolution of ODE solver
+    Returns:
+        h_sindy: final hidden state from SINDy simulation
+    """
+    h0 = h_seq[b, 0]  # initial hidden state
+
+    # Simulate ODE with SINDy
+    t_eval = np.linspace(0, T, num_steps)
+    sol = solve_ivp(
+        rhs,
+        t_span=(0, T),
+        y0=h0,
+        t_eval=t_eval,
+        args=(sindy,),
+        method="RK45",
+    )
+
+    return sol.y[:, -1]  # final hidden state from simulation
+
+
 def plot_sindy_results(t, h_sim, results_dir: Path) -> None:
     """
     Plot the results of the SINDy simulation.
@@ -204,14 +222,32 @@ def plot_sindy_results(t, h_sim, results_dir: Path) -> None:
     plt.close()
 
 
-@hydra.main(
-    config_path="../configs", config_name="config_sindy", version_base=None
-)
+def prune_model(module: torch.nn.Module) -> None:
+    """
+    Prune the weights of the model to reduce its size.
+    This function applies structured pruning to the weights of the module.
+    Args:
+        module: the PyTorch module to prune
+    """
+    parameters_to_prune = []
+    for name, module in module.named_modules():
+        if isinstance(module, torch.nn.Linear):
+            parameters_to_prune.append((module, "weight"))
+    print(f"Pruning {len(parameters_to_prune)} parameters in the model...")
+    prune.global_unstructured(
+        tuple(parameters_to_prune),
+        pruning_method=prune.L1Unstructured,
+        amount=0.2,
+    )
+    # Remove pruning reparameterization
+    for module, param_name in parameters_to_prune:
+        prune.remove(module, param_name)
+
+
+@hydra.main(config_path="../configs", config_name="config_sindy", version_base=None)
 def train(config: Config) -> None:
 
-    results_dir = Path(
-        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    )
+    results_dir = Path(hydra.core.hydra_config.HydraConfig.get().runtime.output_dir)
 
     # Create results directory if it doesn't exist
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -227,14 +263,17 @@ def train(config: Config) -> None:
     logger.info("Loading model...")
 
     if config.training.encoder.weights is not None:
-        logger.info(
-            f"Loading encoder weights from {config.training.encoder.weights}"
-        )
+        logger.info(f"Loading encoder weights from {config.training.encoder.weights}")
     if config.training.predictor.weights is not None:
         logger.info(
             f"Loading predictor weights from {config.training.predictor.weights}"
         )
     model = load_model(config)
+    # Check number of parameters
+    num_params = sum(p.numel() for p in model.predictor.parameters() if p.requires_grad)
+    logger.info(f"Number of trainable parameters in predictor: {num_params}")
+    # Prune the model
+    # prune_model(model.predictor)
 
     y_scaler = MinMaxScaler()
 
@@ -260,9 +299,7 @@ def train(config: Config) -> None:
     logger.info(f"Input data point shape: {X.shape}")
     logger.info(f"Target data point shape: {y.shape}")
 
-    logger.info(
-        f"Predictions will be made for channels: {train_dataset.pred_channels}"
-    )
+    logger.info(f"Predictions will be made for channels: {train_dataset.pred_channels}")
     TORCH_SEED = 12
 
     logger.info(f"Manually set PyTorch seed: {TORCH_SEED}")
@@ -331,7 +368,10 @@ def train(config: Config) -> None:
     fourier_lib = ps.FourierLibrary(n_frequencies=5)
     library = poly_lib + fourier_lib
 
-    optimizer = ps.STLSQ(threshold=0.1, alpha=0.0)
+    optimizer = ps.STLSQ(
+        threshold=0.2,
+        alpha=0.0,
+    )
 
     sindy = ps.SINDy(
         feature_library=library,
@@ -355,7 +395,7 @@ def train(config: Config) -> None:
     # Simulate
     logger.info("Simulating hidden dynamics from input...")
     t, h_sim = simulate_sindy_from_input(
-        model, sindy, images, dt=0.01, T=100, num_steps=10000
+        model, sindy, images, T=100, num_steps=10000
     )
 
     plot_sindy_results(t, h_sim, results_dir)
@@ -368,10 +408,10 @@ def train(config: Config) -> None:
         val_loader,
         results_dir=results_dir,
         logger=logger,
-        dt=0.01,
         T=100,
         num_steps=10000,
         max_batches=1,
+        n_cores=10,
     )
 
 

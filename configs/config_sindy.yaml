@@ -15,7 +15,7 @@ data:
   subseq_len: 40
   window_overlap: 0
   prediction_step: 0
-  subset_size: 2000
+  subset_size: 10000
   num_units: 9
   pred_channels: all
   is_classification: False
@@ -35,13 +35,13 @@ training:
     weights: pretrained_weights/best_predictor.pth
     hidden_size: 16
     activation: null
-  batch_size: 128
+  batch_size: 256
   epochs: 50
   early_stopping: True
   early_stopping_patience: 7
   save_logs: True
 testing:
-  batch_size: 128
+  batch_size: 256
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
