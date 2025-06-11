@@ -1,6 +1,6 @@
 hydra:
   run:
-    dir: results/test_hydra_mse
+    dir: results/test-new-shotseqencoder-1conv
 defaults:
   - _self_
   - curriculum/curriculum-schedule
@@ -8,43 +8,49 @@ defaults:
 data:
   data_handler: CurriculumBaselineRGBDataset
   img_dim: 50 # Spatial dimension of the input image
-  path: data/neural_code_data/ganglion_cell_data/15-10-07/naturalscene_with_val.h5
+  path: data/neural_code_data/retina/9_units.h5
   response_type: firing_rate_10ms
   is_rgb: False
   seq_len: 0
   subseq_len: 40
   window_overlap: 0
   prediction_step: 1
-  subset_size: 2000
+  subset_size: -1
   num_units: 9
   pred_channels: all
-  is_classification: True
+  is_classification: False
   class_epsilon: 0.001
 training:
   is_curriculum: False
   debug_mode: True
-  loss_function: bce_weighted
+  loss_function: mse
   encoder:
     name: ShotSeqEncoder
     weights: null
     freeze: False
     learning_rate: 0.001
-    latent_dim: 32
+    latent_dim: 64
   predictor:
-    name: SimpleLTC
-    learning_rate: 0.0005
+    name: SimpleCFC
+    learning_rate: 0.0003735
     weights: null
-    hidden_size: 16
-    activation: null
-  batch_size: 32
-  epochs: 50
+    hidden_size: 64
+    activation: "relu"
+    mixed_memory: False
+    mode: "pure"
+    inner_activation: "gelu"
+    backbone_units: 256
+    backbone_layers: 3
+    backbone_dropout: 0.1
+  batch_size: 2048
+  epochs: 40
   early_stopping: True
-  early_stopping_patience: 7
+  early_stopping_patience: 3
   save_logs: True
 testing:
-  batch_size: 32
+  batch_size: 2048
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
   run_on_test_data: True
-  run_on_train_data: True
+  run_on_train_data: False

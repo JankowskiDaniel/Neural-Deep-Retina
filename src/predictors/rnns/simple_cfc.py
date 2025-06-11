@@ -15,7 +15,7 @@ class SimpleCFC(Predictor):
         inner_activation: str = "lecun_tanh",
         output_activation: str | None = None,
         mixed_memory: bool = False,
-        mode = "default",
+        mode="default",
         backbone_units: int = 128,
         backbone_layers: int = 1,
         backbone_dropout: float = 0.0,
