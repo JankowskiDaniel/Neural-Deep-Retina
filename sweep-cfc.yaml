@@ -1,0 +1,35 @@
+program: src/train.py
+method: bayes
+metric:
+  goal: maximize
+  name: "training/valid_metrics.PearsonCorrCoef"
+parameters:
+  "training.encoder.latent_dim":
+    values: [32, 64, 100]
+  "training.predictor.learning_rate":
+    distribution: uniform
+    min: 0.0001
+    max: 0.03
+  "training.predictor.hidden_size":
+    values: [32, 64, 128]
+  "training.predictor.mixed_memory":
+    values: [True, False]
+  "training.predictor.mode":
+    values: ["default", "pure", "no_gate"]
+  "training.predictor.inner_activation":
+    values: ["lecun_tanh", "silu", "relu", "gelu", "tanh"]
+  "training.predictor.backbone_units":
+    values: [64, 128, 256]
+  "training.predictor.backbone_layers":
+    values: [1, 2, 3]
+  "training.predictor.backbone_dropout":
+    values: [0.0, 0.1, 0.2, 0.4]
+early_terminate:
+  type: hyperband
+  min_iter: 3
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args_no_hyphens}

@@ -84,7 +84,13 @@ def load_model(config: Config) -> DeepRetinaModel:
         weights_path=weights_path_predictor,
         num_classes=config.data.num_units,
         hidden_size=config.training.predictor.hidden_size,
-        activation=config.training.predictor.activation,
+        mixed_memory=config.training.predictor.mixed_memory,
+        mode=config.training.predictor.mode,
+        backbone_units=config.training.predictor.backbone_units,
+        backbone_layers=config.training.predictor.backbone_layers,
+        backbone_dropout=config.training.predictor.backbone_dropout,
+        inner_activation=config.training.predictor.inner_activation,
+        output_activation=config.training.predictor.activation,
     )
 
     model = DeepRetinaModel(
