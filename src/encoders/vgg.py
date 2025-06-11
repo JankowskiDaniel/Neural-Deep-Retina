@@ -21,6 +21,8 @@ class VGG16Encoder(Encoder):
             weights.url = str(weights_path)
         vgg16 = models.vgg16(weights=weights)
         self.features = nn.Sequential(*list(vgg16.features.children())[:10])
+        self.conv = nn.Conv2d(128, 1, kernel_size=3, stride=2, padding=1)
+        self.act = nn.ReLU()
         self.seq_len = seq_len
         # Freeze the encoder
         if freeze:
@@ -28,7 +30,13 @@ class VGG16Encoder(Encoder):
                 param.requires_grad = False
 
         # Dummy input to determine the output shape
+        # Change batch size to 1
+        input_shape = (
+            1,
+            *input_shape[1:],
+        )  # (batch_size, channels, height, width)
         self._dummy_input = torch.zeros(input_shape)
+        print(f"Dummy input shape: {self._dummy_input.shape}")
         self._output_shape = self._compute_output_shape()
 
     def forward(self, x):
@@ -37,10 +45,12 @@ class VGG16Encoder(Encoder):
             # batch
             for t in range(self.seq_len):
                 x_t = self.features(x[:, t])
-                x_t = x_t.view(x_t.size(0), -1)  # (batch_size, 512)
+                x_t = self.conv(x_t)  # (batch_size, 1, H, W)
+                x_t = self.act(x_t)
+                x_t = x_t.view(x_t.size(0), -1)  # (batch_size, 144)
                 latent_seq.append(x_t)
 
-            x = torch.stack(latent_seq, dim=1)  # (batch_size, seq_len, 512)
+            x = torch.stack(latent_seq, dim=1)  # (batch_size, seq_len, 144)
 
         else:  # single image, not processed as a sequence
             x = self.features(x)

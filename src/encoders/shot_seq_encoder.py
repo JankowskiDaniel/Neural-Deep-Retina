@@ -41,6 +41,7 @@ class ShotSeqEncoder(Encoder):
         weights_path: Path | None = None,
         freeze: bool = False,
         seq_len: int = 1,
+        latent_dim: int = 32,
     ) -> None:
         super(ShotSeqEncoder, self).__init__()
 
@@ -59,9 +60,9 @@ class ShotSeqEncoder(Encoder):
             EncodingBlock(4 * out_channels, out_channels),
         )
         self.flatten = nn.Flatten()
-        self.linear = nn.Linear(out_channels * 3 * 3, 32)
+        self.linear = nn.Linear(out_channels * 3 * 3, latent_dim)
         self.activation = nn.Tanh()
-        self.bn1d = nn.BatchNorm1d(num_features=32)
+        self.bn1d = nn.BatchNorm1d(num_features=latent_dim)
 
         if weights_path is not None:
             self.load_state_dict(torch.load(weights_path))

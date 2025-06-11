@@ -1,6 +1,6 @@
 hydra:
   run:
-    dir: results/test_hydra_mse
+    dir: results/test_hydra_bce_fix9
 defaults:
   - _self_
   - curriculum/curriculum-schedule
@@ -15,7 +15,7 @@ data:
   subseq_len: 40
   window_overlap: 0
   prediction_step: 1
-  subset_size: 2000
+  subset_size: -1
   num_units: 9
   pred_channels: all
   is_classification: False
@@ -23,25 +23,26 @@ data:
 training:
   is_curriculum: False
   debug_mode: True
-  loss_function: bce_weighted
+  loss_function: bce_pdf_weighted
   encoder:
     name: ShotSeqEncoder
     weights: null
     freeze: False
     learning_rate: 0.001
+    latent_dim: 32
   predictor:
-    name: SimpleLTC
-    learning_rate: 0.0005
+    name: SimpleCFC
+    learning_rate: 0.001
     weights: null
-    hidden_size: 16
-    activation: null
-  batch_size: 32
-  epochs: 50
+    hidden_size: 32
+    activation: sigmoid
+  batch_size: 4096
+  epochs: 40
   early_stopping: True
-  early_stopping_patience: 7
+  early_stopping_patience: 5
   save_logs: True
 testing:
-  batch_size: 32
+  batch_size: 4096
   weights: "best.pth"
   metrics: ["mae", "mse"]
   save_logs: True
