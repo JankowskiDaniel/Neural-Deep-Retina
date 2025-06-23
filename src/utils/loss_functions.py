@@ -24,9 +24,15 @@ class FrequencyWeightedMSELoss(nn.Module):
 
 
 class BinaryPDFWeightedBCEWithLogitsLoss(nn.Module):
-    def __init__(self, weights: torch.Tensor, threshold: float = 0.1):
+    def __init__(
+        self,
+        weights: torch.Tensor,
+        threshold: float = 0.1,
+        alpha: float = 0.07,
+    ):
         super(BinaryPDFWeightedBCEWithLogitsLoss, self).__init__()
-        self.weights = weights
+        self.weights = weights * alpha
+        self.weights[self.weights < 1.0] = 1.0
         self.threshold = threshold
 
     def forward(self, input, target):
@@ -53,8 +59,14 @@ class BinaryPDFWeightedBCEWithLogitsLoss(nn.Module):
         ).sum()
 
         loss = pos_loss + neg_loss
+        loss = -loss / target.numel()
 
-        return -loss / target.numel()
+        # Penalize positive sample if too high
+        loss += ((input[mask] - target[mask]) ** 2).sum() / target[
+            mask
+        ].numel()
+
+        return loss
 
 
 class TverskyLossMultiLabel(nn.Module):
